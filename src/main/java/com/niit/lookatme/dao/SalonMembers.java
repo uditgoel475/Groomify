@@ -15,6 +15,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
@@ -44,59 +45,63 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	@Column(name = "EMPLOYEE_ID", updatable = false, nullable = false)
 	private Long id;
 
-	@Column(name = "NAME", nullable = false, columnDefinition = "Employee Name")
+	@Column(name = "NAME", nullable = false)
 	private String name;
 
-	@Column(name = "USERNAME", nullable = false, columnDefinition = "Employee User Id")
+	@Column(name = "USERNAME", nullable = false)
 	private String username;
 
-	@Column(name = "PICTURE_URL", columnDefinition = "Employee Passport Picture")
+	@Column(name = "PICTURE_URL")
 	private String pictureUrl;
 
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "PASSWORD", updatable = false, referencedColumnName = "PASSWORD_ID", columnDefinition = "Employee Login Password Definition")
+	@JoinColumn(name = "PASSWORD", updatable = false, referencedColumnName = "PASSWORD_ID")
 	private Password password;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "SCHEDULE", referencedColumnName = "SCHEDULE_ID", columnDefinition = "Employee Schedule")
+	@JoinColumn(name = "SCHEDULE", referencedColumnName = "SCHEDULE_ID")
 	private EmployeeRoster schedule;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "QUALIFICATION", referencedColumnName = "QUALIFICATION_ID", columnDefinition = "Employee Qualification")
+	@JoinColumn(name = "QUALIFICATION", referencedColumnName = "QUALIFICATION_ID")
 	private EmployeeQualification qualification;
 
-	@Column(name = "IS_OVERTIME_WORKER", columnDefinition = "Employee is ready for overtime or on call if needed")
+	@Column(name = "IS_OVERTIME_WORKER", columnDefinition = "boolean default false")
 	private boolean isOvertimeWorker;
 
 	// To be corrected
 	@ManyToMany(cascade = { CascadeType.ALL })
+	@JoinTable(
+			  name = "SKILLSET", 
+			  joinColumns = @JoinColumn(name = "MEMBER_ID"), 
+			  inverseJoinColumns = @JoinColumn(name = "SKILL_ID"))
 	private SkillSet skills;
 
-	@Column(name = "PRIMARY_CONTACT", nullable = false, columnDefinition = "Employee Primary Contact")
+	@Column(name = "PRIMARY_CONTACT", nullable = false, columnDefinition = "integer default 0000000000")
 	private long primaryContact;
 
-	@Column(name = "SECONDARY_CONTACT", columnDefinition = "Employee Secondary Contact")
+	@Column(name = "SECONDARY_CONTACT")
 	private long secondaryContact;
 
-	@Column(name = "WHATSAPP_CONTACT", columnDefinition = "Employee Whatsapp Contact")
+	@Column(name = "WHATSAPP_CONTACT")
 	private long whatsappContact;
 
-	@Column(name = "EMAIL", columnDefinition = "Employee Email")
+	@Column(name = "EMAIL")
 	private String email;
 
-	@Column(name = "REGISTRATION_ID", nullable = false, unique = true, columnDefinition = "Employee Regiatration Id")
+	@Column(name = "REGISTRATION_ID", nullable = false, unique = true)
 	private String regId;
 
 	@Enumerated(EnumType.STRING)
-	@Column(length = 10, name = "GENDER", columnDefinition = "Employee Gender")
+	@Column(length = 10, name = "GENDER", columnDefinition = "varchar(20) default MALE")
 	private Gender gender;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@Column(name = "ADDRESS", columnDefinition = "Employee Address")
+	@JoinColumn(name = "ADDRESS_FK")
 	private Address address;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@Column(name = "GOVT_ID_TYPE", nullable = false)
+	@JoinColumn(name = "GOVT_ID_TYPE_FK")
 	private GovtIdType govtIdType;
 
 	@Column(name = "GOVT_ID", nullable = false)
@@ -116,7 +121,7 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	@Column(name = "LEAVING_DATE")
 	private Date leavingDate;
 
-	@Column(name = "IS_ADMIN_USER", nullable = false)
+	@Column(name = "IS_ADMIN_USER", nullable = false, columnDefinition = "boolean default false")
 	private boolean isAdminUser;
 
 

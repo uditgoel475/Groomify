@@ -16,10 +16,10 @@ public class GovtIdType {
 	@Column(name = "TYPE_ID")
 	private Long id;
 
-	@Column(name = "TYPE_NAME", nullable = false, columnDefinition = "Govt ID Type Name")
+	@Column(name = "TYPE_NAME", nullable = false)
 	private String typeName;
 	
-	@Column(name = "REGEX", nullable = false, columnDefinition = "Regex String for Govt Id")
+	@Column(name = "REGEX", nullable = false)
 	private String regex;
 
 	/**

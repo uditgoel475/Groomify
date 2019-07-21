@@ -8,12 +8,17 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "SkillSet")
-public class SkillSet {
+@Table(name = "Skills")
+public class Skills {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "SKILLSET_ID", nullable=false, updatable = false)
+	@Column(name = "SKILL_ID", nullable=false, updatable = false)
 	private Long id;
-  
+	
+	@Column(name = "NAME", nullable = false)
+	private String name;
+	
+	@Column(name = "IS_SKILL_ACTIVE", unique=true, columnDefinition = "boolean default true")
+	private boolean isSkillActive;
 }

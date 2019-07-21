@@ -27,34 +27,34 @@ public class Customers extends AuditInfo{
 	@Column(name="CUSTOMER_ID", updatable = false, nullable = false)
     private Long id;
 	
-	@Column(name = "NAME", nullable = false, columnDefinition = "Customer Name")
+	@Column(name = "NAME", nullable = false)
 	private String name;
 
-	@Column(name = "USERNAME", nullable = false, columnDefinition = "Customer User Id")
+	@Column(name = "USERNAME", nullable = false)
 	private String username;
 
-	@Column(name = "PICTURE_URL", columnDefinition = "Customer Passport Picture")
+	@Column(name = "PICTURE_URL")
 	private String pictureUrl;
 
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "PASSWORD", updatable = false, referencedColumnName = "PASSWORD_ID", columnDefinition = "Customer Login Password Definition")
+	@JoinColumn(name = "PASSWORD", updatable = false, referencedColumnName = "PASSWORD_ID")
 	private Password password;
 	
-	@Column(name = "EMAIL", columnDefinition = "Customer Email")
+	@Column(name = "EMAIL")
 	private String email;
 	
 	@Enumerated(EnumType.STRING)
-	@Column(length = 10, name = "GENDER", columnDefinition = "Customer Gender")
+	@Column(length = 10, name = "GENDER")
 	private Gender gender;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@Column(name = "ADDRESS", columnDefinition = "Customer Address")
+	@JoinColumn(name = "ADDRESS_FK")
 	private Address address;
 	
-	@Column(name = "CONTACT", nullable = false, columnDefinition = "Customer's Contact")
+	@Column(name = "CONTACT", nullable = false, columnDefinition = "integer default 0000000000")
 	private long contact;
 	
-	@Column(name = "ALTERNATE_CONTACT", columnDefinition = "Customer's Alternate Contact")
+	@Column(name = "ALTERNATE_CONTACT")
 	private long alternateContact;
 
 	/**

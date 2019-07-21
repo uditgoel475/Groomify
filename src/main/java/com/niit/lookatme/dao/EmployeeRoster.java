@@ -22,21 +22,21 @@ public class EmployeeRoster {
 	@Column(name = "SCHEDULE_ID")
 	private Long id;
 	
-	@Column(name = "IN_TIME", nullable = false, columnDefinition = "Schedule Start Time")
+	@Column(name = "IN_TIME", nullable = false)
 	private Time inTime;
 	
-	@Column(name = "OUT_TIME", nullable = false, columnDefinition = "Schedule End Time")
+	@Column(name = "OUT_TIME", nullable = false)
 	private Time outTime;
 	
 	@Enumerated(value = EnumType.STRING)
-	@Column(name = "WEEK_START_DAY", columnDefinition = "Start day of the week, starting Sunday")
+	@Column(name = "WEEK_START_DAY", columnDefinition = "varchar(255) default MONDAY")
 	private DayOfWeek weekStartDay;
 	
 	@Enumerated(value = EnumType.STRING)
-	@Column(name = "WEEK_END_DAY", columnDefinition = "End day of the week, starting Sunday")	
+	@Column(name = "WEEK_END_DAY", columnDefinition = "varchar(255) default SUNDAY")	
 	private DayOfWeek weekEndDay;
 	
-	@Column(name = "SHIFT_STATUS", columnDefinition = "Is this schedule active")
+	@Column(name = "SHIFT_STATUS", columnDefinition = "boolean default true")
 	private boolean shiftStatus;
 
 	/**

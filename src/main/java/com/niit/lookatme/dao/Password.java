@@ -29,16 +29,16 @@ public class Password {
 	@Column(name = "EMPLOYEE_ID")
 	private Long id;
 	
-	@Column(name = "PASSWORD_1", nullable = false, columnDefinition = "Contains the first password")
+	@Column(name = "PASSWORD_1", nullable = false)
 	private String password1;
 	
-	@Column(name = "PASSWORD_2", columnDefinition = "Contains the second password")
+	@Column(name = "PASSWORD_2")
 	private String password2;
-	@Column(name = "PASSWORD_3", columnDefinition = "Contains the third password")
+	@Column(name = "PASSWORD_3")
 	private String password3;
-	@Column(name = "PASSWORD_4", columnDefinition = "Contains the fourth password")
+	@Column(name = "PASSWORD_4")
 	private String password4;
-	@Column(name = "PASSWORD_5", columnDefinition = "Contains the fifth password")
+	@Column(name = "PASSWORD_5")
 	private String password5;
 	
 	@Column(name = "CREATION_DATE")
