@@ -1,0 +1,120 @@
+package com.niit.lookatme.dao;
+
+import java.sql.Time;
+import java.time.DayOfWeek;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "SCHEDULE")
+public class EmployeeRoster {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "SCHEDULE_ID")
+	private Long id;
+	
+	@Column(name = "IN_TIME", nullable = false, columnDefinition = "Schedule Start Time")
+	private Time inTime;
+	
+	@Column(name = "OUT_TIME", nullable = false, columnDefinition = "Schedule End Time")
+	private Time outTime;
+	
+	@Enumerated(value = EnumType.STRING)
+	@Column(name = "WEEK_START_DAY", columnDefinition = "Start day of the week, starting Sunday")
+	private DayOfWeek weekStartDay;
+	
+	@Enumerated(value = EnumType.STRING)
+	@Column(name = "WEEK_END_DAY", columnDefinition = "End day of the week, starting Sunday")	
+	private DayOfWeek weekEndDay;
+	
+	@Column(name = "SHIFT_STATUS", columnDefinition = "Is this schedule active")
+	private boolean shiftStatus;
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+
+	/**
+	 * @return the inTime
+	 */
+	public Date getInTime() {
+		return inTime;
+	}
+
+	/**
+	 * @return the outTime
+	 */
+	public Date getOutTime() {
+		return outTime;
+	}
+
+	/**
+	 * @return the weekStartDay
+	 */
+	public DayOfWeek getWeekStartDay() {
+		return weekStartDay;
+	}
+
+	/**
+	 * @return the weekEndDay
+	 */
+	public DayOfWeek getWeekEndDay() {
+		return weekEndDay;
+	}
+
+	/**
+	 * @return the shiftStatus
+	 */
+	public boolean isShiftStatus() {
+		return shiftStatus;
+	}
+
+	/**
+	 * @param weekStartDay the weekStartDay to set
+	 */
+	public void setWeekStartDay(DayOfWeek weekStartDay) {
+		this.weekStartDay = weekStartDay;
+	}
+
+	/**
+	 * @param weekEndDay the weekEndDay to set
+	 */
+	public void setWeekEndDay(DayOfWeek weekEndDay) {
+		this.weekEndDay = weekEndDay;
+	}
+
+	/**
+	 * @param shiftStatus the shiftStatus to set
+	 */
+	public void setShiftStatus(boolean shiftStatus) {
+		this.shiftStatus = shiftStatus;
+	}
+
+	/**
+	 * @param inTime the inTime to set
+	 */
+	public void setInTime(Time inTime) {
+		this.inTime = inTime;
+	}
+
+	/**
+	 * @param outTime the outTime to set
+	 */
+	public void setOutTime(Time outTime) {
+		this.outTime = outTime;
+	}
+	
+	
+}
