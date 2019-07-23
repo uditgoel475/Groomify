@@ -13,6 +13,11 @@ import javax.persistence.Table;
 @Table(name = "GOVT_ID_TYPE")
 public class GovtIdType implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3892424895642409524L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "TYPE_ID")

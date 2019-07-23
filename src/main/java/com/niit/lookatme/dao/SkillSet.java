@@ -2,13 +2,16 @@ package com.niit.lookatme.dao;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "SkillSet")
+@Table(name = "SKILLSET")
 public class SkillSet {
 
 	@Id
@@ -16,8 +19,12 @@ public class SkillSet {
 	@Column(name = "SKILLSET_ID", nullable=false, updatable = false)
 	private Long id;
 	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "SKILLS", referencedColumnName = "SKILL_ID")
 	private Skills skills;
 	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "EMPLOYEE", referencedColumnName = "EMPLOYEE_ID")
 	private SalonMembers salonMembers;
 
 	/**

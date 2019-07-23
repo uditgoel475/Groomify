@@ -26,7 +26,7 @@ public class Password {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "EMPLOYEE_ID")
+	@Column(name = "PASSWORD_ID")
 	private Long id;
 	
 	@Column(name = "PASSWORD_1", nullable = false)
@@ -41,11 +41,11 @@ public class Password {
 	@Column(name = "PASSWORD_5")
 	private String password5;
 	
-	@Column(name = "CREATION_DATE")
-	private Date creationDate;
+	@Column(name = "PWD_CREATION_DATE")
+	private Date pwdCreationDate;
 	
-	@Column(name = "CREATION_DATE")
-	private Date expirationDate;
+	@Column(name = "PWD_EXPIRATION_DATE")
+	private Date pwdExpirationDate;
 	
 	@Transient
 	private String lastPassword;
@@ -92,20 +92,7 @@ public class Password {
 		return password5;
 	}
 
-	/**
-	 * @return the creationDate
-	 */
-	public Date getCreationDate() {
-		return creationDate;
-	}
-
-	/**
-	 * @return the expirationDate
-	 */
-	public Date getExpirationDate() {
-		return expirationDate;
-	}
-
+	
 	/**
 	 * @param password1 the password1 to set
 	 */
@@ -141,20 +128,24 @@ public class Password {
 		this.password5 = password5;
 	}
 
-	/**
-	 * @param creationDate the creationDate to set
-	 */
-	public void setCreationDate(Date creationDate) {
-		this.creationDate = creationDate;
+	
+	
+	public Date getPwdCreationDate() {
+		return pwdCreationDate;
 	}
 
-	/**
-	 * @param expirationDate the expirationDate to set
-	 */
-	public void setExpirationDate(Date expirationDate) {
-		this.expirationDate = expirationDate;
+	public Date getPwdExpirationDate() {
+		return pwdExpirationDate;
 	}
-	
+
+	public void setPwdCreationDate(Date pwdCreationDate) {
+		this.pwdCreationDate = pwdCreationDate;
+	}
+
+	public void setPwdExpirationDate(Date pwdExpirationDate) {
+		this.pwdExpirationDate = pwdExpirationDate;
+	}
+
 	@Transient
 	public String getLastPassword() {
 		if(!StringUtils.isEmpty(password5))
@@ -172,11 +163,11 @@ public class Password {
 	
 	@Transient
 	public long passwordAge() {
-		return TimeUnit.DAYS.convert(Calendar.getInstance().getTimeInMillis() - creationDate.getTime(), TimeUnit.MILLISECONDS);
+		return TimeUnit.DAYS.convert(Calendar.getInstance().getTimeInMillis() - pwdCreationDate.getTime(), TimeUnit.MILLISECONDS);
 	}
 	
 	public boolean isPasswordExpired() {
-		return Calendar.getInstance().getTimeInMillis() - expirationDate.getTime() > 0;
+		return Calendar.getInstance().getTimeInMillis() - pwdExpirationDate.getTime() > 0;
 	}
 
 }

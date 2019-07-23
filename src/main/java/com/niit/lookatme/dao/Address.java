@@ -35,14 +35,7 @@ public class Address extends AuditInfo{
 	@Column(name ="ADDRESS_3")
 	private String address3;
 	
-	@Column(name ="CITY", nullable=false)
-	private String city;
-	
-	@Column(name ="STATE", nullable=false)
-	private String state;
-	
-	@Column(name ="COUNTRY", nullable=false, columnDefinition = "varchar(40) default India")
-	private String country;
+	private AddressMeta addressMeta;
 	
 	@Column(name ="POSTAL_CODE", nullable=false)
 	private int postalCode;
@@ -75,26 +68,7 @@ public class Address extends AuditInfo{
 		return address3;
 	}
 
-	/**
-	 * @return the city
-	 */
-	public String getCity() {
-		return city;
-	}
-
-	/**
-	 * @return the state
-	 */
-	public String getState() {
-		return state;
-	}
-
-	/**
-	 * @return the country
-	 */
-	public String getCountry() {
-		return country;
-	}
+	
 
 	/**
 	 * @return the postalCode
@@ -122,27 +96,6 @@ public class Address extends AuditInfo{
 	 */
 	public void setAddress3(String address3) {
 		this.address3 = address3;
-	}
-
-	/**
-	 * @param city the city to set
-	 */
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	/**
-	 * @param state the state to set
-	 */
-	public void setState(String state) {
-		this.state = state;
-	}
-
-	/**
-	 * @param country the country to set
-	 */
-	public void setCountry(String country) {
-		this.country = country;
 	}
 
 	/**

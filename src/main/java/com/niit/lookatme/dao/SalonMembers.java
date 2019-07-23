@@ -86,7 +86,7 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	private Gender gender;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ADDRESS_FK")
+	@JoinColumn(name = "ADDRESS", referencedColumnName = "ADDRESS_ID")
 	private Address address;
 
 	@ManyToOne(fetch = FetchType.LAZY)
