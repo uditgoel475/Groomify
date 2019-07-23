@@ -1,5 +1,7 @@
 package com.niit.lookatme.dao;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -12,6 +14,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 @Entity
 @Table(name="CUSTOMERS")
@@ -33,14 +37,14 @@ public class Customers extends AuditInfo{
 	@Column(name = "USERNAME", nullable = false)
 	private String username;
 
-	@Column(name = "PICTURE_URL")
+	@Column(name = "PICTURE_URL", unique=true)
 	private String pictureUrl;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "PASSWORD", updatable = false, referencedColumnName = "PASSWORD_ID")
 	private Password password;
 	
-	@Column(name = "EMAIL")
+	@Column(name = "EMAIL", unique=true)
 	private String email;
 	
 	@Enumerated(EnumType.STRING)
@@ -48,14 +52,22 @@ public class Customers extends AuditInfo{
 	private Gender gender;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ADDRESS_FK")
-	private Address address;
+	@JoinColumn(name = "BILLING_ADDRESS")
+	private Address billingAddress;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "SHIPPING_ADDRESS")
+	private Address shippingAddress;
 	
 	@Column(name = "CONTACT", nullable = false, columnDefinition = "integer default 0000000000")
 	private long contact;
 	
 	@Column(name = "ALTERNATE_CONTACT")
 	private long alternateContact;
+	
+	@Temporal(value = TemporalType.DATE)
+	@Column(name ="EXPIRATION_DATE")
+	private Date expirationDate;
 
 	/**
 	 * @return the id
@@ -106,12 +118,7 @@ public class Customers extends AuditInfo{
 		return gender;
 	}
 
-	/**
-	 * @return the address
-	 */
-	public Address getAddress() {
-		return address;
-	}
+	
 
 	/**
 	 * @return the contact
@@ -125,6 +132,14 @@ public class Customers extends AuditInfo{
 	 */
 	public long getAlternateContact() {
 		return alternateContact;
+	}
+
+	public Date getExpirationDate() {
+		return expirationDate;
+	}
+
+	public void setExpirationDate(Date expirationDate) {
+		this.expirationDate = expirationDate;
 	}
 
 	/**
@@ -169,11 +184,34 @@ public class Customers extends AuditInfo{
 		this.gender = gender;
 	}
 
+	
+
 	/**
-	 * @param address the address to set
+	 * @return the billingAddress
 	 */
-	public void setAddress(Address address) {
-		this.address = address;
+	public Address getBillingAddress() {
+		return billingAddress;
+	}
+
+	/**
+	 * @return the shippingAddress
+	 */
+	public Address getShippingAddress() {
+		return shippingAddress;
+	}
+
+	/**
+	 * @param billingAddress the billingAddress to set
+	 */
+	public void setBillingAddress(Address billingAddress) {
+		this.billingAddress = billingAddress;
+	}
+
+	/**
+	 * @param shippingAddress the shippingAddress to set
+	 */
+	public void setShippingAddress(Address shippingAddress) {
+		this.shippingAddress = shippingAddress;
 	}
 
 	/**

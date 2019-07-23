@@ -5,7 +5,6 @@ import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -15,8 +14,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -51,7 +48,7 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	@Column(name = "USERNAME", nullable = false)
 	private String username;
 
-	@Column(name = "PICTURE_URL")
+	@Column(name = "PICTURE_URL", unique=true)
 	private String pictureUrl;
 
 	@OneToOne(fetch = FetchType.LAZY)
@@ -68,14 +65,6 @@ public class SalonMembers extends AuditInfo implements Serializable {
 
 	@Column(name = "IS_OVERTIME_WORKER", columnDefinition = "boolean default false")
 	private boolean isOvertimeWorker;
-
-	// To be corrected
-	@ManyToMany(cascade = { CascadeType.ALL })
-	@JoinTable(
-			  name = "SKILLSET", 
-			  joinColumns = @JoinColumn(name = "MEMBER_ID"), 
-			  inverseJoinColumns = @JoinColumn(name = "SKILL_ID"))
-	private SkillSet skills;
 
 	@Column(name = "PRIMARY_CONTACT", nullable = false, columnDefinition = "integer default 0000000000")
 	private long primaryContact;
@@ -107,7 +96,7 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	@Column(name = "GOVT_ID", nullable = false)
 	private String govtId;
 
-	@Column(name = "GOVT_ID_SNAP_URL")
+	@Column(name = "GOVT_ID_SNAP_URL",unique=true)
 	private String govtIdSnapUrl;
 
 	@Column(name = "SALARY", nullable = false)
@@ -124,7 +113,9 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	@Column(name = "IS_ADMIN_USER", nullable = false, columnDefinition = "boolean default false")
 	private boolean isAdminUser;
 
-
+	@Enumerated(EnumType.STRING)
+	@Column(length = 2, name = "RATING")
+	private Rating rating;
 
 	/**
 	 * @return the id
@@ -166,13 +157,6 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	 */
 	public EmployeeQualification getQualification() {
 		return qualification;
-	}
-
-	/**
-	 * @return the skills
-	 */
-	public SkillSet getSkills() {
-		return skills;
 	}
 
 	/**
@@ -310,13 +294,6 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	 */
 	public void setQualification(EmployeeQualification qualification) {
 		this.qualification = qualification;
-	}
-
-	/**
-	 * @param skills the skills to set
-	 */
-	public void setSkills(SkillSet skills) {
-		this.skills = skills;
 	}
 
 	/**
