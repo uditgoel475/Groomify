@@ -40,6 +40,17 @@ public class AddressMeta implements Serializable{
 	@Column(name ="CITY", nullable=false)
 	private String city;
 	
+	@Column(name ="REGION")
+	private String region;
+	
+	public AddressMeta(String country, String state, String city, String region) {
+		super();
+		this.country = country;
+		this.region = region;
+		this.state = state;
+		this.city = city;
+	}
+
 	/**
 	 * @return the id
 	 */
