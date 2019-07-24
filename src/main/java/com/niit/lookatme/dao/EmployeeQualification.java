@@ -1,5 +1,7 @@
 package com.niit.lookatme.dao;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,7 +16,12 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "QUALIFICATION")
-public class EmployeeQualification {
+public class EmployeeQualification implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3232401916232956454L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

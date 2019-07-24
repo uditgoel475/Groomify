@@ -9,6 +9,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.ColumnDefault;
+
 /**
  * 
  * @author ugoel1
@@ -28,7 +30,8 @@ public class AddressMeta implements Serializable{
 	@Column(name = "ADDRESS_META_ID", nullable = false, updatable = false)
     private Long id;
 	
-	@Column(name ="COUNTRY", nullable=false, columnDefinition = "varchar(40) default India")
+	@Column(name ="COUNTRY", nullable=false)
+	@ColumnDefault("'India'")
 	private String country;
 	
 	@Column(name ="STATE", nullable=false)

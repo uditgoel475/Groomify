@@ -10,6 +10,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import com.niit.lookatme.dao.Address;
 import com.niit.lookatme.dao.AuditInfo;
 
@@ -30,44 +32,45 @@ public class VendorProductStock extends AuditInfo {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "EMPLOYEE_ID", updatable = false, nullable = false)
+	@Column(name = "VENDOR_PRODUCT_STOCK_ID", updatable = false, nullable = false)
 	private Long id;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "VENDOR", referencedColumnName = "VENDOR_ID")
 	private Vendor vendor;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "PRODUCT", referencedColumnName = "PRODUCT_ID")
 	private Product product;
-	
-	@Column(name = "PRODUCT_STOCK", nullable=false)
-	private int productStock;
-	
+
+	@Column(name = "PRODUCT_STOCK", nullable = false)
+	private Integer productStock;
+
 	@Column(name = "MAX_BUY_PRODUCT")
-	private int maxBuyProduct;
+	private Integer maxBuyProduct;
 
 	@Column(name = "SHIPPING_CHARGES")
-	private double shippingCharges;
-	
+	private Double shippingCharges;
+
 	@Column(name = "DELIVERY_CAHRGES")
-	private double deliveryCharges;
-	
-	@Column(name = "SPECIAL_NOTE", columnDefinition="varchar(500)")
+	private Double deliveryCharges;
+
+	@Column(name = "SPECIAL_NOTE")
 	private String specialNote;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "WAREHOUSE_ADDRESS", referencedColumnName = "ADDRESS_ID")
 	private Address warehouseAddress;
-	
-	@Column(name = "PRODUCT_PRICE", nullable=false)
-	private float productPrice;
-	
-	@Column(name = "DISCOUNT_PERCENT", nullable=false)
-	private float discountPercent;
-	
-	@Column(name = "IS_PRODUCT_ALIVE", nullable=false, columnDefinition = "boolean default true")
-	private boolean isProductAlive;
+
+	@Column(name = "PRODUCT_PRICE", nullable = false)
+	private Float productPrice;
+
+	@Column(name = "DISCOUNT_PERCENT", nullable = false)
+	private Float discountPercent;
+
+	@Column(name = "IS_PRODUCT_ALIVE", nullable = false)
+	@ColumnDefault("true")
+	private Boolean isProductAlive;
 
 	public Long getId() {
 		return id;
@@ -81,19 +84,19 @@ public class VendorProductStock extends AuditInfo {
 		return product;
 	}
 
-	public int getProductStock() {
+	public Integer getProductStock() {
 		return productStock;
 	}
 
-	public int getMaxBuyProduct() {
+	public Integer getMaxBuyProduct() {
 		return maxBuyProduct;
 	}
 
-	public double getShippingCharges() {
+	public Double getShippingCharges() {
 		return shippingCharges;
 	}
 
-	public double getDeliveryCharges() {
+	public Double getDeliveryCharges() {
 		return deliveryCharges;
 	}
 
@@ -105,15 +108,15 @@ public class VendorProductStock extends AuditInfo {
 		return warehouseAddress;
 	}
 
-	public float getProductPrice() {
+	public Float getProductPrice() {
 		return productPrice;
 	}
 
-	public float getDiscountPercent() {
+	public Float getDiscountPercent() {
 		return discountPercent;
 	}
 
-	public boolean isProductAlive() {
+	public Boolean isProductAlive() {
 		return isProductAlive;
 	}
 
@@ -125,19 +128,19 @@ public class VendorProductStock extends AuditInfo {
 		this.product = product;
 	}
 
-	public void setProductStock(int productStock) {
+	public void setProductStock(Integer productStock) {
 		this.productStock = productStock;
 	}
 
-	public void setMaxBuyProduct(int maxBuyProduct) {
+	public void setMaxBuyProduct(Integer maxBuyProduct) {
 		this.maxBuyProduct = maxBuyProduct;
 	}
 
-	public void setShippingCharges(double shippingCharges) {
+	public void setShippingCharges(Double shippingCharges) {
 		this.shippingCharges = shippingCharges;
 	}
 
-	public void setDeliveryCharges(double deliveryCharges) {
+	public void setDeliveryCharges(Double deliveryCharges) {
 		this.deliveryCharges = deliveryCharges;
 	}
 
@@ -149,16 +152,16 @@ public class VendorProductStock extends AuditInfo {
 		this.warehouseAddress = warehouseAddress;
 	}
 
-	public void setProductPrice(float productPrice) {
+	public void setProductPrice(Float productPrice) {
 		this.productPrice = productPrice;
 	}
 
-	public void setDiscountPercent(float discountPercent) {
+	public void setDiscountPercent(Float discountPercent) {
 		this.discountPercent = discountPercent;
 	}
 
-	public void setProductAlive(boolean isProductAlive) {
+	public void setProductAlive(Boolean isProductAlive) {
 		this.isProductAlive = isProductAlive;
 	}
-	
+
 }

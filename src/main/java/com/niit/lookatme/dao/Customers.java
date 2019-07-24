@@ -17,6 +17,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.hibernate.annotations.ColumnDefault;
+
 @Entity
 @Table(name="CUSTOMERS")
 public class Customers extends AuditInfo{
@@ -59,7 +61,8 @@ public class Customers extends AuditInfo{
 	@JoinColumn(name = "SHIPPING_ADDRESS")
 	private Address shippingAddress;
 	
-	@Column(name = "CONTACT", nullable = false, columnDefinition = "integer default 0000000000")
+	@Column(name = "CONTACT", nullable = false)
+	@ColumnDefault("0000000000")
 	private long contact;
 	
 	@Column(name = "ALTERNATE_CONTACT")

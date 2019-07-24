@@ -1,5 +1,6 @@
 package com.niit.lookatme.dao;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -22,8 +23,13 @@ import org.springframework.util.StringUtils;
 
 @Entity
 @Table(name = "PASSWORD")
-public class Password {
+public class Password implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1353846980808372018L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "PASSWORD_ID")

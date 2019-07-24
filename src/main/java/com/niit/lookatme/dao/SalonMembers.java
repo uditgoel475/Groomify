@@ -1,6 +1,5 @@
 package com.niit.lookatme.dao;
 
-import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -21,6 +20,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.ColumnDefault;
+
 /**
  * This class maps to table EMPLOYEE which holds the details of all the
  * employees working in the salon
@@ -30,7 +31,7 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name = "EMPLOYEE")
-public class SalonMembers extends AuditInfo implements Serializable {
+public class SalonMembers extends AuditInfo {
 
 	/**
 	 * 
@@ -48,14 +49,14 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	@Column(name = "USERNAME", nullable = false)
 	private String username;
 
-	@Column(name = "PICTURE_URL", unique=true)
+	@Column(name = "PICTURE_URL", unique = true)
 	private String pictureUrl;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "PASSWORD", updatable = false, referencedColumnName = "PASSWORD_ID")
 	private Password password;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "SCHEDULE", referencedColumnName = "SCHEDULE_ID")
 	private EmployeeRoster schedule;
 
@@ -63,10 +64,12 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	@JoinColumn(name = "QUALIFICATION", referencedColumnName = "QUALIFICATION_ID")
 	private EmployeeQualification qualification;
 
-	@Column(name = "IS_OVERTIME_WORKER", columnDefinition = "boolean default false")
+	@Column(name = "IS_OVERTIME_WORKER")
+	@ColumnDefault("false")
 	private boolean isOvertimeWorker;
 
-	@Column(name = "PRIMARY_CONTACT", nullable = false, columnDefinition = "integer default 0000000000")
+	@Column(name = "PRIMARY_CONTACT", nullable = false)
+	@ColumnDefault("0000000000")
 	private long primaryContact;
 
 	@Column(name = "SECONDARY_CONTACT")
@@ -82,7 +85,8 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	private String regId;
 
 	@Enumerated(EnumType.STRING)
-	@Column(length = 10, name = "GENDER", columnDefinition = "varchar(20) default MALE")
+	@Column(length = 10, name = "GENDER")
+	@ColumnDefault("'MALE'")
 	private Gender gender;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -90,13 +94,13 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	private Address address;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "GOVT_ID_TYPE_FK")
+	@JoinColumn(name = "GOVT_ID_TYPE", referencedColumnName = "TYPE_ID")
 	private GovtIdType govtIdType;
 
 	@Column(name = "GOVT_ID", nullable = false)
 	private String govtId;
 
-	@Column(name = "GOVT_ID_SNAP_URL",unique=true)
+	@Column(name = "GOVT_ID_SNAP_URL", unique = true)
 	private String govtIdSnapUrl;
 
 	@Column(name = "SALARY", nullable = false)
@@ -110,7 +114,8 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	@Column(name = "LEAVING_DATE")
 	private Date leavingDate;
 
-	@Column(name = "IS_ADMIN_USER", nullable = false, columnDefinition = "boolean default false")
+	@Column(name = "IS_ADMIN_USER", nullable = false)
+	@ColumnDefault("false")
 	private boolean isAdminUser;
 
 	@Enumerated(EnumType.STRING)
@@ -195,7 +200,8 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	}
 
 	/**
-	 * @param isOvertimeWorker the isOvertimeWorker to set
+	 * @param isOvertimeWorker
+	 *            the isOvertimeWorker to set
 	 */
 	public void setOvertimeWorker(boolean isOvertimeWorker) {
 		this.isOvertimeWorker = isOvertimeWorker;
@@ -262,117 +268,133 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	}
 
 	/**
-	 * @param name the name to set
+	 * @param name
+	 *            the name to set
 	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	/**
-	 * @param username the username to set
+	 * @param username
+	 *            the username to set
 	 */
 	public void setUsername(String username) {
 		this.username = username;
 	}
 
 	/**
-	 * @param password the password to set
+	 * @param password
+	 *            the password to set
 	 */
 	public void setPassword(Password password) {
 		this.password = password;
 	}
 
 	/**
-	 * @param schedule the schedule to set
+	 * @param schedule
+	 *            the schedule to set
 	 */
 	public void setSchedule(EmployeeRoster schedule) {
 		this.schedule = schedule;
 	}
 
 	/**
-	 * @param qualification the qualification to set
+	 * @param qualification
+	 *            the qualification to set
 	 */
 	public void setQualification(EmployeeQualification qualification) {
 		this.qualification = qualification;
 	}
 
 	/**
-	 * @param primaryContact the primaryContact to set
+	 * @param primaryContact
+	 *            the primaryContact to set
 	 */
 	public void setPrimaryContact(long primaryContact) {
 		this.primaryContact = primaryContact;
 	}
 
 	/**
-	 * @param secondaryContact the secondaryContact to set
+	 * @param secondaryContact
+	 *            the secondaryContact to set
 	 */
 	public void setSecondaryContact(long secondaryContact) {
 		this.secondaryContact = secondaryContact;
 	}
 
 	/**
-	 * @param whatsappContact the whatsappContact to set
+	 * @param whatsappContact
+	 *            the whatsappContact to set
 	 */
 	public void setWhatsappContact(long whatsappContact) {
 		this.whatsappContact = whatsappContact;
 	}
 
 	/**
-	 * @param email the email to set
+	 * @param email
+	 *            the email to set
 	 */
 	public void setEmail(String email) {
 		this.email = email;
 	}
 
 	/**
-	 * @param regId the regId to set
+	 * @param regId
+	 *            the regId to set
 	 */
 	public void setRegId(String regId) {
 		this.regId = regId;
 	}
 
 	/**
-	 * @param gender the gender to set
+	 * @param gender
+	 *            the gender to set
 	 */
 	public void setGender(Gender gender) {
 		this.gender = gender;
 	}
 
 	/**
-	 * @param address the address to set
+	 * @param address
+	 *            the address to set
 	 */
 	public void setAddress(Address address) {
 		this.address = address;
 	}
 
 	/**
-	 * @param govtIdType the govtIdType to set
+	 * @param govtIdType
+	 *            the govtIdType to set
 	 */
 	public void setGovtIdType(GovtIdType govtIdType) {
 		this.govtIdType = govtIdType;
 	}
 
 	/**
-	 * @param govtId the govtId to set
+	 * @param govtId
+	 *            the govtId to set
 	 */
 	public void setGovtId(String govtId) {
 		this.govtId = govtId;
 	}
 
 	/**
-	 * @param salary the salary to set
+	 * @param salary
+	 *            the salary to set
 	 */
 	public void setSalary(double salary) {
 		this.salary = salary;
 	}
 
 	/**
-	 * @param joiningDate the joiningDate to set
+	 * @param joiningDate
+	 *            the joiningDate to set
 	 */
 	public void setJoiningDate(Date joiningDate) {
 		this.joiningDate = joiningDate;
 	}
-	
+
 	/**
 	 * @return the pictureUrl
 	 */
@@ -395,21 +417,24 @@ public class SalonMembers extends AuditInfo implements Serializable {
 	}
 
 	/**
-	 * @param pictureUrl the pictureUrl to set
+	 * @param pictureUrl
+	 *            the pictureUrl to set
 	 */
 	public void setPictureUrl(String pictureUrl) {
 		this.pictureUrl = pictureUrl;
 	}
 
 	/**
-	 * @param govtIdSnapUrl the govtIdSnapUrl to set
+	 * @param govtIdSnapUrl
+	 *            the govtIdSnapUrl to set
 	 */
 	public void setGovtIdSnapUrl(String govtIdSnapUrl) {
 		this.govtIdSnapUrl = govtIdSnapUrl;
 	}
 
 	/**
-	 * @param leavingDate the leavingDate to set
+	 * @param leavingDate
+	 *            the leavingDate to set
 	 */
 	public void setLeavingDate(Date leavingDate) {
 		this.leavingDate = leavingDate;

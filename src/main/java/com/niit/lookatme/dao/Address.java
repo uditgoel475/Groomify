@@ -2,9 +2,12 @@ package com.niit.lookatme.dao;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -35,6 +38,8 @@ public class Address extends AuditInfo{
 	@Column(name ="ADDRESS_3")
 	private String address3;
 	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ADDRESS_META",referencedColumnName = "ADDRESS_META_ID")
 	private AddressMeta addressMeta;
 	
 	@Column(name ="POSTAL_CODE", nullable=false)
