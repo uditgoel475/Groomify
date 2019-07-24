@@ -13,7 +13,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 /**
  * 
- * @author ugoel1
+ * @author Konika
  *
  */
 @Entity

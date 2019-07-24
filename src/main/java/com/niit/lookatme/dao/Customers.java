@@ -19,6 +19,11 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.ColumnDefault;
 
+/**
+ * 
+ * @author Konika
+ *
+ */
 @Entity
 @Table(name="CUSTOMERS")
 public class Customers extends AuditInfo{

@@ -9,6 +9,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * 
+ * @author Konika
+ *
+ */
 @Entity
 @Table(name = "GOVT_ID_TYPE")
 public class GovtIdType implements Serializable{

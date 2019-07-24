@@ -16,6 +16,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+/**
+ * 
+ * @author Konika
+ *
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "lng",
@@ -47,8 +52,8 @@ public class Geoname implements Serializable
     @JsonProperty("fcode")
     private String fcode;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-    private final static long serialVersionUID = 5859730565572515438L;
+    private Map<String, Object> additionalProperties = new HashMap<>();
+    private static final long serialVersionUID = 5859730565572515438L;
 
     /**
      * No args constructor for use in serialization
@@ -185,7 +190,7 @@ public class Geoname implements Serializable
         if (other == this) {
             return true;
         }
-        if ((other instanceof Geoname) == false) {
+        if (!(other instanceof Geoname)) {
             return false;
         }
         Geoname rhs = ((Geoname) other);

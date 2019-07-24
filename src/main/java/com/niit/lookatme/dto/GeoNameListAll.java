@@ -17,6 +17,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+/**
+ * 
+ * @author Konika
+ *
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "totalResultsCount",
@@ -30,8 +35,8 @@ public class GeoNameListAll implements Serializable
     @JsonProperty("geonames")
     private List<Geoname> geonames = null;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-    private final static long serialVersionUID = -1988924369127589513L;
+    private Map<String, Object> additionalProperties = new HashMap<>();
+    private static final long serialVersionUID = -1988924369127589513L;
 
     /**
      * No args constructor for use in serialization

@@ -9,6 +9,11 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.ColumnDefault;
 
+/**
+ * 
+ * @author Konika
+ *
+ */
 @Entity
 @Table(name = "SKILLS")
 public class Skills {

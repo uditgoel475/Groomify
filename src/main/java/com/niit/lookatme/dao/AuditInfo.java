@@ -14,6 +14,11 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 
+/**
+ * 
+ * @author Konika
+ *
+ */
 @MappedSuperclass
 public class AuditInfo implements Serializable {
 

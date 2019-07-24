@@ -11,6 +11,11 @@ import org.hibernate.annotations.ColumnDefault;
 
 import com.niit.lookatme.dao.AuditInfo;
 
+/**
+ * 
+ * @author Konika
+ *
+ */
 @Entity
 @Table(name = "PRODUCT_CATEGORY")
 public class ProductCategory extends AuditInfo {

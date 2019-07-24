@@ -16,6 +16,11 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.ColumnDefault;
 
+/**
+ * 
+ * @author Konika
+ *
+ */
 @Entity
 @Table(name = "SCHEDULE")
 public class EmployeeRoster implements Serializable {
