@@ -7,8 +7,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.ColumnDefault;
-
 import com.niit.lookatme.dao.AuditInfo;
 
 /**
@@ -36,10 +34,6 @@ public class ProductCategory extends AuditInfo {
 	@Column(name = "DESCRIPTION")
 	private String description;
 
-	@Column(name = "IS_ACTIVE")
-	@ColumnDefault("true")
-	private Boolean isActive;
-
 	@Column(name = "PICTURE_URL")
 	private String pictureUrl;
 
@@ -58,13 +52,6 @@ public class ProductCategory extends AuditInfo {
 	}
 
 	/**
-	 * @return the isActive
-	 */
-	public Boolean isActive() {
-		return isActive;
-	}
-
-	/**
 	 * @return the pictureUrl
 	 */
 	public String getPictureUrl() {
@@ -79,13 +66,6 @@ public class ProductCategory extends AuditInfo {
 		this.description = description;
 	}
 
-	/**
-	 * @param isActive
-	 *            the isActive to set
-	 */
-	public void setActive(Boolean isActive) {
-		this.isActive = isActive;
-	}
 
 	/**
 	 * @param pictureUrl

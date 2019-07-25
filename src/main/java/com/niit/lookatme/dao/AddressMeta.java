@@ -43,12 +43,32 @@ public class AddressMeta implements Serializable{
 	@Column(name ="REGION")
 	private String region;
 	
-	public AddressMeta(String country, String state, String city, String region) {
+	@Column(name = "POSTAL_CODE")
+	private String postalCode;
+	
+	public AddressMeta(String country, String state, String city, String region, String postalCode) {
 		super();
 		this.country = country;
 		this.region = region;
 		this.state = state;
 		this.city = city;
+		this.postalCode = postalCode;
+	}
+
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(String region) {
+		this.region = region;
+	}
+
+	public String getPostalCode() {
+		return postalCode;
+	}
+
+	public void setPostalCode(String postalCode) {
+		this.postalCode = postalCode;
 	}
 
 	/**

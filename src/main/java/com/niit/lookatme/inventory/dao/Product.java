@@ -1,7 +1,5 @@
 package com.niit.lookatme.inventory.dao;
 
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,11 +9,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
-
-import org.hibernate.annotations.ColumnDefault;
 
 import com.niit.lookatme.dao.AuditInfo;
 
@@ -40,27 +33,26 @@ public class Product extends AuditInfo {
 	@Column(name = "PRODUCT_ID", nullable = false, updatable = false)
 	private Long id;
 
-	@Column(name = "SKU")
-	private String productSKU;// Stock Keeping Unit
+	@Column(name = "HSN/SAC")
+	private String hsn;// Stock Keeping Unit
 
-	@NotNull(message = "Product name is required.")
 	@Column(name = "NAME", nullable = false)
 	private String name;
 
-	@Column(name = "PRICE", nullable = false)
-	private float price;
+	@Column(name = "COST_PRICE", nullable = false)
+	private float costPrice;
+	
+	@Column(name = "FULL_PRICE", nullable = false)
+	private float fullPrice;
+	
+	@Column(name = "SPECIAL_PRICE")
+	private float specialPrice;
 
 	@Column(name = "WEIGHT", nullable = false)
-	private float weight;
-
-	@Column(name = "PRODUCT_CART_DESC", nullable = false)
-	private String productCartDesc;
+	private String weight;
 
 	@Column(name = "PRODUCT_SHORT_DESC")
 	private String productShortDesc;
-
-	@Column(name = "PRODUCT_LONG_DESC")
-	private String productLongDesc;
 
 	@Column(name = "PRODUCT_THUMB_URL")
 	private String productThumbUrl;
@@ -84,156 +76,258 @@ public class Product extends AuditInfo {
 	@JoinColumn(name = "PRODUCT_CATEGORY", referencedColumnName = "PRODUCT_CATEGORY_ID")
 	private ProductCategory productCategory;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "VENDOR_PRODUCT_STOCK", referencedColumnName = "VENDOR_PRODUCT_STOCK_ID")
-	private VendorProductStock vendorProductStock;
+	@Column(name = "IN_STOCK_QUANTITY")
+	private Integer inStockQuantity;
 
-	@Temporal(value = TemporalType.TIMESTAMP)
-	@Column(name = "PRODUCT_EXPIRATION_DATE")
-	private Date productExpirationDate;
+	@Column(name = "QUANTITY_ALERT")
+	private Integer quantityAlert;
+	
+	@Column(name = "BARCODE", unique= true)
+	private String barcode;
 
-	@Column(name = "IS_HOT", nullable = false)
-	@ColumnDefault("false")
-	private Boolean isHot;
-
-	public Long getId() {
-		return id;
+	/**
+	 * @return the barcode
+	 */
+	public String getBarcode() {
+		return barcode;
 	}
 
-	public String getProductSKU() {
-		return productSKU;
+	/**
+	 * @param barcode the barcode to set
+	 */
+	public void setBarcode(String barcode) {
+		this.barcode = barcode;
 	}
 
+	/**
+	 * @return the hsn
+	 */
+	public String getHsn() {
+		return hsn;
+	}
+
+	/**
+	 * @param hsn the hsn to set
+	 */
+	public void setHsn(String hsn) {
+		this.hsn = hsn;
+	}
+
+	/**
+	 * @return the name
+	 */
 	public String getName() {
 		return name;
 	}
 
-	public float getPrice() {
-		return price;
-	}
-
-	public float getWeight() {
-		return weight;
-	}
-
-	public String getProductCartDesc() {
-		return productCartDesc;
-	}
-
-	public String getProductShortDesc() {
-		return productShortDesc;
-	}
-
-	public String getProductLongDesc() {
-		return productLongDesc;
-	}
-
-	public String getProductThumbUrl() {
-		return productThumbUrl;
-	}
-
-	public String getProductImageURL1() {
-		return productImageURL1;
-	}
-
-	public String getProductImageURL2() {
-		return productImageURL2;
-	}
-
-	public String getProductImageURL3() {
-		return productImageURL3;
-	}
-
-	public String getProductImageURL4() {
-		return productImageURL4;
-	}
-
-	public String getProductImageURL5() {
-		return productImageURL5;
-	}
-
-	public ProductCategory getProductCategory() {
-		return productCategory;
-	}
-
-	public VendorProductStock getVendorProductStock() {
-		return vendorProductStock;
-	}
-
-	public Date getProductExpirationDate() {
-		return productExpirationDate;
-	}
-
-	public Boolean isHot() {
-		return isHot;
-	}
-
-	public void setProductSKU(String productSKU) {
-		this.productSKU = productSKU;
-	}
-
+	/**
+	 * @param name the name to set
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	public void setPrice(float price) {
-		this.price = price;
+	/**
+	 * @return the costPrice
+	 */
+	public float getCostPrice() {
+		return costPrice;
 	}
 
-	public void setWeight(float weight) {
+	/**
+	 * @param costPrice the costPrice to set
+	 */
+	public void setCostPrice(float costPrice) {
+		this.costPrice = costPrice;
+	}
+
+	/**
+	 * @return the fullPrice
+	 */
+	public float getFullPrice() {
+		return fullPrice;
+	}
+
+	/**
+	 * @param fullPrice the fullPrice to set
+	 */
+	public void setFullPrice(float fullPrice) {
+		this.fullPrice = fullPrice;
+	}
+
+	/**
+	 * @return the specialPrice
+	 */
+	public float getSpecialPrice() {
+		return specialPrice;
+	}
+
+	/**
+	 * @param specialPrice the specialPrice to set
+	 */
+	public void setSpecialPrice(float specialPrice) {
+		this.specialPrice = specialPrice;
+	}
+
+	/**
+	 * @return the weight
+	 */
+	public String getWeight() {
+		return weight;
+	}
+
+	/**
+	 * @param weight the weight to set
+	 */
+	public void setWeight(String weight) {
 		this.weight = weight;
 	}
 
-	public void setProductCartDesc(String productCartDesc) {
-		this.productCartDesc = productCartDesc;
+	/**
+	 * @return the productShortDesc
+	 */
+	public String getProductShortDesc() {
+		return productShortDesc;
 	}
 
+	/**
+	 * @param productShortDesc the productShortDesc to set
+	 */
 	public void setProductShortDesc(String productShortDesc) {
 		this.productShortDesc = productShortDesc;
 	}
 
-	public void setProductLongDesc(String productLongDesc) {
-		this.productLongDesc = productLongDesc;
+	/**
+	 * @return the productThumbUrl
+	 */
+	public String getProductThumbUrl() {
+		return productThumbUrl;
 	}
 
+	/**
+	 * @param productThumbUrl the productThumbUrl to set
+	 */
 	public void setProductThumbUrl(String productThumbUrl) {
 		this.productThumbUrl = productThumbUrl;
 	}
 
+	/**
+	 * @return the productImageURL1
+	 */
+	public String getProductImageURL1() {
+		return productImageURL1;
+	}
+
+	/**
+	 * @param productImageURL1 the productImageURL1 to set
+	 */
 	public void setProductImageURL1(String productImageURL1) {
 		this.productImageURL1 = productImageURL1;
 	}
 
+	/**
+	 * @return the productImageURL2
+	 */
+	public String getProductImageURL2() {
+		return productImageURL2;
+	}
+
+	/**
+	 * @param productImageURL2 the productImageURL2 to set
+	 */
 	public void setProductImageURL2(String productImageURL2) {
 		this.productImageURL2 = productImageURL2;
 	}
 
+	/**
+	 * @return the productImageURL3
+	 */
+	public String getProductImageURL3() {
+		return productImageURL3;
+	}
+
+	/**
+	 * @param productImageURL3 the productImageURL3 to set
+	 */
 	public void setProductImageURL3(String productImageURL3) {
 		this.productImageURL3 = productImageURL3;
 	}
 
+	/**
+	 * @return the productImageURL4
+	 */
+	public String getProductImageURL4() {
+		return productImageURL4;
+	}
+
+	/**
+	 * @param productImageURL4 the productImageURL4 to set
+	 */
 	public void setProductImageURL4(String productImageURL4) {
 		this.productImageURL4 = productImageURL4;
 	}
 
+	/**
+	 * @return the productImageURL5
+	 */
+	public String getProductImageURL5() {
+		return productImageURL5;
+	}
+
+	/**
+	 * @param productImageURL5 the productImageURL5 to set
+	 */
 	public void setProductImageURL5(String productImageURL5) {
 		this.productImageURL5 = productImageURL5;
 	}
 
+	/**
+	 * @return the productCategory
+	 */
+	public ProductCategory getProductCategory() {
+		return productCategory;
+	}
+
+	/**
+	 * @param productCategory the productCategory to set
+	 */
 	public void setProductCategory(ProductCategory productCategory) {
 		this.productCategory = productCategory;
 	}
 
-	public void setVendorProductStock(VendorProductStock vendorProductStock) {
-		this.vendorProductStock = vendorProductStock;
+	/**
+	 * @return the inStockQuantity
+	 */
+	public Integer getInStockQuantity() {
+		return inStockQuantity;
 	}
 
-	public void setProductExpirationDate(Date productExpirationDate) {
-		this.productExpirationDate = productExpirationDate;
+	/**
+	 * @param inStockQuantity the inStockQuantity to set
+	 */
+	public void setInStockQuantity(Integer inStockQuantity) {
+		this.inStockQuantity = inStockQuantity;
 	}
 
-	public void setHot(Boolean isHot) {
-		this.isHot = isHot;
+	/**
+	 * @return the quantityAlert
+	 */
+	public Integer getQuantityAlert() {
+		return quantityAlert;
 	}
 
+	/**
+	 * @param quantityAlert the quantityAlert to set
+	 */
+	public void setQuantityAlert(Integer quantityAlert) {
+		this.quantityAlert = quantityAlert;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+	
 }

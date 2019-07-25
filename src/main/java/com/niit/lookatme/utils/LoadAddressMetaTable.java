@@ -18,6 +18,8 @@ import com.niit.lookatme.dao.AddressMeta;
 import com.niit.lookatme.dao.repository.AddressMetaRepository;
 import com.niit.lookatme.dto.GeoNameListAll;
 import com.niit.lookatme.dto.Geoname;
+import com.niit.lookatme.dto.PostalCode;
+import com.niit.lookatme.dto.StateToZip;
 
 import reactor.core.publisher.Mono;
 
@@ -38,8 +40,31 @@ public class LoadAddressMetaTable {
 	@Value("${base.geoname}")
 	private String baseGeoName;
 
+	@Value("${geoname.postal.codes.by.city}")
+	private String postalByCity;
+
 	@Resource(name = "addressMetaRepository")
 	private AddressMetaRepository addressMetaRepository;
+
+	private class RegionZipMono {
+		private Mono<GeoNameListAll> geoNameListAllMono;
+		private Mono<StateToZip> stateToZipMono;
+
+		private RegionZipMono(Mono<GeoNameListAll> geoNameListAllMono, Mono<StateToZip> stateToZipMono) {
+			super();
+			this.geoNameListAllMono = geoNameListAllMono;
+			this.stateToZipMono = stateToZipMono;
+		}
+
+		public Mono<GeoNameListAll> getGeoNameListAllMono() {
+			return geoNameListAllMono;
+		}
+
+		public Mono<StateToZip> getStateToZipMono() {
+			return stateToZipMono;
+		}
+
+	}
 
 	@PostConstruct
 	public void init() {
@@ -57,23 +82,32 @@ public class LoadAddressMetaTable {
 						.uri(baseChild, countryToState.getValue()).retrieve().bodyToMono(GeoNameListAll.class);
 				mapMonoStateToCities.put(countryToState.getKey(), stateToCityGeoNames);
 			}
-			Map<String, Map<String, Mono<GeoNameListAll>>> map = new HashMap<>();
+			Map<String, Map<String, RegionZipMono>> map = new HashMap<>();
 			for (Entry<String, Mono<GeoNameListAll>> stateToCitites : mapMonoStateToCities.entrySet()) {
-				Map<String, Mono<GeoNameListAll>> smallMap = new HashMap<>();
+				Map<String, RegionZipMono> stateToCitiesListMap = new HashMap<>();
 				stateToCitites.getValue().block().getGeonames().stream().forEach(x -> {
 					Mono<GeoNameListAll> stateToCityGeoNames = webClientBuilder.build().get()
 							.uri(baseChild, x.getGeonameId()).retrieve().bodyToMono(GeoNameListAll.class);
-					smallMap.put(x.getName(), stateToCityGeoNames);
-					map.put(stateToCitites.getKey(), smallMap);
+
+					Mono<StateToZip> stateToZipPostCodes = webClientBuilder.build().get().uri(postalByCity, x.getName())
+							.retrieve().bodyToMono(StateToZip.class);
+
+					RegionZipMono regionZipMono = new RegionZipMono(stateToCityGeoNames, stateToZipPostCodes);
+
+					stateToCitiesListMap.put(x.getName(), regionZipMono);
+					map.put(stateToCitites.getKey(), stateToCitiesListMap);
+
 				});
 			}
 			List<AddressMeta> addressMetaList = new ArrayList<>();
-			for (Entry<String, Map<String, Mono<GeoNameListAll>>> mapper : map.entrySet()) 
-				for (Entry<String, Mono<GeoNameListAll>> child : mapper.getValue().entrySet())
-					for (Geoname name : child.getValue().block().getGeonames()) 
-						addressMetaList.add(new AddressMeta("India", mapper.getKey(), child.getKey(), name.getName()));
+			for (Entry<String, Map<String, RegionZipMono>> mapper : map.entrySet())
+				for (Entry<String, RegionZipMono> child : mapper.getValue().entrySet())
+					addressMetaList.add(new AddressMeta("India", mapper.getKey(), child.getKey(),
+							child.getValue().getGeoNameListAllMono().block().getGeonames().stream()
+									.map(Geoname::getName).distinct().collect(Collectors.joining("~")),
+							child.getValue().getStateToZipMono().block().getPostalCodes().stream()
+									.map(PostalCode::getPostalCode).distinct().collect(Collectors.joining())));
 			addressMetaRepository.saveAll(addressMetaList);
 		}
-
 	}
 }

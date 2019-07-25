@@ -25,8 +25,8 @@ import org.hibernate.annotations.ColumnDefault;
  *
  */
 @Entity
-@Table(name="CUSTOMERS")
-public class Customers extends AuditInfo{
+@Table(name="CUSTOMER")
+public class Customer extends AuditInfo{
 	
 	/**
 	 * 
@@ -53,6 +53,10 @@ public class Customers extends AuditInfo{
 	
 	@Column(name = "EMAIL", unique=true)
 	private String email;
+	
+	@Temporal(value = TemporalType.DATE)
+	@Column(name = "DOB")
+	private Date dob;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(length = 10, name = "GENDER")
@@ -176,6 +180,20 @@ public class Customers extends AuditInfo{
 	 */
 	public void setPassword(Password password) {
 		this.password = password;
+	}
+
+	/**
+	 * @return the dob
+	 */
+	public Date getDob() {
+		return dob;
+	}
+
+	/**
+	 * @param dob the dob to set
+	 */
+	public void setDob(Date dob) {
+		this.dob = dob;
 	}
 
 	/**

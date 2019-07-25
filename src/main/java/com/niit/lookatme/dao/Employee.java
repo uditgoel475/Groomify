@@ -31,7 +31,7 @@ import org.hibernate.annotations.ColumnDefault;
  */
 @Entity
 @Table(name = "EMPLOYEE")
-public class SalonMembers extends AuditInfo {
+public class Employee extends AuditInfo {
 
 	/**
 	 * 
@@ -43,8 +43,18 @@ public class SalonMembers extends AuditInfo {
 	@Column(name = "EMPLOYEE_ID", updatable = false, nullable = false)
 	private Long id;
 
-	@Column(name = "NAME", nullable = false)
-	private String name;
+	@Column(name = "FIRST_NAME", nullable = false)
+	private String fname;
+	
+	@Column(name = "MIDDLE_NAME")
+	private String mname;
+	
+	@Column(name = "LAST_NAME")
+	private String lname;
+	
+	@Temporal(value = TemporalType.DATE)
+	@Column(name = "DOB")
+	private Date dob;
 
 	@Column(name = "USERNAME", nullable = false)
 	private String username;
@@ -127,13 +137,6 @@ public class SalonMembers extends AuditInfo {
 	 */
 	public Long getId() {
 		return id;
-	}
-
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
 	}
 
 	/**
@@ -267,14 +270,7 @@ public class SalonMembers extends AuditInfo {
 		return joiningDate;
 	}
 
-	/**
-	 * @param name
-	 *            the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-
+	
 	/**
 	 * @param username
 	 *            the username to set
@@ -438,6 +434,114 @@ public class SalonMembers extends AuditInfo {
 	 */
 	public void setLeavingDate(Date leavingDate) {
 		this.leavingDate = leavingDate;
+	}
+
+
+
+	/**
+	 * @return the fname
+	 */
+	public String getFname() {
+		return fname;
+	}
+
+
+
+	/**
+	 * @param fname the fname to set
+	 */
+	public void setFname(String fname) {
+		this.fname = fname;
+	}
+
+
+
+	/**
+	 * @return the mname
+	 */
+	public String getMname() {
+		return mname;
+	}
+
+
+
+	/**
+	 * @param mname the mname to set
+	 */
+	public void setMname(String mname) {
+		this.mname = mname;
+	}
+
+
+
+	/**
+	 * @return the lname
+	 */
+	public String getLname() {
+		return lname;
+	}
+
+
+
+	/**
+	 * @param lname the lname to set
+	 */
+	public void setLname(String lname) {
+		this.lname = lname;
+	}
+
+
+
+	/**
+	 * @return the isAdminUser
+	 */
+	public boolean isAdminUser() {
+		return isAdminUser;
+	}
+
+
+
+	/**
+	 * @param isAdminUser the isAdminUser to set
+	 */
+	public void setAdminUser(boolean isAdminUser) {
+		this.isAdminUser = isAdminUser;
+	}
+
+
+
+	/**
+	 * @return the rating
+	 */
+	public Rating getRating() {
+		return rating;
+	}
+
+
+
+	/**
+	 * @param rating the rating to set
+	 */
+	public void setRating(Rating rating) {
+		this.rating = rating;
+	}
+
+
+
+	/**
+	 * @return the dob
+	 */
+	public Date getDob() {
+		return dob;
+	}
+
+
+
+	/**
+	 * @param dob the dob to set
+	 */
+	public void setDob(Date dob) {
+		this.dob = dob;
 	}
 
 }

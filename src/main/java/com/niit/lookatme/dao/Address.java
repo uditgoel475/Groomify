@@ -2,12 +2,9 @@ package com.niit.lookatme.dao;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -38,12 +35,52 @@ public class Address extends AuditInfo{
 	@Column(name ="ADDRESS_3")
 	private String address3;
 	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ADDRESS_META",referencedColumnName = "ADDRESS_META_ID")
-	private AddressMeta addressMeta;
+	@Column(name ="STATE", nullable=false)
+	private String state;		
+	
+	@Column(name ="CITY", nullable=false)
+	private String city;
+	
+	@Column(name ="REGION")
+	private String region;
 	
 	@Column(name ="POSTAL_CODE", nullable=false)
 	private int postalCode;
+	
+	@Column(name ="COUNTRY", nullable=false)
+	private String country;
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public String getRegion() {
+		return region;
+	}
+
+	public void setRegion(String region) {
+		this.region = region;
+	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
 
 	/**
 	 * @return the id
