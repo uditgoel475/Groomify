@@ -18,7 +18,7 @@ import com.niit.lookatme.dao.AddressMeta;
 import com.niit.lookatme.dao.repository.AddressMetaRepository;
 import com.niit.lookatme.dto.GeoNameListAll;
 import com.niit.lookatme.dto.Geoname;
-import com.niit.lookatme.dto.PostalCode;
+import com.niit.lookatme.dto.Postalcode;
 import com.niit.lookatme.dto.StateToZip;
 
 import reactor.core.publisher.Mono;
@@ -105,8 +105,8 @@ public class LoadAddressMetaTable {
 					addressMetaList.add(new AddressMeta("India", mapper.getKey(), child.getKey(),
 							child.getValue().getGeoNameListAllMono().block().getGeonames().stream()
 									.map(Geoname::getName).distinct().collect(Collectors.joining("~")),
-							child.getValue().getStateToZipMono().block().getPostalCodes().stream()
-									.map(PostalCode::getPostalCode).distinct().collect(Collectors.joining())));
+							child.getValue().getStateToZipMono().block().getPostalcodes().stream()
+									.map(Postalcode::getPostalcode).distinct().collect(Collectors.joining())));
 			addressMetaRepository.saveAll(addressMetaList);
 		}
 	}

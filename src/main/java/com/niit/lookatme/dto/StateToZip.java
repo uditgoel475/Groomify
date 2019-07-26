@@ -22,16 +22,16 @@ import org.apache.commons.lang.builder.ToStringBuilder;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
-    "postalCodes"
+    "postalcodes"
 })
 public class StateToZip implements Serializable
 {
 
-    @JsonProperty("postalCodes")
-    private List<PostalCode> postalCodes = null;
+    @JsonProperty("postalcodes")
+    private List<Postalcode> postalcodes = null;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-    private final static long serialVersionUID = 1279617222251387866L;
+    private final static long serialVersionUID = -7423466363046723131L;
 
     /**
      * No args constructor for use in serialization
@@ -42,21 +42,21 @@ public class StateToZip implements Serializable
 
     /**
      * 
-     * @param postalCodes
+     * @param postalcodes
      */
-    public StateToZip(List<PostalCode> postalCodes) {
+    public StateToZip(List<Postalcode> postalcodes) {
         super();
-        this.postalCodes = postalCodes;
+        this.postalcodes = postalcodes;
     }
 
-    @JsonProperty("postalCodes")
-    public List<PostalCode> getPostalCodes() {
-        return postalCodes;
+    @JsonProperty("postalcodes")
+    public List<Postalcode> getPostalcodes() {
+        return postalcodes;
     }
 
-    @JsonProperty("postalCodes")
-    public void setPostalCodes(List<PostalCode> postalCodes) {
-        this.postalCodes = postalCodes;
+    @JsonProperty("postalcodes")
+    public void setPostalcodes(List<Postalcode> postalcodes) {
+        this.postalcodes = postalcodes;
     }
 
     @JsonAnyGetter
@@ -71,12 +71,12 @@ public class StateToZip implements Serializable
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("postalCodes", postalCodes).append("additionalProperties", additionalProperties).toString();
+        return new ToStringBuilder(this).append("postalcodes", postalcodes).append("additionalProperties", additionalProperties).toString();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(additionalProperties).append(postalCodes).toHashCode();
+        return new HashCodeBuilder().append(postalcodes).append(additionalProperties).toHashCode();
     }
 
     @Override
@@ -88,7 +88,7 @@ public class StateToZip implements Serializable
             return false;
         }
         StateToZip rhs = ((StateToZip) other);
-        return new EqualsBuilder().append(additionalProperties, rhs.additionalProperties).append(postalCodes, rhs.postalCodes).isEquals();
+        return new EqualsBuilder().append(postalcodes, rhs.postalcodes).append(additionalProperties, rhs.additionalProperties).isEquals();
     }
 
 }

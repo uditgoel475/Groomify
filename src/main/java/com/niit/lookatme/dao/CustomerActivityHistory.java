@@ -4,6 +4,8 @@ import java.sql.Time;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -29,6 +31,13 @@ public class CustomerActivityHistory extends AuditInfo{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "CAH_ID", updatable = false, nullable = false)
 	private Long id;
+	
+	@Column(name = "JOB_ID", nullable = false, updatable = false)
+	private String jobId;
+	
+	@Enumerated(value = EnumType.STRING)
+	@Column(name = "JOB_STATUS", nullable = false)
+	private Status jobStatus;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "CUSTOMER", referencedColumnName = "CUSTOMER_ID")
