@@ -8,6 +8,7 @@ import java.util.Optional;
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.niit.lookatme.dto.Postalcode;
@@ -18,6 +19,7 @@ import com.niit.lookatme.service.GeoNameService;
  * @author ugoel1
  *
  */
+@Service("geoNameService")
 public class GeoNameServiceImpl implements GeoNameService {
 
 	

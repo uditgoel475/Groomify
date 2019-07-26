@@ -1,8 +1,9 @@
 package com.niit.lookatme.dao;
 
-public enum Status {
+public enum JobStatus {
 
 	PENDING,
+	INPROGRESS,
 	COMPLETED,
 	CANCELLED
 }

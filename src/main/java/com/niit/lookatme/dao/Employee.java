@@ -20,6 +20,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.hibernate.annotations.ColumnDefault;
 
 /**
@@ -45,13 +47,13 @@ public class Employee extends AuditInfo {
 
 	@Column(name = "FIRST_NAME", nullable = false)
 	private String fname;
-	
+
 	@Column(name = "MIDDLE_NAME")
 	private String mname;
-	
+
 	@Column(name = "LAST_NAME")
 	private String lname;
-	
+
 	@Temporal(value = TemporalType.DATE)
 	@Column(name = "DOB")
 	private Date dob;
@@ -270,7 +272,6 @@ public class Employee extends AuditInfo {
 		return joiningDate;
 	}
 
-	
 	/**
 	 * @param username
 	 *            the username to set
@@ -436,8 +437,6 @@ public class Employee extends AuditInfo {
 		this.leavingDate = leavingDate;
 	}
 
-
-
 	/**
 	 * @return the fname
 	 */
@@ -445,16 +444,13 @@ public class Employee extends AuditInfo {
 		return fname;
 	}
 
-
-
 	/**
-	 * @param fname the fname to set
+	 * @param fname
+	 *            the fname to set
 	 */
 	public void setFname(String fname) {
 		this.fname = fname;
 	}
-
-
 
 	/**
 	 * @return the mname
@@ -463,16 +459,13 @@ public class Employee extends AuditInfo {
 		return mname;
 	}
 
-
-
 	/**
-	 * @param mname the mname to set
+	 * @param mname
+	 *            the mname to set
 	 */
 	public void setMname(String mname) {
 		this.mname = mname;
 	}
-
-
 
 	/**
 	 * @return the lname
@@ -481,16 +474,13 @@ public class Employee extends AuditInfo {
 		return lname;
 	}
 
-
-
 	/**
-	 * @param lname the lname to set
+	 * @param lname
+	 *            the lname to set
 	 */
 	public void setLname(String lname) {
 		this.lname = lname;
 	}
-
-
 
 	/**
 	 * @return the isAdminUser
@@ -499,16 +489,13 @@ public class Employee extends AuditInfo {
 		return isAdminUser;
 	}
 
-
-
 	/**
-	 * @param isAdminUser the isAdminUser to set
+	 * @param isAdminUser
+	 *            the isAdminUser to set
 	 */
 	public void setAdminUser(boolean isAdminUser) {
 		this.isAdminUser = isAdminUser;
 	}
-
-
 
 	/**
 	 * @return the rating
@@ -517,16 +504,13 @@ public class Employee extends AuditInfo {
 		return rating;
 	}
 
-
-
 	/**
-	 * @param rating the rating to set
+	 * @param rating
+	 *            the rating to set
 	 */
 	public void setRating(Rating rating) {
 		this.rating = rating;
 	}
-
-
 
 	/**
 	 * @return the dob
@@ -535,13 +519,45 @@ public class Employee extends AuditInfo {
 		return dob;
 	}
 
-
-
 	/**
-	 * @param dob the dob to set
+	 * @param dob
+	 *            the dob to set
 	 */
 	public void setDob(Date dob) {
 		this.dob = dob;
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder().append(address).append(dob).append(email).append(fname).append(gender)
+				.append(govtId).append(govtIdSnapUrl).append(govtIdType).append(isAdminUser).append(isOvertimeWorker)
+				.append(joiningDate).append(leavingDate).append(lname).append(mname).append(password).append(pictureUrl)
+				.append(primaryContact).append(qualification).append(rating).append(regId).append(schedule)
+				.append(secondaryContact).append(username).append(whatsappContact).append(salary).toHashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (obj == this) {
+			return true;
+		}
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		Employee rhs = (Employee) obj;
+		return new EqualsBuilder().append(address, rhs.address).append(dob, rhs.dob).append(email, rhs.email)
+				.append(fname, rhs.fname).append(gender, rhs.gender).append(govtId, rhs.govtId)
+				.append(govtIdSnapUrl, rhs.govtIdSnapUrl).append(govtIdType, rhs.govtIdType)
+				.append(isAdminUser, rhs.isAdminUser).append(isOvertimeWorker, rhs.isOvertimeWorker)
+				.append(joiningDate, rhs.joiningDate).append(leavingDate, rhs.leavingDate).append(lname, rhs.lname)
+				.append(mname, rhs.mname).append(password, rhs.password).append(pictureUrl, rhs.pictureUrl)
+				.append(primaryContact, rhs.primaryContact).append(qualification, rhs.qualification)
+				.append(rating, rhs.rating).append(regId, rhs.regId).append(schedule, rhs.schedule)
+				.append(secondaryContact, rhs.secondaryContact).append(username, rhs.username)
+				.append(whatsappContact, rhs.whatsappContact).append(salary, rhs.salary).isEquals();
 	}
 
 }

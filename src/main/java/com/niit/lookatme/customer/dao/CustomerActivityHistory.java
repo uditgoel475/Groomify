@@ -1,6 +1,6 @@
-package com.niit.lookatme.dao;
+package com.niit.lookatme.customer.dao;
 
-import java.sql.Time;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,10 +16,13 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import com.niit.lookatme.dao.AuditInfo;
+import com.niit.lookatme.dao.Employee;
+import com.niit.lookatme.dao.JobStatus;
 import com.niit.lookatme.services.dao.Service;
 
 @Entity
-@Table(name = "Customer_Activity_History")
+@Table(name = "JOB_CARD_DETAILS_HISTORY")
 public class CustomerActivityHistory extends AuditInfo{
 
 	/**
@@ -32,12 +35,15 @@ public class CustomerActivityHistory extends AuditInfo{
 	@Column(name = "CAH_ID", updatable = false, nullable = false)
 	private Long id;
 	
-	@Column(name = "JOB_ID", nullable = false, updatable = false)
+	@Column(name = "JOB_ID", nullable = false)
 	private String jobId;
+	
+	@Column(name = "SUB_JOB_ID", nullable = false)
+	private String subJobId;
 	
 	@Enumerated(value = EnumType.STRING)
 	@Column(name = "JOB_STATUS", nullable = false)
-	private Status jobStatus;
+	private JobStatus jobStatus;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "CUSTOMER", referencedColumnName = "CUSTOMER_ID")
@@ -51,12 +57,16 @@ public class CustomerActivityHistory extends AuditInfo{
 	@JoinColumn(name = "SERVICE", referencedColumnName = "SERVICE_ID")
 	private Service service;
 	
-	@Temporal(value = TemporalType.TIME)
-	@Column(name = "TIME_CONSUMED")
-	private Time timeConsumed;
-	
 	@Column(name = "CUSTOMER_FEEDBACK")
 	private String customerFeedback;
+	
+	@Temporal(value = TemporalType.DATE)
+	@Column(name = "JOB_START_TIME")
+	private Date jobStartTime;
+	
+	@Temporal(value = TemporalType.DATE)
+	@Column(name = "JOB_END_TIME")
+	private Date jobEndTime;
 	
 	/**
 	 * @return the id
@@ -84,13 +94,6 @@ public class CustomerActivityHistory extends AuditInfo{
 	 */
 	public Service getService() {
 		return service;
-	}
-
-	/**
-	 * @return the timeConsumed
-	 */
-	public Time getTimeConsumed() {
-		return timeConsumed;
 	}
 
 	/**
@@ -122,17 +125,80 @@ public class CustomerActivityHistory extends AuditInfo{
 	}
 
 	/**
-	 * @param timeConsumed the timeConsumed to set
-	 */
-	public void setTimeConsumed(Time timeConsumed) {
-		this.timeConsumed = timeConsumed;
-	}
-
-	/**
 	 * @param customerFeedback the customerFeedback to set
 	 */
 	public void setCustomerFeedback(String customerFeedback) {
 		this.customerFeedback = customerFeedback;
+	}
+
+	/**
+	 * @return the jobId
+	 */
+	public String getJobId() {
+		return jobId;
+	}
+
+	/**
+	 * @return the jobStatus
+	 */
+	public JobStatus getJobStatus() {
+		return jobStatus;
+	}
+
+	/**
+	 * @return the jobStartTime
+	 */
+	public Date getJobStartTime() {
+		return jobStartTime;
+	}
+
+	/**
+	 * @return the jobEndTime
+	 */
+	public Date getJobEndTime() {
+		return jobEndTime;
+	}
+
+	/**
+	 * @param jobId the jobId to set
+	 */
+	public void setJobId(String jobId) {
+		this.jobId = jobId;
+	}
+
+	/**
+	 * @param jobStatus the jobStatus to set
+	 */
+	public void setJobStatus(JobStatus jobStatus) {
+		this.jobStatus = jobStatus;
+	}
+
+	/**
+	 * @param jobStartTime the jobStartTime to set
+	 */
+	public void setJobStartTime(Date jobStartTime) {
+		this.jobStartTime = jobStartTime;
+	}
+
+	/**
+	 * @param jobEndTime the jobEndTime to set
+	 */
+	public void setJobEndTime(Date jobEndTime) {
+		this.jobEndTime = jobEndTime;
+	}
+
+	/**
+	 * @return the subJobId
+	 */
+	public String getSubJobId() {
+		return subJobId;
+	}
+
+	/**
+	 * @param subJobId the subJobId to set
+	 */
+	public void setSubJobId(String subJobId) {
+		this.subJobId = subJobId;
 	}
 
 	

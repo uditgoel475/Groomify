@@ -5,10 +5,13 @@ package com.niit.lookatme.dao;
  * @author Konika
  *
  */
-public enum PaymentMethods {
+public enum PaymentModes {
 
 	CASH,
 	DEMAND_DRAFT,
-	CHEQUE,
+	PAYTM,
+	CREDIT_CARD,
+	PHONEPE,
+	AMAZON_PAY,
 	ACCOUNT_TRANSFER
 }

@@ -17,7 +17,7 @@ import org.hibernate.annotations.ColumnDefault;
 import com.niit.lookatme.dao.Address;
 import com.niit.lookatme.dao.AuditInfo;
 import com.niit.lookatme.dao.Gender;
-import com.niit.lookatme.dao.PaymentMethods;
+import com.niit.lookatme.dao.PaymentModes;
 import com.niit.lookatme.dao.Rating;
 
 /**
@@ -65,7 +65,7 @@ public class Vendor extends AuditInfo{
 	@Enumerated(EnumType.STRING)
 	@Column(length = 10, name = "PAYMENT_METHOD")
 	@ColumnDefault("'ACCOUNT_TRANSFER'")
-	private PaymentMethods paymentMethod;
+	private PaymentModes paymentMethod;
 	
 	@Column(name = "LOGO_URL")
 	private String logoUrl;
@@ -138,7 +138,7 @@ public class Vendor extends AuditInfo{
 	/**
 	 * @return the paymentMethod
 	 */
-	public PaymentMethods getPaymentMethod() {
+	public PaymentModes getPaymentMethod() {
 		return paymentMethod;
 	}
 
@@ -208,7 +208,7 @@ public class Vendor extends AuditInfo{
 	/**
 	 * @param paymentMethod the paymentMethod to set
 	 */
-	public void setPaymentMethod(PaymentMethods paymentMethod) {
+	public void setPaymentMethod(PaymentModes paymentMethod) {
 		this.paymentMethod = paymentMethod;
 	}
 

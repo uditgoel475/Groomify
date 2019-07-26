@@ -15,8 +15,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.niit.lookatme.customer.dao.Customer;
 import com.niit.lookatme.dao.AuditInfo;
-import com.niit.lookatme.dao.Customer;
 
 /**
  * @author ugoel1
