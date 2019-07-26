@@ -1,6 +1,6 @@
 package com.niit.lookatme.services.dao;
 
-import java.sql.Time;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -46,7 +46,7 @@ public class Service extends AuditInfo{
 	
 	@Temporal(value = TemporalType.TIME)
 	@Column(name = "SERVICE_TIME")
-	private Time time;
+	private Date time;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "SERVICE_GROUP", referencedColumnName = "SERVICE_GROUP_ID")
@@ -60,11 +60,11 @@ public class Service extends AuditInfo{
 		this.hsn = hsn;
 	}
 
-	public Time getTime() {
+	public Date getTime() {
 		return time;
 	}
 
-	public void setTime(Time time) {
+	public void setTime(Date time) {
 		this.time = time;
 	}
 

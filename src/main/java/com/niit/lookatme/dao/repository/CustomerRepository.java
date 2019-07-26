@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
  * @author Konika
  *
  */
+
 @Repository("customerRepository")
 public interface CustomerRepository<Customer, ID extends Serializable> extends JpaRepository<Customer, ID> {
 

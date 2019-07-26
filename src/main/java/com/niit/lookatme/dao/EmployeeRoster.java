@@ -1,7 +1,6 @@
 package com.niit.lookatme.dao;
 
 import java.io.Serializable;
-import java.sql.Time;
 import java.time.DayOfWeek;
 import java.util.Date;
 
@@ -13,6 +12,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.ColumnDefault;
 
@@ -35,11 +36,13 @@ public class EmployeeRoster implements Serializable {
 	@Column(name = "SCHEDULE_ID")
 	private Long id;
 
+	@Temporal(value = TemporalType.TIME)
 	@Column(name = "IN_TIME", nullable = false)
-	private Time inTime;
+	private Date inTime;
 
+	@Temporal(value = TemporalType.TIME)
 	@Column(name = "OUT_TIME", nullable = false)
-	private Time outTime;
+	private Date outTime;
 
 	@Enumerated(value = EnumType.STRING)
 	@Column(name = "WEEK_START_DAY")
@@ -125,7 +128,7 @@ public class EmployeeRoster implements Serializable {
 	 * @param inTime
 	 *            the inTime to set
 	 */
-	public void setInTime(Time inTime) {
+	public void setInTime(Date inTime) {
 		this.inTime = inTime;
 	}
 
@@ -133,7 +136,7 @@ public class EmployeeRoster implements Serializable {
 	 * @param outTime
 	 *            the outTime to set
 	 */
-	public void setOutTime(Time outTime) {
+	public void setOutTime(Date outTime) {
 		this.outTime = outTime;
 	}
 

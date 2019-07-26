@@ -36,7 +36,7 @@ public class CustomerJobCardDetails extends AuditInfo{
 	private Long id;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "JOB_CARD", referencedColumnName = "JOB_ID")
+	@JoinColumn(name = "JOB_CARD", referencedColumnName = "JOB_CARD_ID")
 	private CustomerJobCard jobId;
 	
 	@Column(name = "SUB_JOB_ID", nullable = false)

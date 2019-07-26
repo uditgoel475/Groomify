@@ -21,7 +21,7 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 
 import com.niit.lookatme.dao.repository.EmployeeRepository;
 
-public class EmployeeRepositoryImpl<Employee, ID extends Serializable> extends SimpleJpaRepository<Employee, ID>
+public abstract class EmployeeRepositoryImpl<Employee, ID extends Serializable> extends SimpleJpaRepository<Employee, ID>
 		implements EmployeeRepository<Employee, ID> {
 
 	private EntityManager entityManager;

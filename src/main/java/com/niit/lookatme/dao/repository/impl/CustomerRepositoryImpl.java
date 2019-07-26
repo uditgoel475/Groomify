@@ -20,7 +20,7 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 
 import com.niit.lookatme.dao.repository.CustomerRepository;
 
-public class CustomerRepositoryImpl<Customer, ID extends Serializable> extends SimpleJpaRepository<Customer, ID>
+public abstract class CustomerRepositoryImpl<Customer, ID extends Serializable> extends SimpleJpaRepository<Customer, ID>
 		implements CustomerRepository<Customer, ID> {
 
 	private EntityManager entityManager;

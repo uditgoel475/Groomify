@@ -4,15 +4,17 @@ package com.niit.lookatme.dto;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 /**
  * Generated from http://www.jsonschema2pojo.org/
@@ -57,8 +59,8 @@ public class Postalcode implements Serializable
     @JsonProperty("lat")
     private Double lat;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-    private final static long serialVersionUID = -8453802235383550889L;
+    private Map<String, Object> additionalProperties = new HashMap<>();
+    private static final long serialVersionUID = -8453802235383550889L;
 
     /**
      * No args constructor for use in serialization

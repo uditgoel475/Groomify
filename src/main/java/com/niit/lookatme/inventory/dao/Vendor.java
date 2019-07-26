@@ -63,21 +63,25 @@ public class Vendor extends AuditInfo{
 	private String siteURL;
 	
 	@Enumerated(EnumType.STRING)
-	@Column(length = 10, name = "PAYMENT_METHOD")
+	@Column(name = "PAYMENT_METHOD")
 	@ColumnDefault("'ACCOUNT_TRANSFER'")
 	private PaymentModes paymentMethod;
 	
 	@Column(name = "LOGO_URL")
 	private String logoUrl;
 	
-	@Column(name = "IS_TRUSTED_VENDOR", nullable = false)
-	@ColumnDefault("true")
-	private boolean isTrustedVendor;
-	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "RATING", nullable = false)
 	@ColumnDefault("'AVERAGE'")
 	private Rating rating;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "PRODUCT", referencedColumnName = "PRODUCT_ID")
+	private Product product;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "WAREHOUSE_ADDRESS", referencedColumnName = "ADDRESS_ID")
+	private Address warehouseAddress;
 
 	/**
 	 * @return the id
@@ -150,13 +154,6 @@ public class Vendor extends AuditInfo{
 	}
 
 	/**
-	 * @return the isTrustedVendor
-	 */
-	public boolean isTrustedVendor() {
-		return isTrustedVendor;
-	}
-
-	/**
 	 * @param companyName the companyName to set
 	 */
 	public void setCompanyName(String companyName) {
@@ -219,11 +216,4 @@ public class Vendor extends AuditInfo{
 		this.logoUrl = logoUrl;
 	}
 
-	/**
-	 * @param isTrustedVendor the isTrustedVendor to set
-	 */
-	public void setTrustedVendor(boolean isTrustedVendor) {
-		this.isTrustedVendor = isTrustedVendor;
-	}
-	
 }
