@@ -46,8 +46,14 @@ public class Customer extends AuditInfo {
 	@Column(name = "CUSTOMER_ID", updatable = false, nullable = false)
 	private Long id;
 
-	@Column(name = "NAME", nullable = false)
-	private String name;
+	@Column(name = "FIRST_NAME", nullable = false)
+	private String fname;
+
+	@Column(name = "MIDDLE_NAME")
+	private String mname;
+
+	@Column(name = "LAST_NAME")
+	private String lname;
 
 	@Column(name = "USERNAME", nullable = false)
 	private String username;
@@ -94,13 +100,6 @@ public class Customer extends AuditInfo {
 	 */
 	public Long getId() {
 		return id;
-	}
-
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
 	}
 
 	/**
@@ -158,14 +157,6 @@ public class Customer extends AuditInfo {
 
 	public void setExpirationDate(Date expirationDate) {
 		this.expirationDate = expirationDate;
-	}
-
-	/**
-	 * @param name
-	 *            the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	/**
@@ -269,15 +260,37 @@ public class Customer extends AuditInfo {
 		this.alternateContact = alternateContact;
 	}
 
-	
+	public String getFname() {
+		return fname;
+	}
+
+	public void setFname(String fname) {
+		this.fname = fname;
+	}
+
+	public String getMname() {
+		return mname;
+	}
+
+	public void setMname(String mname) {
+		this.mname = mname;
+	}
+
+	public String getLname() {
+		return lname;
+	}
+
+	public void setLname(String lname) {
+		this.lname = lname;
+	}
+
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder().append(alternateContact).append(billingAddress).append(contact).append(dob)
-				.append(email).append(expirationDate).append(gender).append(name).append(pictureUrl)
-				.append(shippingAddress).append(username).toHashCode();
+				.append(email).append(expirationDate).append(gender).append(fname).append(mname).append(lname)
+				.append(pictureUrl).append(shippingAddress).append(username).toHashCode();
 	}
 
-	
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null) {
@@ -293,7 +306,8 @@ public class Customer extends AuditInfo {
 		return new EqualsBuilder().append(alternateContact, rhs.alternateContact)
 				.append(billingAddress, rhs.billingAddress).append(contact, rhs.contact).append(dob, rhs.dob)
 				.append(email, rhs.email).append(expirationDate, rhs.expirationDate).append(gender, rhs.gender)
-				.append(name, rhs.name).append(pictureUrl, rhs.pictureUrl).append(shippingAddress, rhs.shippingAddress)
+				.append(fname, rhs.fname).append(lname, rhs.lname).append(mname, rhs.mname)
+				.append(pictureUrl, rhs.pictureUrl).append(shippingAddress, rhs.shippingAddress)
 				.append(username, rhs.username).isEquals();
 	}
 

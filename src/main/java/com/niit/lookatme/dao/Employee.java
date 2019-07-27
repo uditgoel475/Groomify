@@ -115,7 +115,7 @@ public class Employee extends AuditInfo {
 	@Column(name = "GOVT_ID_SNAP_URL", unique = true)
 	private String govtIdSnapUrl;
 
-	@Column(name = "SALARY", nullable = false)
+	@Column(name = "SALARY")
 	private double salary;
 
 	@Temporal(TemporalType.TIMESTAMP)
