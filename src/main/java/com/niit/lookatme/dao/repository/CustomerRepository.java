@@ -20,4 +20,7 @@ public interface CustomerRepository extends CrudRepository<Customer, Long> {
 
 	@Query("Select c from Customer c where c.dob BETWEEN :first AND :last ORDER BY DOB ASC")
 	List<Customer> findAllByDobBetweenOrderByDobAsc(@Param("first") Date first, @Param("last") Date last);
+	
+	@Query("Select c from Customer c where c.username = :username")
+	Customer findByUsername(@Param("username") String username);
 }

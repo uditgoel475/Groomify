@@ -11,6 +11,10 @@ import java.util.Optional;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.HibernateException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,9 +32,11 @@ import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 @Service("customerFacade")
 public class CustomerFacaceImpl implements CustomerFacade {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(CustomerFacaceImpl.class);
+
 	@Resource
 	private CustomerRepository customerRepository;
-	
+
 	@Override
 	public String createNewCustomer(CustomerInput customerInput) {
 		Customer customer = customerRepository.save(createCustomerJPAFromCustomerInput(customerInput));
@@ -52,21 +58,21 @@ public class CustomerFacaceImpl implements CustomerFacade {
 		customer.setMname(customerInput.getmName());
 		customer.setLname(customerInput.getlName());
 		customer.setDob(customerInput.getDob());
-		
+
 		if (StringUtils.isEmpty(customerInput.getUsername()))
 			customerInput.setUsername(createCustomerUsername(customerInput));
 		customer.setUsername(customerInput.getUsername());
-		
+
 		Password password = new Password();
-		password.setPassword1(customerInput.getPassword());
-		password.setPwdCreationDate( Date.from(LocalDate.now().atStartOfDay()
-				.atZone(ZoneId.systemDefault()).toInstant()));
+		password.setPassword(CustomerAndEmployeeUtils.encrypt(customerInput.getPassword()));
+		
 		customer.setPassword(password);
 		customer.setEmail(customerInput.getEmail());
 		customer.setGender(Gender.valueOf(customerInput.getGender()));
-	
+
 		customer.setBillingAddress(CustomerAndEmployeeUtils.populateAddressObject(customerInput.getBillingAddress()));
-		customer.setShippingAddress(customerInput.isSameShipping()?customer.getBillingAddress():CustomerAndEmployeeUtils.populateAddressObject(customerInput.getShippingAddress()));
+		customer.setShippingAddress(customerInput.isSameShipping() ? customer.getBillingAddress()
+				: CustomerAndEmployeeUtils.populateAddressObject(customerInput.getShippingAddress()));
 		customer.setContact(customerInput.getContact());
 		customer.setAlternateContact(customerInput.getAlternateContact());
 
@@ -76,20 +82,19 @@ public class CustomerFacaceImpl implements CustomerFacade {
 		customer.setGovtId(customerInput.getGovtId());
 		return customer;
 	}
-	
+
 	private String setImageUrl(UserImageInputType userImageInputType, CustomerInput customerInput) {
 		if (Optional.ofNullable(customerInput.getPictureFile()).map(MultipartFile::getSize)
 				.map(x -> Boolean.valueOf(x > 0)).orElse(false)) {
 			String filePathName = CustomerAndEmployeeUtils.uploadPictureImage(UserType.CUSTOMER,
-					customerInput.getPictureFile(), customerInput.getUsername(),
-					userImageInputType);
+					customerInput.getPictureFile(), customerInput.getUsername(), userImageInputType);
 			if (!StringUtils.isEmpty(filePathName)) {
 				return filePathName;
 			}
 		}
 		return null;
 	}
-	
+
 	private String createCustomerUsername(CustomerInput customer) {
 		long customerCount = customerRepository.count();
 		String initString = customer.getfName().substring(0, 3)
@@ -105,9 +110,26 @@ public class CustomerFacaceImpl implements CustomerFacade {
 				.atZone(ZoneId.systemDefault()).toInstant());
 		Date endDate = Date.from(LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).atStartOfDay()
 				.atZone(ZoneId.systemDefault()).toInstant());
-		
-		return customerRepository.findAllByDobBetweenOrderByDobAsc(startDate,
-				endDate);
+
+		return customerRepository.findAllByDobBetweenOrderByDobAsc(startDate, endDate);
+	}
+
+	@Override
+	public Boolean changeCustomerPassword(String custNo, String encryptedPassword) {
+		String decryptedPassword = CustomerAndEmployeeUtils.decrypt(encryptedPassword);
+		Customer customer = customerRepository.findByUsername(custNo);
+		Password passwords = customer.getPassword();
+		if(passwords.isMatchesPreviousPasswords(decryptedPassword))
+			return false;
+		passwords.setPassword(decryptedPassword);
+		customer.setPassword(passwords);
+		try {
+			customerRepository.save(customer);
+			return true;
+		} catch (DataAccessException | HibernateException ex) {
+			LOGGER.error(ex.getMessage());
+			return false;
+		}
 	}
 
 }

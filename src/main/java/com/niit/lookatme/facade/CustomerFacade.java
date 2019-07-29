@@ -10,4 +10,6 @@ public interface CustomerFacade {
 	List<Customer> fetchAllCustomerCurrentWeekBirthdays();
 
 	String createNewCustomer(CustomerInput customerInput);
+
+	Boolean changeCustomerPassword(String custNo, String encryptedPassword);
 }

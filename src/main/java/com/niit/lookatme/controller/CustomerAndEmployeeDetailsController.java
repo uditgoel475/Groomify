@@ -1,6 +1,7 @@
 package com.niit.lookatme.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 
@@ -51,34 +52,39 @@ public class CustomerAndEmployeeDetailsController {
 	@PostMapping("employee/upload/profile/{empNo}")
 	public ResponseEntity<Boolean> uploadEmployeeImageProfile(@RequestParam("file") MultipartFile file,
 			@PathVariable("empNo") String empNo) {
-		return ResponseEntity.ok(!StringUtils
-				.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE, file, empNo, UserImageInputType.PROFILE)));
+		return ResponseEntity.ok(!StringUtils.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE,
+				file, empNo, UserImageInputType.PROFILE)));
 	}
 
 	@PostMapping("employee/upload/govt/{empNo}")
 	public ResponseEntity<Boolean> uploadEmployeeImageGovt(@RequestParam("file") MultipartFile file,
 			@PathVariable("empNo") String empNo) {
-		return ResponseEntity.ok(!StringUtils
-				.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE, file, empNo, UserImageInputType.GOVTID)));
+		return ResponseEntity.ok(!StringUtils.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE,
+				file, empNo, UserImageInputType.GOVTID)));
 	}
-	
 
 	@PostMapping("customer/upload/profile/{empNo}")
 	public ResponseEntity<Boolean> uploadCustomerImageProfile(@RequestParam("file") MultipartFile file,
 			@PathVariable("empNo") String empNo) {
-		return ResponseEntity.ok(!StringUtils
-				.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.CUSTOMER, file, empNo, UserImageInputType.PROFILE)));
+		return ResponseEntity.ok(!StringUtils.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.CUSTOMER,
+				file, empNo, UserImageInputType.PROFILE)));
 	}
 
 	@PostMapping("customer/upload/govt/{empNo}")
 	public ResponseEntity<Boolean> uploadCustomerImageGovt(@RequestParam("file") MultipartFile file,
 			@PathVariable("empNo") String empNo) {
-		return ResponseEntity.ok(!StringUtils
-				.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.CUSTOMER, file, empNo, UserImageInputType.GOVTID)));
+		return ResponseEntity.ok(!StringUtils.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.CUSTOMER,
+				file, empNo, UserImageInputType.GOVTID)));
 	}
 
 	@PostMapping("create/customer")
 	public ResponseEntity<String> createCustomer(@RequestBody CustomerInput customerInput) {
 		return ResponseEntity.ok(customerFacade.createNewCustomer(customerInput));
+	}
+
+	@PostMapping("update/customerPassword/{custNo}")
+	public ResponseEntity<Boolean> updateCustomerPassword(@PathVariable("custNo") String custNo,
+			@RequestBody Map<String, String> encryptedPassword) {
+		return ResponseEntity.ok(customerFacade.updateCustomerPassword(custNo, encryptedPassword.get("custPass")));
 	}
 }

@@ -15,6 +15,8 @@ import javax.persistence.Transient;
 
 import org.springframework.util.StringUtils;
 
+import com.niit.lookatme.utils.LookAtMeUtils;
+
 /**
  * 
  * @author Konika
@@ -23,8 +25,8 @@ import org.springframework.util.StringUtils;
 
 @Entity
 @Table(name = "PASSWORD")
-public class Password implements Serializable{
-	
+public class Password implements Serializable {
+
 	/**
 	 * 
 	 */
@@ -34,10 +36,10 @@ public class Password implements Serializable{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "PASSWORD_ID")
 	private Long id;
-	
+
 	@Column(name = "PASSWORD_1", nullable = false)
 	private String password1;
-	
+
 	@Column(name = "PASSWORD_2")
 	private String password2;
 	@Column(name = "PASSWORD_3")
@@ -46,13 +48,13 @@ public class Password implements Serializable{
 	private String password4;
 	@Column(name = "PASSWORD_5")
 	private String password5;
-	
+
 	@Column(name = "PWD_CREATION_DATE")
 	private Date pwdCreationDate;
-	
+
 	@Column(name = "PWD_EXPIRATION_DATE")
 	private Date pwdExpirationDate;
-	
+
 	@Transient
 	private String lastPassword;
 
@@ -63,79 +65,6 @@ public class Password implements Serializable{
 		return id;
 	}
 
-	/**
-	 * @return the password1
-	 */
-	public String getPassword1() {
-		return password1;
-	}
-
-	/**
-	 * @return the password2
-	 */
-	public String getPassword2() {
-		return password2;
-	}
-
-	/**
-	 * @return the password3
-	 */
-	public String getPassword3() {
-		return password3;
-	}
-
-	/**
-	 * @return the password4
-	 */
-	public String getPassword4() {
-		return password4;
-	}
-
-	/**
-	 * @return the password5
-	 */
-	public String getPassword5() {
-		return password5;
-	}
-
-	
-	/**
-	 * @param password1 the password1 to set
-	 */
-	public void setPassword1(String password1) {
-		this.password1 = password1;
-	}
-
-	/**
-	 * @param password2 the password2 to set
-	 */
-	public void setPassword2(String password2) {
-		this.password2 = password2;
-	}
-
-	/**
-	 * @param password3 the password3 to set
-	 */
-	public void setPassword3(String password3) {
-		this.password3 = password3;
-	}
-
-	/**
-	 * @param password4 the password4 to set
-	 */
-	public void setPassword4(String password4) {
-		this.password4 = password4;
-	}
-
-	/**
-	 * @param password5 the password5 to set
-	 */
-	public void setPassword5(String password5) {
-		this.password5 = password5;
-	}
-
-	
-	
 	public Date getPwdCreationDate() {
 		return pwdCreationDate;
 	}
@@ -153,25 +82,56 @@ public class Password implements Serializable{
 	}
 
 	@Transient
-	public String getLastPassword() {
-		if(!StringUtils.isEmpty(password5))
+	public String getCurrentPassword() {
+		if (!StringUtils.isEmpty(password5))
 			lastPassword = password5;
-		else if(!StringUtils.isEmpty(password4))
+		else if (!StringUtils.isEmpty(password4))
 			lastPassword = password4;
-		else if(!StringUtils.isEmpty(password3))
+		else if (!StringUtils.isEmpty(password3))
 			lastPassword = password3;
-		else if(!StringUtils.isEmpty(password2))
+		else if (!StringUtils.isEmpty(password2))
 			lastPassword = password2;
-		else if(!StringUtils.isEmpty(password1))
+		else if (!StringUtils.isEmpty(password1))
 			lastPassword = password1;
 		return lastPassword;
 	}
-	
+
+	@Transient
+	public boolean isMatchesPreviousPasswords(String password) {
+		return password.equals(password1) || password.equals(password2) || password.equals(password3)
+				|| password.equals(password4) || password.equals(password5);
+	}
+
+	@Transient
+	public void setPassword(String password) {
+		if (StringUtils.isEmpty(password1))
+			password1 = password;
+		else if (StringUtils.isEmpty(password2))
+			password2 = password;
+		else if (StringUtils.isEmpty(password3))
+			password3 = password;
+		else if (StringUtils.isEmpty(password4))
+			password4 = password;
+		else if (StringUtils.isEmpty(password5))
+			password5 = password;
+		else {
+			password1 = password2;
+			password2 = password3;
+			password3 = password4;
+			password4 = password5;
+			password5 = password;
+		}
+		Calendar cal = Calendar.getInstance();
+		pwdCreationDate = cal.getTime();
+		pwdExpirationDate = LookAtMeUtils.getCustomerExpirationDateFromCurrent(cal);
+	}
+
 	@Transient
 	public long passwordAge() {
-		return TimeUnit.DAYS.convert(Calendar.getInstance().getTimeInMillis() - pwdCreationDate.getTime(), TimeUnit.MILLISECONDS);
+		return TimeUnit.DAYS.convert(Calendar.getInstance().getTimeInMillis() - pwdCreationDate.getTime(),
+				TimeUnit.MILLISECONDS);
 	}
-	
+
 	public boolean isPasswordExpired() {
 		return Calendar.getInstance().getTimeInMillis() - pwdExpirationDate.getTime() > 0;
 	}
