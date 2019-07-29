@@ -15,7 +15,7 @@ import javax.persistence.Transient;
 
 import org.springframework.util.StringUtils;
 
-import com.niit.lookatme.utils.LookAtMeUtils;
+import com.niit.lookatme.utils.AppUtils;
 
 /**
  * 
@@ -123,7 +123,7 @@ public class Password implements Serializable {
 		}
 		Calendar cal = Calendar.getInstance();
 		pwdCreationDate = cal.getTime();
-		pwdExpirationDate = LookAtMeUtils.getCustomerExpirationDateFromCurrent(cal);
+		pwdExpirationDate = AppUtils.getCustomerExpirationDateFromCurrent(cal);
 	}
 
 	@Transient

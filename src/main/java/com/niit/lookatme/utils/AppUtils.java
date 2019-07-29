@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LookAtMeUtils {
+public class AppUtils {
 
 	@Value("${customer.password.expire}")
 	private static boolean isPasswordExpire;
