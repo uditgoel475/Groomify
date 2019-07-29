@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.niit.lookatme.customer.dao.Customer;
-import com.niit.lookatme.customer.dto.CreateEmployeeInput;
 import com.niit.lookatme.dao.Employee;
 import com.niit.lookatme.dto.CustomerAndEmployeeDataDTO;
+import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
+import com.niit.lookatme.employee.dto.CustomerInput;
+import com.niit.lookatme.employee.dto.EmployeeInput;
 import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.facade.EmployeeFacade;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
@@ -42,26 +44,41 @@ public class CustomerAndEmployeeDetailsController {
 	}
 
 	@PostMapping("employee/create")
-	public ResponseEntity<String> createEmployee(@RequestBody CreateEmployeeInput createEmployeeInput) {
-		return ResponseEntity.ok(employeeFacade.createNewEmployee(createEmployeeInput));
+	public ResponseEntity<String> createEmployee(@RequestBody EmployeeInput employeeInput) {
+		return ResponseEntity.ok(employeeFacade.createNewEmployee(employeeInput));
 	}
 
 	@PostMapping("employee/upload/profile/{empNo}")
 	public ResponseEntity<Boolean> uploadEmployeeImageProfile(@RequestParam("file") MultipartFile file,
 			@PathVariable("empNo") String empNo) {
 		return ResponseEntity.ok(!StringUtils
-				.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE, file, empNo, "profile")));
+				.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE, file, empNo, UserImageInputType.PROFILE)));
 	}
 
 	@PostMapping("employee/upload/govt/{empNo}")
 	public ResponseEntity<Boolean> uploadEmployeeImageGovt(@RequestParam("file") MultipartFile file,
 			@PathVariable("empNo") String empNo) {
 		return ResponseEntity.ok(!StringUtils
-				.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE, file, empNo, "govtId")));
+				.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE, file, empNo, UserImageInputType.GOVTID)));
+	}
+	
+
+	@PostMapping("customer/upload/profile/{empNo}")
+	public ResponseEntity<Boolean> uploadCustomerImageProfile(@RequestParam("file") MultipartFile file,
+			@PathVariable("empNo") String empNo) {
+		return ResponseEntity.ok(!StringUtils
+				.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.CUSTOMER, file, empNo, UserImageInputType.PROFILE)));
+	}
+
+	@PostMapping("customer/upload/govt/{empNo}")
+	public ResponseEntity<Boolean> uploadCustomerImageGovt(@RequestParam("file") MultipartFile file,
+			@PathVariable("empNo") String empNo) {
+		return ResponseEntity.ok(!StringUtils
+				.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.CUSTOMER, file, empNo, UserImageInputType.GOVTID)));
 	}
 
 	@PostMapping("create/customer")
-	public ResponseEntity<String> createCustomer(@RequestBody Customer customer) {
-		return ResponseEntity.ok(customerFacade.createNewCustomer(customer));
+	public ResponseEntity<String> createCustomer(@RequestBody CustomerInput customerInput) {
+		return ResponseEntity.ok(customerFacade.createNewCustomer(customerInput));
 	}
 }

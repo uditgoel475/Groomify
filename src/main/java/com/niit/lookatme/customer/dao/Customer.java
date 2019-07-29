@@ -25,6 +25,7 @@ import org.hibernate.annotations.ColumnDefault;
 import com.niit.lookatme.dao.Address;
 import com.niit.lookatme.dao.AuditInfo;
 import com.niit.lookatme.dao.Gender;
+import com.niit.lookatme.dao.GovtIdType;
 import com.niit.lookatme.dao.Password;
 
 /**
@@ -83,6 +84,9 @@ public class Customer extends AuditInfo {
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "SHIPPING_ADDRESS")
 	private Address shippingAddress;
+	
+	@Column(name = "REGISTRATION_ID", nullable = false, unique = true)
+	private String regId;
 
 	@Column(name = "CONTACT", nullable = false)
 	@ColumnDefault("0000000000")
@@ -90,10 +94,20 @@ public class Customer extends AuditInfo {
 
 	@Column(name = "ALTERNATE_CONTACT")
 	private Long alternateContact;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "GOVT_ID_TYPE", referencedColumnName = "TYPE_ID")
+	private GovtIdType govtIdType;
+
+	@Column(name = "GOVT_ID", nullable = false, unique = true)
+	private String govtId;
+
+	@Column(name = "GOVT_ID_SNAP_URL", unique = true)
+	private String govtIdSnapUrl;
 
 	@Temporal(value = TemporalType.DATE)
-	@Column(name = "EXPIRATION_DATE")
-	private Date expirationDate;
+	@Column(name = "ACCOUNT_CLOSURE_DATE")
+	private Date accountClosureDate;
 
 	/**
 	 * @return the id
@@ -151,12 +165,12 @@ public class Customer extends AuditInfo {
 		return alternateContact;
 	}
 
-	public Date getExpirationDate() {
-		return expirationDate;
+	public Date getAccountClosureDate() {
+		return accountClosureDate;
 	}
 
-	public void setExpirationDate(Date expirationDate) {
-		this.expirationDate = expirationDate;
+	public void setAccountClosureDate(Date accountClosureDate) {
+		this.accountClosureDate = accountClosureDate;
 	}
 
 	/**
@@ -284,11 +298,67 @@ public class Customer extends AuditInfo {
 		this.lname = lname;
 	}
 
+	/**
+	 * @return the govtIdType
+	 */
+	public GovtIdType getGovtIdType() {
+		return govtIdType;
+	}
+
+	/**
+	 * @return the govtId
+	 */
+	public String getGovtId() {
+		return govtId;
+	}
+
+	/**
+	 * @return the govtIdSnapUrl
+	 */
+	public String getGovtIdSnapUrl() {
+		return govtIdSnapUrl;
+	}
+
+	/**
+	 * @param govtIdType the govtIdType to set
+	 */
+	public void setGovtIdType(GovtIdType govtIdType) {
+		this.govtIdType = govtIdType;
+	}
+
+	/**
+	 * @param govtId the govtId to set
+	 */
+	public void setGovtId(String govtId) {
+		this.govtId = govtId;
+	}
+
+	/**
+	 * @param govtIdSnapUrl the govtIdSnapUrl to set
+	 */
+	public void setGovtIdSnapUrl(String govtIdSnapUrl) {
+		this.govtIdSnapUrl = govtIdSnapUrl;
+	}
+
+	/**
+	 * @return the regId
+	 */
+	public String getRegId() {
+		return regId;
+	}
+
+	/**
+	 * @param regId the regId to set
+	 */
+	public void setRegId(String regId) {
+		this.regId = regId;
+	}
+
 	@Override
 	public int hashCode() {
 		return new HashCodeBuilder().append(alternateContact).append(billingAddress).append(contact).append(dob)
-				.append(email).append(expirationDate).append(gender).append(fname).append(mname).append(lname)
-				.append(pictureUrl).append(shippingAddress).append(username).toHashCode();
+				.append(email).append(accountClosureDate).append(gender).append(fname).append(mname).append(lname)
+				.append(pictureUrl).append(shippingAddress).append(username).append(govtIdType).append(govtId).append(regId).toHashCode();
 	}
 
 	@Override
@@ -305,10 +375,10 @@ public class Customer extends AuditInfo {
 		Customer rhs = (Customer) obj;
 		return new EqualsBuilder().append(alternateContact, rhs.alternateContact)
 				.append(billingAddress, rhs.billingAddress).append(contact, rhs.contact).append(dob, rhs.dob)
-				.append(email, rhs.email).append(expirationDate, rhs.expirationDate).append(gender, rhs.gender)
+				.append(email, rhs.email).append(accountClosureDate, rhs.accountClosureDate).append(gender, rhs.gender)
 				.append(fname, rhs.fname).append(lname, rhs.lname).append(mname, rhs.mname)
 				.append(pictureUrl, rhs.pictureUrl).append(shippingAddress, rhs.shippingAddress)
-				.append(username, rhs.username).isEquals();
+				.append(username, rhs.username).append(govtIdType, rhs.govtIdType).append(govtId, rhs.govtId).append(regId, rhs.regId).isEquals();
 	}
-
+	
 }

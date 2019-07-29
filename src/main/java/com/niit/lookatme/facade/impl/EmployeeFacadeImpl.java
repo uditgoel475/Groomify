@@ -15,8 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.niit.lookatme.customer.dto.AddressInput;
-import com.niit.lookatme.customer.dto.CreateEmployeeInput;
 import com.niit.lookatme.dao.Address;
 import com.niit.lookatme.dao.Employee;
 import com.niit.lookatme.dao.EmployeeQualification;
@@ -24,8 +22,10 @@ import com.niit.lookatme.dao.EmployeeRoster;
 import com.niit.lookatme.dao.Gender;
 import com.niit.lookatme.dao.GovtIdType;
 import com.niit.lookatme.dao.repository.EmployeeRepository;
+import com.niit.lookatme.dto.AddressInput;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
+import com.niit.lookatme.employee.dto.EmployeeInput;
 import com.niit.lookatme.facade.EmployeeFacade;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
@@ -47,7 +47,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	}
 
 	@Override
-	public String createNewEmployee(CreateEmployeeInput createEmployeeInput) {
+	public String createNewEmployee(EmployeeInput createEmployeeInput) {
 
 		Employee employee = employeeRepository.save(createEmployeeJPAFromEmployeeInput(createEmployeeInput));
 		if (employee.getId() != null) {
@@ -60,10 +60,10 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 				employeeRepository.save(employee);
 			return employee.getUsername();
 		}
-		return "";
+		return StringUtils.EMPTY;
 	}
 
-	private Employee createEmployeeJPAFromEmployeeInput(CreateEmployeeInput createEmployeeInput) {
+	private Employee createEmployeeJPAFromEmployeeInput(EmployeeInput createEmployeeInput) {
 		Employee employee = new Employee();
 		employee.setFname(createEmployeeInput.getfName());
 		employee.setMname(createEmployeeInput.getmName());
@@ -116,12 +116,12 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 		return employee;
 	}
 
-	private String setImageUrl(UserImageInputType userImageInputType, CreateEmployeeInput createEmployeeInput) {
+	private String setImageUrl(UserImageInputType userImageInputType, EmployeeInput createEmployeeInput) {
 		if (Optional.ofNullable(createEmployeeInput.getPictureFile()).map(MultipartFile::getSize)
 				.map(x -> Boolean.valueOf(x > 0)).orElse(false)) {
 			String filePathName = CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE,
 					createEmployeeInput.getPictureFile(), createEmployeeInput.getUsername(),
-					userImageInputType.toString());
+					userImageInputType);
 			if (!StringUtils.isEmpty(filePathName)) {
 				return filePathName;
 			}
@@ -129,7 +129,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 		return null;
 	}
 
-	private String createEmployeeUsername(CreateEmployeeInput employee) {
+	private String createEmployeeUsername(EmployeeInput employee) {
 		long employeecount = employeeRepository.count();
 		String initString = employee.getfName().substring(0, 3)
 				+ (employee.getmName().isEmpty() ? "0" : employee.getmName().substring(0, 1))

@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,7 +35,7 @@ public class ValidateZipCodeController {
 	public void init() {
 		countries = new HashMap<>();
 		for (String iso : Locale.getISOCountries()) {
-			Locale l = new Locale("", iso);
+			Locale l = new Locale(StringUtils.EMPTY, iso);
 			countries.put(l.getDisplayCountry(), iso);
 		}
 	}

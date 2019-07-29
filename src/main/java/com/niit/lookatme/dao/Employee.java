@@ -113,7 +113,7 @@ public class Employee extends AuditInfo {
 	@JoinColumn(name = "GOVT_ID_TYPE", referencedColumnName = "TYPE_ID")
 	private GovtIdType govtIdType;
 
-	@Column(name = "GOVT_ID", nullable = false)
+	@Column(name = "GOVT_ID", nullable = false, unique = true)
 	private String govtId;
 
 	@Column(name = "GOVT_ID_SNAP_URL", unique = true)

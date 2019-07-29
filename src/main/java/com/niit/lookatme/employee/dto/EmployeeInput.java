@@ -1,12 +1,13 @@
-package com.niit.lookatme.customer.dto;
+package com.niit.lookatme.employee.dto;
 
 import java.util.Date;
 
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.niit.lookatme.dto.AddressInput;
 
-public class CreateEmployeeInput {
+public class EmployeeInput {
 
 	private String username;
 	private String fName;

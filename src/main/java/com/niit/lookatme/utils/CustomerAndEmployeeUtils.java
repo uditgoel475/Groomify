@@ -10,13 +10,15 @@ import java.time.format.DateTimeFormatter;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.niit.lookatme.customer.dto.AddressInput;
 import com.niit.lookatme.dao.Address;
+import com.niit.lookatme.dto.AddressInput;
+import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 
 public class CustomerAndEmployeeUtils {
-	
-	private CustomerAndEmployeeUtils() {}
+
+	private CustomerAndEmployeeUtils() {
+	}
 
 	public static Address populateAddressObject(AddressInput addressInput) {
 		Address currentAddress = new Address();
@@ -30,22 +32,23 @@ public class CustomerAndEmployeeUtils {
 		currentAddress.setPostalCode(addressInput.getPostalCode());
 		return currentAddress;
 	}
-	
 
 	public static String createRegId(UserType userType, String username) {
 		return userType.toString() + DateTimeFormatter.ofPattern("yyyymmddHHmmss").format(LocalDate.now()) + username;
 	}
-	
-	public static String uploadPictureImage(UserType userType, MultipartFile file, String empNo, String typeName) {
+
+	public static String uploadPictureImage(UserType userType, MultipartFile file, String empNo,
+			UserImageInputType userImageInputType) {
 		try {
 			byte[] fileBytes = file.getBytes();
 			String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
 
-			StringBuilder builder = new StringBuilder(userType.toString().toLowerCase()).append("/").append(empNo).append("/" + typeName + "/");
+			StringBuilder builder = new StringBuilder(userType.toString().toLowerCase()).append("/").append(empNo)
+					.append("/").append(userImageInputType.toString()).append("/");
 
 			Path directoryPath = Paths.get(builder.toString());
-			String fileRelativePathName = builder.append(empNo).append('_').append(typeName).append('.')
-					.append(fileExtension).toString();
+			String fileRelativePathName = builder.append(empNo).append('_').append(userImageInputType.toString())
+					.append('.').append(fileExtension).toString();
 			if (!directoryPath.toFile().exists()) {
 				Files.createDirectories(directoryPath);
 				Files.write(Paths.get(fileRelativePathName), fileBytes);

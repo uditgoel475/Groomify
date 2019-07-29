@@ -1,4 +1,4 @@
-package com.niit.lookatme.customer.dto;
+package com.niit.lookatme.dto;
 
 public class AddressInput {
 
