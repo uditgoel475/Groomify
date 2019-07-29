@@ -58,7 +58,7 @@ public class Employee extends AuditInfo {
 	@Column(name = "DOB")
 	private Date dob;
 
-	@Column(name = "USERNAME", nullable = false)
+	@Column(name = "USERNAME", nullable = false, unique = true)
 	private String username;
 
 	@Column(name = "PICTURE_URL", unique = true)
@@ -103,7 +103,11 @@ public class Employee extends AuditInfo {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ADDRESS", referencedColumnName = "ADDRESS_ID")
-	private Address address;
+	private Address currentAddress;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ADDRESS", referencedColumnName = "ADDRESS_ID")
+	private Address permanentAddress;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "GOVT_ID_TYPE", referencedColumnName = "TYPE_ID")
@@ -227,10 +231,10 @@ public class Employee extends AuditInfo {
 	}
 
 	/**
-	 * @return the address
+	 * @return the currentAddress
 	 */
-	public Address getAddress() {
-		return address;
+	public Address getCurrentAddress() {
+		return currentAddress;
 	}
 
 	/**
@@ -353,11 +357,11 @@ public class Employee extends AuditInfo {
 	}
 
 	/**
-	 * @param address
-	 *            the address to set
+	 * @param currentAddress
+	 *            the currentAddress to set
 	 */
-	public void setAddress(Address address) {
-		this.address = address;
+	public void setCurrentAddress(Address currentAddress) {
+		this.currentAddress = currentAddress;
 	}
 
 	/**
@@ -527,13 +531,29 @@ public class Employee extends AuditInfo {
 		this.dob = dob;
 	}
 
+	/**
+	 * @return the permanentAddress
+	 */
+	public Address getPermanentAddress() {
+		return permanentAddress;
+	}
+
+	/**
+	 * @param permanentAddress
+	 *            the permanentAddress to set
+	 */
+	public void setPermanentAddress(Address permanentAddress) {
+		this.permanentAddress = permanentAddress;
+	}
+
 	@Override
 	public int hashCode() {
-		return new HashCodeBuilder().append(address).append(dob).append(email).append(fname).append(gender)
-				.append(govtId).append(govtIdSnapUrl).append(govtIdType).append(isAdminUser).append(isOvertimeWorker)
-				.append(joiningDate).append(leavingDate).append(lname).append(mname).append(password).append(pictureUrl)
-				.append(primaryContact).append(qualification).append(rating).append(regId).append(schedule)
-				.append(secondaryContact).append(username).append(whatsappContact).append(salary).toHashCode();
+		return new HashCodeBuilder().append(currentAddress).append(permanentAddress).append(dob).append(email)
+				.append(fname).append(gender).append(govtId).append(govtIdSnapUrl).append(govtIdType)
+				.append(isAdminUser).append(isOvertimeWorker).append(joiningDate).append(leavingDate).append(lname)
+				.append(mname).append(password).append(pictureUrl).append(primaryContact).append(qualification)
+				.append(rating).append(regId).append(schedule).append(secondaryContact).append(username)
+				.append(whatsappContact).append(salary).toHashCode();
 	}
 
 	@Override
@@ -548,7 +568,8 @@ public class Employee extends AuditInfo {
 			return false;
 		}
 		Employee rhs = (Employee) obj;
-		return new EqualsBuilder().append(address, rhs.address).append(dob, rhs.dob).append(email, rhs.email)
+		return new EqualsBuilder().append(currentAddress, rhs.currentAddress)
+				.append(permanentAddress, rhs.permanentAddress).append(dob, rhs.dob).append(email, rhs.email)
 				.append(fname, rhs.fname).append(gender, rhs.gender).append(govtId, rhs.govtId)
 				.append(govtIdSnapUrl, rhs.govtIdSnapUrl).append(govtIdType, rhs.govtIdType)
 				.append(isAdminUser, rhs.isAdminUser).append(isOvertimeWorker, rhs.isOvertimeWorker)
