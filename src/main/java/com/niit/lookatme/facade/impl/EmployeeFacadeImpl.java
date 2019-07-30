@@ -19,17 +19,22 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.niit.lookatme.customer.dao.Customer;
+import com.niit.lookatme.dao.Activity;
 import com.niit.lookatme.dao.Address;
-import com.niit.lookatme.dao.Employee;
-import com.niit.lookatme.dao.EmployeeQualification;
-import com.niit.lookatme.dao.EmployeeRoster;
 import com.niit.lookatme.dao.Gender;
 import com.niit.lookatme.dao.GovtIdType;
 import com.niit.lookatme.dao.Password;
+import com.niit.lookatme.dao.repository.CustomerRepository;
+import com.niit.lookatme.dao.repository.EmployeeDailyActivitiesRepository;
 import com.niit.lookatme.dao.repository.EmployeeRepository;
 import com.niit.lookatme.dto.AddressInput;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
+import com.niit.lookatme.employee.dao.Employee;
+import com.niit.lookatme.employee.dao.EmployeeDailyActivities;
+import com.niit.lookatme.employee.dao.EmployeeQualification;
+import com.niit.lookatme.employee.dao.EmployeeRoster;
 import com.niit.lookatme.employee.dto.EmployeeInput;
 import com.niit.lookatme.facade.EmployeeFacade;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
@@ -41,6 +46,12 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	
 	@Resource
 	private EmployeeRepository employeeRepository;
+	
+	@Resource
+	private EmployeeDailyActivitiesRepository employeeDailyActivitiesRepository;
+	
+	@Resource
+	private CustomerRepository customerRepository;
 
 	@Override
 	public List<Employee> fetchAllExistingEmployeeCurrentWeekBirthdays() {
@@ -161,5 +172,25 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 			LOGGER.error(ex.getMessage());
 			return false;
 		}
+	}
+
+	@Override
+	public Boolean markActivity(String empNo, Activity activity, String custUsername) {
+		EmployeeDailyActivities employeeDailyActivities= new EmployeeDailyActivities();
+		employeeDailyActivities.setActivity(activity);
+		Employee employee = employeeRepository.findByUsername(empNo);
+		employeeDailyActivities.setEmployee(employee);
+		if(!StringUtils.isEmpty(custUsername)) {
+			Customer customer = customerRepository.findByUsername(custUsername);
+			employeeDailyActivities.setCustomer(customer);
+		}
+		employeeDailyActivities.setCreatedBy("anonymous");
+		employeeDailyActivities.setLastModifiedBy("anonymous");
+		Calendar cal = Calendar.getInstance();
+		employeeDailyActivities.setTime(cal.getTime());
+		employeeDailyActivities.setCreationDate(cal.getTime());
+		employeeDailyActivities.setLastModifiedDate(cal.getTime());
+		employeeDailyActivities = employeeDailyActivitiesRepository.save(employeeDailyActivities);
+		return employeeDailyActivities.getId() != null;
 	}
 }

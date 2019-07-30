@@ -1,4 +1,4 @@
-package com.niit.lookatme.dao;
+package com.niit.lookatme.employee.dao;
 
 import java.io.Serializable;
 

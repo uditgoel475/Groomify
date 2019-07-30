@@ -1,4 +1,4 @@
-package com.niit.lookatme.dao;
+package com.niit.lookatme.employee.dao;
 
 import java.text.NumberFormat;
 import java.util.Date;
@@ -23,6 +23,13 @@ import javax.persistence.Transient;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.ColumnDefault;
+
+import com.niit.lookatme.dao.Address;
+import com.niit.lookatme.dao.AuditInfo;
+import com.niit.lookatme.dao.Gender;
+import com.niit.lookatme.dao.GovtIdType;
+import com.niit.lookatme.dao.Password;
+import com.niit.lookatme.dao.Rating;
 
 /**
  * This class maps to table EMPLOYEE which holds the details of all the

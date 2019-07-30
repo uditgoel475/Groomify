@@ -3,7 +3,7 @@ package com.niit.lookatme.dto;
 import java.util.List;
 
 import com.niit.lookatme.customer.dao.Customer;
-import com.niit.lookatme.dao.Employee;
+import com.niit.lookatme.employee.dao.Employee;
 
 public class CustomerAndEmployeeDataDTO {
 

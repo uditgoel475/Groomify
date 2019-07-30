@@ -10,7 +10,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.niit.lookatme.dao.Employee;
+import com.niit.lookatme.employee.dao.Employee;
 
 /**
  * 
@@ -27,7 +27,7 @@ public class EmployeeServices {
 	private Long id;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "Service", referencedColumnName = "SERVICE_ID")
+	@JoinColumn(name = "SERVICE", referencedColumnName = "SERVICE_ID")
 	private Service service;
 	
 	@ManyToOne(fetch = FetchType.LAZY)

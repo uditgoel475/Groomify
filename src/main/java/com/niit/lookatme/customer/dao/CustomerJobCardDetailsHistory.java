@@ -17,8 +17,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.niit.lookatme.dao.AuditInfo;
-import com.niit.lookatme.dao.Employee;
 import com.niit.lookatme.dao.JobStatus;
+import com.niit.lookatme.employee.dao.Employee;
 import com.niit.lookatme.services.dao.Service;
 
 @Entity

@@ -1,4 +1,4 @@
-package com.niit.lookatme.dao;
+package com.niit.lookatme.employee.dao;
 
 import java.io.Serializable;
 import java.time.DayOfWeek;
@@ -64,7 +64,7 @@ public class EmployeeRoster implements Serializable {
 	@ColumnDefault("true")
 	private Boolean isShiftActive;
 	
-	@OneToMany(mappedBy = "schedule", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "schedule", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
 	private List<Employee> employees;
 

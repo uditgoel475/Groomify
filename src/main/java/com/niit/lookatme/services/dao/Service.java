@@ -22,7 +22,7 @@ import com.niit.lookatme.dao.AuditInfo;
  *
  */
 @Entity
-@Table(name = "Service")
+@Table(name = "SERVICE")
 public class Service extends AuditInfo{
 
 	/**
