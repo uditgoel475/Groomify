@@ -82,9 +82,15 @@ public class CustomerAndEmployeeDetailsController {
 		return ResponseEntity.ok(customerFacade.createNewCustomer(customerInput));
 	}
 
-	@PostMapping("update/customerPassword/{custNo}")
+	@PostMapping("change/customerPassword/{custNo}")
 	public ResponseEntity<Boolean> updateCustomerPassword(@PathVariable("custNo") String custNo,
 			@RequestBody Map<String, String> encryptedPassword) {
-		return ResponseEntity.ok(customerFacade.updateCustomerPassword(custNo, encryptedPassword.get("custPass")));
+		return ResponseEntity.ok(customerFacade.changeCustomerPassword(custNo, encryptedPassword.get("custPass")));
+	}
+	
+	@PostMapping("change/employeePassword/{empNo}")
+	public ResponseEntity<Boolean> updateEmployeePassword(@PathVariable("empNo") String empNo,
+			@RequestBody Map<String, String> encryptedPassword) {
+		return ResponseEntity.ok(employeeFacade.changeEmployeePassword(empNo, encryptedPassword.get("empPass")));
 	}
 }

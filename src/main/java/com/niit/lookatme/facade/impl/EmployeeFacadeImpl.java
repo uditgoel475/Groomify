@@ -12,6 +12,10 @@ import java.util.Optional;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.HibernateException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +25,7 @@ import com.niit.lookatme.dao.EmployeeQualification;
 import com.niit.lookatme.dao.EmployeeRoster;
 import com.niit.lookatme.dao.Gender;
 import com.niit.lookatme.dao.GovtIdType;
+import com.niit.lookatme.dao.Password;
 import com.niit.lookatme.dao.repository.EmployeeRepository;
 import com.niit.lookatme.dto.AddressInput;
 import com.niit.lookatme.dto.UserImageInputType;
@@ -32,6 +37,8 @@ import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 @Service("employeeFacade")
 public class EmployeeFacadeImpl implements EmployeeFacade {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(EmployeeFacadeImpl.class);
+	
 	@Resource
 	private EmployeeRepository employeeRepository;
 
@@ -136,5 +143,23 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 				+ employee.getlName().substring(0, 3);
 		initString = StringUtils.rightPad(initString, 13, '0');
 		return StringUtils.rightPad(initString, 13, String.valueOf(employeecount));
+	}
+
+	@Override
+	public Boolean changeEmployeePassword(String empNo, String encryptedPassword) {
+		String decryptedPassword = CustomerAndEmployeeUtils.decrypt(encryptedPassword);
+		Employee employee = employeeRepository.findByUsername(empNo);
+		Password passwords = employee.getPassword();
+		if(passwords.isMatchesPreviousPasswords(decryptedPassword))
+			return false;
+		passwords.setPassword(decryptedPassword);
+		employee.setPassword(passwords);
+		try {
+			employeeRepository.save(employee);
+			return true;
+		} catch (DataAccessException | HibernateException ex) {
+			LOGGER.error(ex.getMessage());
+			return false;
+		}
 	}
 }
