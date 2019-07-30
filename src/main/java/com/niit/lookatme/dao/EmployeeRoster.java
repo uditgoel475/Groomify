@@ -3,19 +3,25 @@ package com.niit.lookatme.dao;
 import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 /**
  * 
@@ -54,9 +60,13 @@ public class EmployeeRoster implements Serializable {
 	@ColumnDefault("'SUNDAY'")
 	private DayOfWeek weekEndDay;
 
-	@Column(name = "SHIFT_STATUS")
+	@Column(name = "IS_SHIFT_ACTIVE")
 	@ColumnDefault("true")
-	private Boolean shiftStatus;
+	private Boolean isShiftActive;
+	
+	@OneToMany(mappedBy = "schedule", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
+	private List<Employee> employees;
 
 	/**
 	 * @return the id
@@ -93,12 +103,7 @@ public class EmployeeRoster implements Serializable {
 		return weekEndDay;
 	}
 
-	/**
-	 * @return the shiftStatus
-	 */
-	public Boolean isShiftStatus() {
-		return shiftStatus;
-	}
+	
 
 	/**
 	 * @param weekStartDay
@@ -116,14 +121,7 @@ public class EmployeeRoster implements Serializable {
 		this.weekEndDay = weekEndDay;
 	}
 
-	/**
-	 * @param shiftStatus
-	 *            the shiftStatus to set
-	 */
-	public void setShiftStatus(Boolean shiftStatus) {
-		this.shiftStatus = shiftStatus;
-	}
-
+	
 	/**
 	 * @param inTime
 	 *            the inTime to set
@@ -138,6 +136,34 @@ public class EmployeeRoster implements Serializable {
 	 */
 	public void setOutTime(Date outTime) {
 		this.outTime = outTime;
+	}
+
+	/**
+	 * @return the isShiftActive
+	 */
+	public Boolean getIsShiftActive() {
+		return isShiftActive;
+	}
+
+	/**
+	 * @return the employees
+	 */
+	public List<Employee> getEmployees() {
+		return employees;
+	}
+
+	/**
+	 * @param isShiftActive the isShiftActive to set
+	 */
+	public void setIsShiftActive(Boolean isShiftActive) {
+		this.isShiftActive = isShiftActive;
+	}
+
+	/**
+	 * @param employees the employees to set
+	 */
+	public void setEmployees(List<Employee> employees) {
+		this.employees = employees;
 	}
 
 }

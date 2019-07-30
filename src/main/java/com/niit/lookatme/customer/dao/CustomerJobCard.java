@@ -1,6 +1,7 @@
 package com.niit.lookatme.customer.dao;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -13,9 +14,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import com.niit.lookatme.dao.AuditInfo;
 import com.niit.lookatme.dao.JobStatus;
@@ -76,6 +81,10 @@ public class CustomerJobCard extends AuditInfo{
 	
 	@Column(name = "INVOICE_URL")
 	private String invoiceUrl;
+	
+	@OneToMany(mappedBy = "jobId", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
+	private List<CustomerJobCardDetails> customerJobCardDetails;
 
 	/**
 	 * @return the id
@@ -250,5 +259,19 @@ public class CustomerJobCard extends AuditInfo{
 	 */
 	public void setCustomerOrder(CustomerOrder customerOrder) {
 		this.customerOrder = customerOrder;
+	}
+
+	/**
+	 * @return the customerJobCardDetails
+	 */
+	public List<CustomerJobCardDetails> getCustomerJobCardDetails() {
+		return customerJobCardDetails;
+	}
+
+	/**
+	 * @param customerJobCardDetails the customerJobCardDetails to set
+	 */
+	public void setCustomerJobCardDetails(List<CustomerJobCardDetails> customerJobCardDetails) {
+		this.customerJobCardDetails = customerJobCardDetails;
 	}
 }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppUtils {
 	
-	private AppUtils() {}
+	public AppUtils() {}
 
 	@Value("${customer.password.expire}")
 	private static boolean isPasswordExpire;

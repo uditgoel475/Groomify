@@ -1,6 +1,7 @@
 package com.niit.lookatme.customer.dao;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -13,9 +14,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import com.niit.lookatme.dao.AuditInfo;
 import com.niit.lookatme.dao.JobStatus;
@@ -40,7 +45,7 @@ public class CustomerJobCardHistory extends AuditInfo{
 	
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "CUSTOMER_ORDER_HISTORY", referencedColumnName = "COH_ID")
-	private CustomerOrder customerOrder;
+	private CustomerOrderHistory customerOrderHistory;
 	
 	@Enumerated(value = EnumType.STRING)
 	@Column(name = "JOB_STATUS", nullable = false)
@@ -76,6 +81,11 @@ public class CustomerJobCardHistory extends AuditInfo{
 
 	@Column(name = "INVOICE_URL")
 	private String invoiceUrl;
+	
+	@OneToMany(mappedBy = "jobId", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
+	private List<CustomerJobCardDetailsHistory> customerJobCardDetailsHistory;
+
 
 
 	/**
@@ -240,16 +250,30 @@ public class CustomerJobCardHistory extends AuditInfo{
 	}
 
 	/**
-	 * @return the customerOrder
+	 * @return the customerOrderHistory
 	 */
-	public CustomerOrder getCustomerOrder() {
-		return customerOrder;
+	public CustomerOrderHistory getCustomerOrderHistory() {
+		return customerOrderHistory;
 	}
 
 	/**
-	 * @param customerOrder the customerOrder to set
+	 * @param customerOrderHistory the customerOrderHistory to set
 	 */
-	public void setCustomerOrder(CustomerOrder customerOrder) {
-		this.customerOrder = customerOrder;
+	public void setCustomerOrderHistory(CustomerOrderHistory customerOrderHistory) {
+		this.customerOrderHistory = customerOrderHistory;
+	}
+
+	/**
+	 * @return the customerJobCardDetailsHistory
+	 */
+	public List<CustomerJobCardDetailsHistory> getCustomerJobCardDetailsHistory() {
+		return customerJobCardDetailsHistory;
+	}
+
+	/**
+	 * @param customerJobCardDetailsHistory the customerJobCardDetailsHistory to set
+	 */
+	public void setCustomerJobCardDetailsHistory(List<CustomerJobCardDetailsHistory> customerJobCardDetailsHistory) {
+		this.customerJobCardDetailsHistory = customerJobCardDetailsHistory;
 	}
 }

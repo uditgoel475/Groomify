@@ -66,7 +66,7 @@ public class LoadAddressMetaTable {
 
 	}
 
-	@PostConstruct
+	//@PostConstruct
 	public void init() {
 		if (addressMetaRepository.count() == 0) {
 			GeoNameListAll geoNameListAll = webClientBuilder.build().get().uri(baseChild, baseGeoName).retrieve()

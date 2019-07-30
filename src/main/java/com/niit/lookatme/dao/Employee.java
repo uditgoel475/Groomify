@@ -102,11 +102,11 @@ public class Employee extends AuditInfo {
 	private Gender gender;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ADDRESS", referencedColumnName = "ADDRESS_ID")
+	@JoinColumn(name = "CURRENT_ADDRESS", referencedColumnName = "ADDRESS_ID")
 	private Address currentAddress;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ADDRESS", referencedColumnName = "ADDRESS_ID")
+	@JoinColumn(name = "PERMANENT_ADDRESS", referencedColumnName = "ADDRESS_ID")
 	private Address permanentAddress;
 
 	@ManyToOne(fetch = FetchType.LAZY)

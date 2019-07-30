@@ -1,18 +1,24 @@
 package com.niit.lookatme.customer.dao;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import com.niit.lookatme.dao.AuditInfo;
 import com.niit.lookatme.dao.JobStatus;
@@ -47,6 +53,10 @@ public class CustomerOrder extends AuditInfo {
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "REQUEST_END_DATE")
 	private Date requestEndTime;
+	
+	@OneToMany(mappedBy = "customerOrder", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
+	private List<CustomerJobCard> customerJobCards;
 
 	/**
 	 * @return the id
@@ -123,5 +133,19 @@ public class CustomerOrder extends AuditInfo {
 	 */
 	public void setRequestEndTime(Date requestEndTime) {
 		this.requestEndTime = requestEndTime;
+	}
+
+	/**
+	 * @return the customerJobCards
+	 */
+	public List<CustomerJobCard> getCustomerJobCards() {
+		return customerJobCards;
+	}
+
+	/**
+	 * @param customerJobCards the customerJobCards to set
+	 */
+	public void setCustomerJobCards(List<CustomerJobCard> customerJobCards) {
+		this.customerJobCards = customerJobCards;
 	}
 }

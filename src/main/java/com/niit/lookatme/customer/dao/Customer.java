@@ -78,11 +78,11 @@ public class Customer extends AuditInfo {
 	private Gender gender;
 
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "BILLING_ADDRESS")
+	@JoinColumn(name = "BILLING_ADDRESS", referencedColumnName = "ADDRESS_ID")
 	private Address billingAddress;
 
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "SHIPPING_ADDRESS")
+	@JoinColumn(name = "SHIPPING_ADDRESS", referencedColumnName = "ADDRESS_ID")
 	private Address shippingAddress;
 	
 	@Column(name = "REGISTRATION_ID", nullable = false, unique = true)

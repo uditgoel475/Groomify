@@ -35,8 +35,9 @@ public class CustomerJobCardDetailsHistory extends AuditInfo{
 	@Column(name = "CAH_ID", updatable = false, nullable = false)
 	private Long id;
 	
-	@Column(name = "JOB_ID", nullable = false)
-	private String jobId;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "JOB_CARD_HISTORY", referencedColumnName = "JOB_CARD_HISTORY_ID")
+	private CustomerJobCardHistory jobId;
 	
 	@Column(name = "SUB_JOB_ID", nullable = false)
 	private String subJobId;
@@ -134,7 +135,7 @@ public class CustomerJobCardDetailsHistory extends AuditInfo{
 	/**
 	 * @return the jobId
 	 */
-	public String getJobId() {
+	public CustomerJobCardHistory getJobId() {
 		return jobId;
 	}
 
@@ -162,7 +163,7 @@ public class CustomerJobCardDetailsHistory extends AuditInfo{
 	/**
 	 * @param jobId the jobId to set
 	 */
-	public void setJobId(String jobId) {
+	public void setJobId(CustomerJobCardHistory jobId) {
 		this.jobId = jobId;
 	}
 

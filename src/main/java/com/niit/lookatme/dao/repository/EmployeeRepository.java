@@ -21,6 +21,6 @@ public interface EmployeeRepository extends CrudRepository<Employee, Long> {
 	@Query("Select e from Employee e where e.leavingDate >= :today AND e.dob BETWEEN :first AND :last ORDER BY DOB ASC")
 	List<Employee> findAllByDobBetweenAndLeavingDateGreaterThanOrEqualToOrderByDobAsc(@Param("first") Date first, @Param("last") Date last, @Param("today") Date today);
 
-	@Query("Select e from Employee e where c.username = :username")
+	@Query("Select e from Employee e where e.username = :username")
 	Employee findByUsername(@Param("username") String username);
 }

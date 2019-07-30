@@ -39,7 +39,7 @@ public class CustomerJobCardDetails extends AuditInfo{
 	@JoinColumn(name = "JOB_CARD", referencedColumnName = "JOB_CARD_ID")
 	private CustomerJobCard jobId;
 	
-	@Column(name = "SUB_JOB_ID", nullable = false)
+	@Column(name = "SUB_JOB_ID", nullable = false, unique = true)
 	private String subJobId;
 	
 	@Enumerated(value = EnumType.STRING)
