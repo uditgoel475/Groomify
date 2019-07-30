@@ -23,7 +23,7 @@ import com.niit.lookatme.services.dao.Service;
 
 @Entity
 @Table(name = "JOB_CARD_DETAILS_HISTORY")
-public class CustomerActivityHistory extends AuditInfo{
+public class CustomerJobCardDetailsHistory extends AuditInfo{
 
 	/**
 	 * 

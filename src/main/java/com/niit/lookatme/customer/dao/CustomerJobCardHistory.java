@@ -2,6 +2,7 @@ package com.niit.lookatme.customer.dao;
 
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -36,6 +37,10 @@ public class CustomerJobCardHistory extends AuditInfo{
 	
 	@Column(name = "JOB_ID", nullable = false, updatable = false)
 	private String jobId;
+	
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "CUSTOMER_ORDER_HISTORY", referencedColumnName = "COH_ID")
+	private CustomerOrder customerOrder;
 	
 	@Enumerated(value = EnumType.STRING)
 	@Column(name = "JOB_STATUS", nullable = false)
@@ -232,5 +237,19 @@ public class CustomerJobCardHistory extends AuditInfo{
 	 */
 	public void setInvoiceUrl(String invoiceUrl) {
 		this.invoiceUrl = invoiceUrl;
+	}
+
+	/**
+	 * @return the customerOrder
+	 */
+	public CustomerOrder getCustomerOrder() {
+		return customerOrder;
+	}
+
+	/**
+	 * @param customerOrder the customerOrder to set
+	 */
+	public void setCustomerOrder(CustomerOrder customerOrder) {
+		this.customerOrder = customerOrder;
 	}
 }

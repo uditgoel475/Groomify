@@ -18,16 +18,17 @@ import com.niit.lookatme.dao.AuditInfo;
 import com.niit.lookatme.dao.JobStatus;
 
 @Entity
-@Table(name = "CUSTOMER_ORDER")
-public class CustomerOrder extends AuditInfo {
+@Table(name = "CUSTOMER_ORDER_HISTORY")
+public class CustomerOrderHistory extends AuditInfo{
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 6295321259673917791L;
+	private static final long serialVersionUID = -638162356135432921L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "CUSTOMER_ORDER_ID", updatable = false, nullable = false)
+	@Column(name = "COH_ID", updatable = false, nullable = false)
 	private Long id;
 	
 	@Column(name = "REQUEST_ID", nullable = false, unique = true)
@@ -124,4 +125,6 @@ public class CustomerOrder extends AuditInfo {
 	public void setRequestEndTime(Date requestEndTime) {
 		this.requestEndTime = requestEndTime;
 	}
+	
+	
 }
