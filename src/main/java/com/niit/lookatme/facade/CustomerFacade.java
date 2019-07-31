@@ -1,8 +1,10 @@
 package com.niit.lookatme.facade;
 
+import java.util.Date;
 import java.util.List;
 
 import com.niit.lookatme.customer.dao.Customer;
+import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.employee.dto.CustomerInput;
 
 public interface CustomerFacade {
@@ -12,4 +14,16 @@ public interface CustomerFacade {
 	String createNewCustomer(CustomerInput customerInput);
 
 	Boolean changeCustomerPassword(String custNo, String encryptedPassword);
+
+	List<CustomerOrder> fetchAllOpenCustomerOrder(String username);
+
+	List<CustomerOrder> fetchAllCalendarOpenAppointmentCurrentMonth(int year, String month);
+
+	List<CustomerOrder> fetchAllCustomerCalendarOpenAppointmentGivenDate(String custNo, Date date);
+
+	List<CustomerOrder> fetchAllCustomerEnquiryGivenDate(String custNo, Date date);
+
+	List<CustomerOrder> fetchAllCustomerEnquiries(String custNo);
+
+	List<CustomerOrder> fetchAllEnquiriesGivenDate(Date date);
 }

@@ -4,10 +4,13 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -37,6 +40,7 @@ import com.niit.lookatme.employee.dao.EmployeeQualification;
 import com.niit.lookatme.employee.dao.EmployeeRoster;
 import com.niit.lookatme.employee.dto.EmployeeInput;
 import com.niit.lookatme.facade.EmployeeFacade;
+import com.niit.lookatme.utils.AppUtils;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
 @Service("employeeFacade")
@@ -192,5 +196,26 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 		employeeDailyActivities.setLastModifiedDate(cal.getTime());
 		employeeDailyActivities = employeeDailyActivitiesRepository.save(employeeDailyActivities);
 		return employeeDailyActivities.getId() != null;
+	}
+
+	@Override
+	public Map<Date, List<EmployeeDailyActivities>> fetchEmployeeMonthlyAttendance(String empNo, Date startDate, Date endDate) {
+		List<Activity> activityList = new ArrayList<>();
+		activityList.add(Activity.SALON_IN);
+		activityList.add(Activity.SALON_OUT);
+		List<EmployeeDailyActivities> employeeDailyActivities = employeeDailyActivitiesRepository.findEmployeeAttendance(activityList, empNo,AppUtils.convertDateToStartOfDay(startDate), AppUtils.convertDateToStartOfDay(endDate));
+		return employeeDailyActivities.stream().collect(Collectors.groupingBy(x->AppUtils.convertDateToStartOfDay(x.getTime())));
+	}
+	
+	@Override
+	public Map<Date, List<EmployeeDailyActivities>> findEmployeeAllMonthlyActivities(String empNo, Date startDate, Date endDate) {
+		
+		List<EmployeeDailyActivities> employeeDailyActivities = employeeDailyActivitiesRepository.findEmployeeAllMonthlyActivities(empNo,AppUtils.convertDateToStartOfDay(startDate), AppUtils.convertDateToStartOfDay(endDate));
+		return employeeDailyActivities.stream().collect(Collectors.groupingBy(x->AppUtils.convertDateToStartOfDay(x.getTime())));
+	}
+
+	@Override
+	public List<EmployeeDailyActivities> fetchEmployeeTodayActivity(String empNo) {
+		return employeeDailyActivitiesRepository.findEmployeeTodayActivities(empNo);
 	}
 }

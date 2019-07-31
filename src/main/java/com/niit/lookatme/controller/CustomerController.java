@@ -1,19 +1,24 @@
 package com.niit.lookatme.controller;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dto.CustomerInput;
@@ -50,6 +55,26 @@ public class CustomerController {
 	public ResponseEntity<Boolean> updateCustomerPassword(@PathVariable("custNo") String custNo,
 			@RequestBody Map<String, String> encryptedPassword) {
 		return ResponseEntity.ok(customerFacade.changeCustomerPassword(custNo, encryptedPassword.get("custPass")));
+	}
+	
+	@GetMapping("orders/open/{custNo}")
+	public ResponseEntity<List<CustomerOrder>> fetchAllOpenCustomerOrders(@PathVariable("custNo") String custNo) {
+		return ResponseEntity.ok(customerFacade.fetchAllOpenCustomerOrder(custNo));
+	}
+	
+	@GetMapping("orders/all/{custNo}")
+	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerOrderGivenDate(@PathVariable("custNo") String custNo, @RequestHeader("date") Date date) {
+		return ResponseEntity.ok(customerFacade.fetchAllCustomerCalendarOpenAppointmentGivenDate(custNo, date));
+	}
+	
+	@GetMapping("enquiry/{custNo}")
+	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiryGivenDate(@PathVariable("custNo") String custNo, @RequestHeader("date") Date date) {
+		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiryGivenDate(custNo, date));
+	}
+	
+	@GetMapping("enquiry/all/{custNo}")
+	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiries(@PathVariable("custNo") String custNo) {
+		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiries(custNo));
 	}
 	
 }

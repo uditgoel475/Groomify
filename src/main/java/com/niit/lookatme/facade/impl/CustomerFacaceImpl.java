@@ -1,9 +1,13 @@
 package com.niit.lookatme.facade.impl;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -19,14 +23,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.niit.lookatme.customer.dao.Customer;
+import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.dao.Gender;
 import com.niit.lookatme.dao.GovtIdType;
+import com.niit.lookatme.dao.JobStatus;
 import com.niit.lookatme.dao.Password;
+import com.niit.lookatme.dao.repository.CustomerOrderRepository;
 import com.niit.lookatme.dao.repository.CustomerRepository;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dto.CustomerInput;
 import com.niit.lookatme.facade.CustomerFacade;
+import com.niit.lookatme.utils.AppUtils;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
 @Service("customerFacade")
@@ -36,6 +44,9 @@ public class CustomerFacaceImpl implements CustomerFacade {
 
 	@Resource
 	private CustomerRepository customerRepository;
+
+	@Resource
+	private CustomerOrderRepository customerOrderRepository;
 
 	@Override
 	public String createNewCustomer(CustomerInput customerInput) {
@@ -65,7 +76,7 @@ public class CustomerFacaceImpl implements CustomerFacade {
 
 		Password password = new Password();
 		password.setPassword(CustomerAndEmployeeUtils.encrypt(customerInput.getPassword()));
-		
+
 		customer.setPassword(password);
 		customer.setEmail(customerInput.getEmail());
 		customer.setGender(Gender.valueOf(customerInput.getGender()));
@@ -119,7 +130,7 @@ public class CustomerFacaceImpl implements CustomerFacade {
 		String decryptedPassword = CustomerAndEmployeeUtils.decrypt(encryptedPassword);
 		Customer customer = customerRepository.findByUsername(custNo);
 		Password passwords = customer.getPassword();
-		if(passwords.isMatchesPreviousPasswords(decryptedPassword))
+		if (passwords.isMatchesPreviousPasswords(decryptedPassword))
 			return false;
 		passwords.setPassword(decryptedPassword);
 		customer.setPassword(passwords);
@@ -130,6 +141,45 @@ public class CustomerFacaceImpl implements CustomerFacade {
 			LOGGER.error(ex.getMessage());
 			return false;
 		}
+	}
+
+	@Override
+	public List<CustomerOrder> fetchAllOpenCustomerOrder(String username) {
+		List<JobStatus> jobStatusList = new ArrayList<>();
+		jobStatusList.add(JobStatus.PENDING);
+		jobStatusList.add(JobStatus.INPROGRESS);
+		return customerOrderRepository.findAllByRequestStatusInAndCustomer_Username(jobStatusList, username);
+	}
+
+	@Override
+	public List<CustomerOrder> fetchAllCalendarOpenAppointmentCurrentMonth(int year, String month) {
+		LocalDate localDate = LocalDate.now().withYear(year).withMonth(Month.valueOf(month.toUpperCase()).getValue());
+		Date date = Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+		return customerOrderRepository.findAllCalendarMonthOpenAppointment(date);
+	}
+
+	@Override
+	public List<CustomerOrder> fetchAllCustomerCalendarOpenAppointmentGivenDate(String custNo, Date date) {
+		Instant instant = Instant.ofEpochMilli(date.getTime());
+		LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+		LocalDate localDate = localDateTime.toLocalDate();
+		Date searchDate = Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+		return customerOrderRepository.findCustomerCalendarOpenAppointmentGivenDate(custNo, searchDate);
+	}
+
+	@Override
+	public List<CustomerOrder> fetchAllCustomerEnquiryGivenDate(String custNo, Date date) {
+		return customerOrderRepository.findAllCustomerEnquiryGivenDate(custNo, AppUtils.convertDateToStartOfDay(date));
+	}
+
+	@Override
+	public List<CustomerOrder> fetchAllCustomerEnquiries(String custNo) {
+		return customerOrderRepository.fetchAllCustomerEnquiries(custNo);
+	}
+
+	@Override
+	public List<CustomerOrder> fetchAllEnquiriesGivenDate(Date date) {
+		return customerOrderRepository.fetchAllEnquiriesGivenDate(date);
 	}
 
 }

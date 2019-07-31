@@ -46,6 +46,10 @@ public class CustomerOrder extends AuditInfo {
 	@JoinColumn(name = "CUSTOMER", referencedColumnName = "CUSTOMER_ID")
 	private Customer customer;
 	
+	@Temporal(TemporalType.DATE)
+	@Column(name = "APPOINTMENT_DATE")
+	private Date appointmentDate;
+	
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "REQUEST_INIT_DATE")
 	private Date requestInitTime;
@@ -133,6 +137,20 @@ public class CustomerOrder extends AuditInfo {
 	 */
 	public void setRequestEndTime(Date requestEndTime) {
 		this.requestEndTime = requestEndTime;
+	}
+
+	/**
+	 * @return the appointmentDate
+	 */
+	public Date getAppointmentDate() {
+		return appointmentDate;
+	}
+
+	/**
+	 * @param appointmentDate the appointmentDate to set
+	 */
+	public void setAppointmentDate(Date appointmentDate) {
+		this.appointmentDate = appointmentDate;
 	}
 
 	/**

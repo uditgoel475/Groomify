@@ -1,14 +1,18 @@
 package com.niit.lookatme.controller;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.niit.lookatme.dao.Activity;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
+import com.niit.lookatme.employee.dao.EmployeeDailyActivities;
 import com.niit.lookatme.employee.dto.EmployeeInput;
 import com.niit.lookatme.facade.EmployeeFacade;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
@@ -27,7 +32,7 @@ public class EmployeeController {
 
 	@Resource(name = "employeeFacade")
 	private EmployeeFacade employeeFacade;
-	
+
 	@PostMapping("create")
 	public ResponseEntity<String> createEmployee(@RequestBody EmployeeInput employeeInput) {
 		return ResponseEntity.ok(employeeFacade.createNewEmployee(employeeInput));
@@ -46,15 +51,37 @@ public class EmployeeController {
 		return ResponseEntity.ok(!StringUtils.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE,
 				file, empNo, UserImageInputType.GOVTID)));
 	}
-	
+
 	@PostMapping("changepwd/{empNo}")
 	public ResponseEntity<Boolean> updateEmployeePassword(@PathVariable("empNo") String empNo,
 			@RequestBody Map<String, String> encryptedPassword) {
 		return ResponseEntity.ok(employeeFacade.changeEmployeePassword(empNo, encryptedPassword.get("empPass")));
 	}
-	
+
 	@PostMapping("dailyactivity/{empNo}")
-	public ResponseEntity<Boolean> employeeActivity(@PathVariable("empNo") String empNo, @RequestBody Map<String, String> activity) {
-		return ResponseEntity.ok(employeeFacade.markActivity(empNo, Activity.fromValue(activity.get("activity")), activity.get("custuser")));
+	public ResponseEntity<Boolean> employeeActivity(@PathVariable("empNo") String empNo,
+			@RequestBody Map<String, String> activity) {
+		return ResponseEntity.ok(employeeFacade.markActivity(empNo, Activity.fromValue(activity.get("activity")),
+				activity.get("custuser")));
+	}
+
+	@GetMapping("attendance/{empNo}")
+	public ResponseEntity<Map<Date, List<EmployeeDailyActivities>>> fetchEmployeeMonthlyAttendance(
+			@PathVariable("empNo") String empNo, @RequestHeader("startDate") Date startDate,
+			@RequestHeader("endDate") Date endDate) {
+		return ResponseEntity.ok(employeeFacade.fetchEmployeeMonthlyAttendance(empNo, startDate, endDate));
+	}
+
+	@GetMapping("dailyactivity/{empNo}")
+	public ResponseEntity<List<EmployeeDailyActivities>> fetchEmployeeTodayActivity(
+			@PathVariable("empNo") String empNo) {
+		return ResponseEntity.ok(employeeFacade.fetchEmployeeTodayActivity(empNo));
+	}
+
+	@GetMapping("activities/{empNo}")
+	public ResponseEntity<Map<Date, List<EmployeeDailyActivities>>> findEmployeeAllMonthlyActivities(
+			@PathVariable("empNo") String empNo, @RequestHeader("startDate") Date startDate,
+			@RequestHeader("endDate") Date endDate) {
+		return ResponseEntity.ok(employeeFacade.findEmployeeAllMonthlyActivities(empNo, startDate, endDate));
 	}
 }
