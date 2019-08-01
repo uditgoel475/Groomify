@@ -6,6 +6,7 @@ import java.util.List;
 import com.niit.lookatme.customer.dao.Customer;
 import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.employee.dto.CustomerInput;
+import com.niit.lookatme.employee.dto.CustomerOrderInput;
 
 public interface CustomerFacade {
 	
@@ -26,4 +27,8 @@ public interface CustomerFacade {
 	List<CustomerOrder> fetchAllCustomerEnquiries(String custNo);
 
 	List<CustomerOrder> fetchAllEnquiriesGivenDate(Date date);
+
+	String createNewCustomerEnquiry(CustomerOrderInput enquiryInput);
+
+	List<CustomerOrder> fetchAllCustomerEnquiriesDateRange(Date startDate, Date endDate);
 }

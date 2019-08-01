@@ -47,10 +47,6 @@ public class CustomerJobCardDetails extends AuditInfo{
 	private JobStatus jobStatus;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "CUSTOMER", referencedColumnName = "CUSTOMER_ID")
-	private Customer customer;
-	
-	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "EMPLOYEE", referencedColumnName = "EMPLOYEE_ID")
 	private Employee activityEmployee;
 	
@@ -88,13 +84,6 @@ public class CustomerJobCardDetails extends AuditInfo{
 	 */
 	public JobStatus getJobStatus() {
 		return jobStatus;
-	}
-
-	/**
-	 * @return the customer
-	 */
-	public Customer getCustomer() {
-		return customer;
 	}
 
 	/**
@@ -158,13 +147,6 @@ public class CustomerJobCardDetails extends AuditInfo{
 	 */
 	public void setJobStatus(JobStatus jobStatus) {
 		this.jobStatus = jobStatus;
-	}
-
-	/**
-	 * @param customer the customer to set
-	 */
-	public void setCustomer(Customer customer) {
-		this.customer = customer;
 	}
 
 	/**

@@ -53,8 +53,11 @@ public class CustomerAndEmployeeUtils {
 		return currentAddress;
 	}
 
-	public static String createRegId(UserType userType, String username) {
-		return userType.toString() + DateTimeFormatter.ofPattern("yyyymmddHHmmss").format(LocalDate.now()) + username;
+	public static String createRegId(String userType, String... username) {
+		StringBuilder strBuilder = new StringBuilder(userType).append(DateTimeFormatter.ofPattern("yyyymmddHHmmss").format(LocalDate.now()));
+		for(String usrname : username)
+			strBuilder.append(usrname);
+		return strBuilder.toString();
 	}
 
 	public static String uploadPictureImage(UserType userType, MultipartFile file, String empNo,

@@ -1,5 +1,6 @@
 package com.niit.lookatme.customer.dao;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -63,7 +64,7 @@ public class CustomerJobCard extends AuditInfo{
 	private Date jobEndTime;
 	
 	@Enumerated(value = EnumType.STRING)
-	@Column(name = "PAYMENT_MODE", nullable = false)
+	@Column(name = "PAYMENT_MODE")
 	private PaymentModes paymentMode;
 
 	@Column(name = "PAYMENT_AMOUNT")
@@ -247,6 +248,9 @@ public class CustomerJobCard extends AuditInfo{
 	 * @return the customerJobCardDetails
 	 */
 	public List<CustomerJobCardDetails> getCustomerJobCardDetails() {
+		if (null == customerJobCardDetails) {
+			customerJobCardDetails = new ArrayList<>();
+		}
 		return customerJobCardDetails;
 	}
 

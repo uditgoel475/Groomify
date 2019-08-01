@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.niit.lookatme.customer.dao.Customer;
+import com.niit.lookatme.customer.dao.CustomerJobCard;
+import com.niit.lookatme.customer.dao.CustomerJobCardDetails;
 import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.dao.Gender;
 import com.niit.lookatme.dao.GovtIdType;
@@ -30,23 +32,28 @@ import com.niit.lookatme.dao.JobStatus;
 import com.niit.lookatme.dao.Password;
 import com.niit.lookatme.dao.repository.CustomerOrderRepository;
 import com.niit.lookatme.dao.repository.CustomerRepository;
+import com.niit.lookatme.dao.repository.ServiceRepository;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dto.CustomerInput;
+import com.niit.lookatme.employee.dto.CustomerOrderInput;
 import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.utils.AppUtils;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
 @Service("customerFacade")
-public class CustomerFacaceImpl implements CustomerFacade {
+public class CustomerFacadeImpl implements CustomerFacade {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CustomerFacaceImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CustomerFacadeImpl.class);
 
 	@Resource
 	private CustomerRepository customerRepository;
 
 	@Resource
 	private CustomerOrderRepository customerOrderRepository;
+
+	@Resource
+	private ServiceRepository serviceRepository;
 
 	@Override
 	public String createNewCustomer(CustomerInput customerInput) {
@@ -180,6 +187,48 @@ public class CustomerFacaceImpl implements CustomerFacade {
 	@Override
 	public List<CustomerOrder> fetchAllEnquiriesGivenDate(Date date) {
 		return customerOrderRepository.fetchAllEnquiriesGivenDate(date);
+	}
+
+	@Override
+	public String createNewCustomerEnquiry(CustomerOrderInput enquiryInput) {
+
+		CustomerOrder customerOrder = new CustomerOrder();
+		customerOrder.setRequestId(
+				CustomerAndEmployeeUtils.createRegId(JobStatus.ENQUIRY.toString(), enquiryInput.getUsername()));
+		customerOrder.setRequestStatus(JobStatus.ENQUIRY);
+		customerOrder.setCustomer(customerRepository.findByUsername(enquiryInput.getUsername()));
+		customerOrder.setAppointmentDate(enquiryInput.getAppointmentDate());
+		customerOrder.setRequestInitTime(enquiryInput.getAppointmentTime());
+		customerOrder.getCustomerJobCards().add(createCustomerJobCard(enquiryInput, customerOrder));
+		CustomerOrder customerOrderPersist = customerOrderRepository.save(customerOrder);
+		return (!StringUtils.isEmpty(customerOrderPersist.getRequestId())) ? customerOrderPersist.getRequestId()
+				: StringUtils.EMPTY;
+	}
+
+	private CustomerJobCard createCustomerJobCard(CustomerOrderInput enquiryInput, CustomerOrder customerOrder) {
+		CustomerJobCard customerJobCard = new CustomerJobCard();
+		customerJobCard.setJobId(
+				CustomerAndEmployeeUtils.createRegId(JobStatus.ENQUIRY.toString(), enquiryInput.getUsername(), "_01"));
+		customerJobCard.setJobStatus(JobStatus.ENQUIRY);
+		customerJobCard.setCustomerOrder(customerOrder);
+		for (int i = 0; i < enquiryInput.getServiceList().size(); i++) {
+			String name = enquiryInput.getServiceList().get(i);
+			com.niit.lookatme.services.dao.Service service = serviceRepository.findByName(name);
+
+			CustomerJobCardDetails customerJobCardDetails = new CustomerJobCardDetails();
+			customerJobCardDetails.setService(service);
+			customerJobCardDetails.setJobStatus(JobStatus.ENQUIRY);
+			customerJobCardDetails.setSubJobId(CustomerAndEmployeeUtils.createRegId(JobStatus.ENQUIRY.toString(),
+					enquiryInput.getUsername(), "_", StringUtils.leftPad(String.valueOf(i), 2)));
+			customerJobCardDetails.setJobId(customerJobCard);
+			customerJobCard.getCustomerJobCardDetails().add(customerJobCardDetails);
+		}
+		return customerJobCard;
+	}
+
+	@Override
+	public List<CustomerOrder> fetchAllCustomerEnquiriesDateRange(Date startDate, Date endDate) {
+		return customerOrderRepository.findAllCustomerEnquiriesDateRange(startDate, endDate);
 	}
 
 }

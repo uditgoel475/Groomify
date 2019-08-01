@@ -55,4 +55,13 @@ public interface CustomerOrderRepository extends CrudRepository<CustomerOrder, L
 			+ "c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY "
 			+ "order by c.appointmentDate")
 	List<CustomerOrder> fetchAllEnquiriesGivenDate(Date date);
+	
+	CustomerOrder findByRequestId(String requestId);
+
+	@Query("select c from CustomerOrder c where "
+			+ "c.appointmentDate >= :startDate and "
+			+ "c.appointmentDate <= :endDate and "
+			+ "c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY and "
+			+ "order by c.appointmentDate")
+	List<CustomerOrder> findAllCustomerEnquiriesDateRange(Date startDate, Date endDate);
 }

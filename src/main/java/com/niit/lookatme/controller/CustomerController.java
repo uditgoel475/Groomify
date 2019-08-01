@@ -22,6 +22,7 @@ import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dto.CustomerInput;
+import com.niit.lookatme.employee.dto.CustomerOrderInput;
 import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
@@ -77,4 +78,13 @@ public class CustomerController {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiries(custNo));
 	}
 	
+	@GetMapping("enquiry/all")
+	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiriesDateRange(@RequestHeader("startDate") Date startDate, @RequestHeader("endDate") Date endDate) {
+		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiriesDateRange(startDate, endDate));
+	}
+	
+	@PostMapping("enquiry")
+	public ResponseEntity<String> createNewEnquiry(@RequestBody CustomerOrderInput customerOrderInput) {
+		return ResponseEntity.ok(customerFacade.createNewCustomerEnquiry(customerOrderInput));
+	}
 }
