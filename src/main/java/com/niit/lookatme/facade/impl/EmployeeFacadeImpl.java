@@ -115,7 +115,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 		if (StringUtils.isEmpty(createEmployeeInput.getRegId())) {
 			createEmployeeInput.setRegId(
-					CustomerAndEmployeeUtils.createRegId(UserType.EMPLOYEE, createEmployeeInput.getUsername()));
+					CustomerAndEmployeeUtils.createRegId(UserType.EMPLOYEE.toString(), createEmployeeInput.getUsername()));
 		}
 		employee.setRegId(createEmployeeInput.getRegId());
 		employee.setGender(Gender.valueOf(createEmployeeInput.getGender()));

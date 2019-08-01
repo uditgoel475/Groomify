@@ -22,6 +22,7 @@ import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dto.CustomerInput;
+import com.niit.lookatme.employee.dto.CustomerOrderInput;
 import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
@@ -75,6 +76,11 @@ public class CustomerController {
 	@GetMapping("enquiry/all/{custNo}")
 	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiries(@PathVariable("custNo") String custNo) {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiries(custNo));
+	}
+	
+	@PostMapping("enquiry")
+	public ResponseEntity<String> createNewEnquiry(@RequestBody CustomerOrderInput customerOrderInput) {
+		return ResponseEntity.ok(customerFacade.createNewCustomerEnquiry(customerOrderInput));
 	}
 	
 }
