@@ -50,10 +50,6 @@ public class CustomerJobCardHistory extends AuditInfo{
 	@Enumerated(value = EnumType.STRING)
 	@Column(name = "JOB_STATUS", nullable = false)
 	private JobStatus jobStatus;
-	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "CUSTOMER", referencedColumnName = "CUSTOMER_ID")
-	private Customer customer;
 
 	@Column(name = "CUSTOMER_FEEDBACK")
 	private String customerFeedback;
@@ -107,13 +103,6 @@ public class CustomerJobCardHistory extends AuditInfo{
 	 */
 	public JobStatus getJobStatus() {
 		return jobStatus;
-	}
-
-	/**
-	 * @return the customer
-	 */
-	public Customer getCustomer() {
-		return customer;
 	}
 
 	/**
@@ -177,13 +166,6 @@ public class CustomerJobCardHistory extends AuditInfo{
 	 */
 	public void setJobStatus(JobStatus jobStatus) {
 		this.jobStatus = jobStatus;
-	}
-
-	/**
-	 * @param customer the customer to set
-	 */
-	public void setCustomer(Customer customer) {
-		this.customer = customer;
 	}
 
 	/**

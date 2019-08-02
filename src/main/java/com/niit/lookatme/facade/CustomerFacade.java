@@ -31,4 +31,8 @@ public interface CustomerFacade {
 	String createNewCustomerEnquiry(CustomerOrderInput enquiryInput);
 
 	List<CustomerOrder> fetchAllCustomerEnquiriesDateRange(Date startDate, Date endDate);
+
+	String createNewCustomerOrder(CustomerOrderInput customerOrderInput);
+
+	Boolean initiateEnquiryToOrder(CustomerOrderInput customerOrderInput);
 }

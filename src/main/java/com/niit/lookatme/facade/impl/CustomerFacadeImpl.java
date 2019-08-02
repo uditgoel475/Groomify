@@ -8,9 +8,13 @@ import java.time.Month;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -25,17 +29,25 @@ import org.springframework.web.multipart.MultipartFile;
 import com.niit.lookatme.customer.dao.Customer;
 import com.niit.lookatme.customer.dao.CustomerJobCard;
 import com.niit.lookatme.customer.dao.CustomerJobCardDetails;
+import com.niit.lookatme.customer.dao.CustomerJobCardDetailsHistory;
+import com.niit.lookatme.customer.dao.CustomerJobCardHistory;
 import com.niit.lookatme.customer.dao.CustomerOrder;
+import com.niit.lookatme.customer.dao.CustomerOrderHistory;
 import com.niit.lookatme.dao.Gender;
 import com.niit.lookatme.dao.GovtIdType;
 import com.niit.lookatme.dao.JobStatus;
 import com.niit.lookatme.dao.Password;
+import com.niit.lookatme.dao.repository.CustomerJobCardDetailsRepository;
+import com.niit.lookatme.dao.repository.CustomerJobCardRepository;
+import com.niit.lookatme.dao.repository.CustomerOrderHistoryRepository;
 import com.niit.lookatme.dao.repository.CustomerOrderRepository;
 import com.niit.lookatme.dao.repository.CustomerRepository;
+import com.niit.lookatme.dao.repository.EmployeeRepository;
 import com.niit.lookatme.dao.repository.ServiceRepository;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dto.CustomerInput;
+import com.niit.lookatme.employee.dto.CustomerJobsInput;
 import com.niit.lookatme.employee.dto.CustomerOrderInput;
 import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.utils.AppUtils;
@@ -54,6 +66,18 @@ public class CustomerFacadeImpl implements CustomerFacade {
 
 	@Resource
 	private ServiceRepository serviceRepository;
+
+	@Resource
+	private CustomerJobCardRepository customerJobCardRepository;
+
+	@Resource
+	private CustomerJobCardDetailsRepository customerJobCardDetailsRepository;
+
+	@Resource
+	private CustomerOrderHistoryRepository customerOrderHistoryRepository;
+
+	@Resource
+	private EmployeeRepository employeeRepository;
 
 	@Override
 	public String createNewCustomer(CustomerInput customerInput) {
@@ -192,43 +216,154 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	@Override
 	public String createNewCustomerEnquiry(CustomerOrderInput enquiryInput) {
 
+		return createNewCustomerOrder(JobStatus.ENQUIRY, enquiryInput);
+	}
+
+	private String createNewCustomerOrder(JobStatus jobStatus, CustomerOrderInput enquiryInput) {
 		CustomerOrder customerOrder = new CustomerOrder();
-		customerOrder.setRequestId(
-				CustomerAndEmployeeUtils.createRegId(JobStatus.ENQUIRY.toString(), enquiryInput.getUsername()));
-		customerOrder.setRequestStatus(JobStatus.ENQUIRY);
+		customerOrder
+				.setRequestId(CustomerAndEmployeeUtils.createRegId(jobStatus.toString(), enquiryInput.getUsername()));
+		customerOrder.setRequestStatus(jobStatus);
 		customerOrder.setCustomer(customerRepository.findByUsername(enquiryInput.getUsername()));
 		customerOrder.setAppointmentDate(enquiryInput.getAppointmentDate());
-		customerOrder.setRequestInitTime(enquiryInput.getAppointmentTime());
-		customerOrder.getCustomerJobCards().add(createCustomerJobCard(enquiryInput, customerOrder));
+		customerOrder.setRequestInitTime(enquiryInput.getInitTime());
+		customerOrder.getCustomerJobCards().addAll(createCustomerJobCard(jobStatus, enquiryInput, customerOrder));
 		CustomerOrder customerOrderPersist = customerOrderRepository.save(customerOrder);
 		return (!StringUtils.isEmpty(customerOrderPersist.getRequestId())) ? customerOrderPersist.getRequestId()
 				: StringUtils.EMPTY;
 	}
 
-	private CustomerJobCard createCustomerJobCard(CustomerOrderInput enquiryInput, CustomerOrder customerOrder) {
-		CustomerJobCard customerJobCard = new CustomerJobCard();
-		customerJobCard.setJobId(
-				CustomerAndEmployeeUtils.createRegId(JobStatus.ENQUIRY.toString(), enquiryInput.getUsername(), "_01"));
-		customerJobCard.setJobStatus(JobStatus.ENQUIRY);
-		customerJobCard.setCustomerOrder(customerOrder);
-		for (int i = 0; i < enquiryInput.getServiceList().size(); i++) {
-			String name = enquiryInput.getServiceList().get(i);
-			com.niit.lookatme.services.dao.Service service = serviceRepository.findByName(name);
+	private List<CustomerJobCard> createCustomerJobCard(JobStatus jobStatus, CustomerOrderInput enquiryInput,
+			CustomerOrder customerOrder) {
+		List<CustomerJobCard> customerJobCardList = new ArrayList<>();
+		int counter = 0;
+		enquiryInput.getCreateNewServicesMap().entrySet().forEach(x -> {
+			CustomerJobCard customerJobCard = new CustomerJobCard();
+			customerJobCard.setJobId(CustomerAndEmployeeUtils.createRegId(jobStatus.toString(),
+					enquiryInput.getUsername(), "_", StringUtils.leftPad(String.valueOf(counter), 2)));
+			customerJobCard.setJobStatus(jobStatus);
+			customerJobCard.setJobStartTime(x.getKey());
+			customerJobCard.setCustomerOrder(customerOrder);
+			for (int i = 0; i < x.getValue().size(); i++) {
+				String name = x.getValue().get(i);
+				com.niit.lookatme.services.dao.Service service = serviceRepository.findByName(name);
 
-			CustomerJobCardDetails customerJobCardDetails = new CustomerJobCardDetails();
-			customerJobCardDetails.setService(service);
-			customerJobCardDetails.setJobStatus(JobStatus.ENQUIRY);
-			customerJobCardDetails.setSubJobId(CustomerAndEmployeeUtils.createRegId(JobStatus.ENQUIRY.toString(),
-					enquiryInput.getUsername(), "_", StringUtils.leftPad(String.valueOf(i), 2)));
-			customerJobCardDetails.setJobId(customerJobCard);
-			customerJobCard.getCustomerJobCardDetails().add(customerJobCardDetails);
-		}
-		return customerJobCard;
+				CustomerJobCardDetails customerJobCardDetails = new CustomerJobCardDetails();
+				customerJobCardDetails.setService(service);
+				customerJobCardDetails.setJobStatus(jobStatus);
+				customerJobCardDetails.setSubJobId(CustomerAndEmployeeUtils.createRegId(jobStatus.toString(),
+						enquiryInput.getUsername(), "_", StringUtils.leftPad(String.valueOf(i), 2)));
+				customerJobCardDetails.setJobId(customerJobCard);
+				customerJobCard.getCustomerJobCardDetails().add(customerJobCardDetails);
+			}
+			customerJobCardList.add(customerJobCard);
+		});
+
+		return customerJobCardList;
 	}
 
 	@Override
 	public List<CustomerOrder> fetchAllCustomerEnquiriesDateRange(Date startDate, Date endDate) {
 		return customerOrderRepository.findAllCustomerEnquiriesDateRange(startDate, endDate);
+	}
+
+	@Override
+	public String createNewCustomerOrder(CustomerOrderInput customerOrderInput) {
+		return createNewCustomerOrder(JobStatus.PENDING, customerOrderInput);
+	}
+
+	//For every customerOrder, CustomerJobCard, CustomerJobCardDetails, do separate operation.
+	@Override
+	public Boolean initiateEnquiryToOrder(CustomerOrderInput customerOrderInput) {
+		CustomerOrder customerOrder = customerOrderRepository
+				.findEnquiryByRequestId(customerOrderInput.getCustomerOrderRequestId());
+		CustomerOrderHistory customerOrderHistory = createCustomerOrderHistoryForCustomerOrderForGivenServices(
+				customerOrderInput, customerOrder);
+
+		CustomerOrderHistory customerOrderHistorySave = customerOrderHistoryRepository.save(customerOrderHistory);
+		Date currentDate = Calendar.getInstance().getTime();
+		JobStatus newJobStatus = (customerOrderInput.getInitiateJobs().isEmpty()) ? JobStatus.PENDING
+				: JobStatus.INPROGRESS;
+		if (customerOrderHistorySave.getId() != null) {
+			customerOrder.setRequestStatus(newJobStatus);
+			customerOrder.setRequestInitTime(currentDate);
+
+			Set<String> initiateJobsKeySet = customerOrderInput.getInitiateJobs().keySet();
+			customerOrder.getCustomerJobCards().forEach(customerJobCard -> {
+				if (initiateJobsKeySet.contains(customerJobCard.getJobId())) {
+					customerJobCard.setJobStatus(newJobStatus);
+					customerJobCard.setJobStartTime(currentDate);
+
+					Map<String, CustomerJobsInput> subJobIds = customerOrderInput.getInitiateJobs()
+							.get(customerJobCard.getJobId()).stream()
+							.collect(Collectors.toMap(CustomerJobsInput::getSubJobId, x -> x));
+					if (!subJobIds.isEmpty()) {
+						customerJobCard.getCustomerJobCardDetails().forEach(customerJobCardDetails -> {
+							if (subJobIds.keySet().contains(customerJobCardDetails.getSubJobId())) {
+								customerJobCardDetails.setJobStatus(newJobStatus);
+								CustomerJobsInput customerJobsInput = subJobIds
+										.get(customerJobCardDetails.getSubJobId());
+								customerJobCardDetails.setActivityEmployee(
+										employeeRepository.findByUsername(customerJobsInput.getEmployeeUsername()));
+								customerJobCardDetails.setJobStartTime(customerJobsInput.getDate());
+							}
+
+						});
+					}
+				}
+			});
+			customerOrderRepository.save(customerOrder);
+
+		}
+		return true;
+	}
+
+	private CustomerOrderHistory createCustomerOrderHistoryForCustomerOrderForGivenServices(
+			CustomerOrderInput customerOrderInput, CustomerOrder customerOrder) {
+		CustomerOrderHistory customerOrderHistory = new CustomerOrderHistory();
+		customerOrderHistory.setRequestId(customerOrder.getRequestId());
+		customerOrderHistory.setRequestStatus(customerOrder.getRequestStatus());
+		customerOrderHistory.setCustomer(customerOrder.getCustomer());
+		customerOrderHistory.setRequestInitTime(customerOrder.getRequestInitTime());
+		customerOrderHistory.setRequestEndTime(customerOrder.getRequestEndTime());
+
+		customerOrderInput.getInitiateJobs().entrySet().forEach(x -> {
+			CustomerJobCard customerJobCard = customerJobCardRepository.findEnquiryJobCardByJobId(x.getKey());
+
+			CustomerJobCardHistory customerJobCardHistory = new CustomerJobCardHistory();
+			customerJobCardHistory.setJobId(customerJobCard.getJobId());
+			customerJobCardHistory.setCustomerOrderHistory(customerOrderHistory);
+			customerJobCardHistory.setJobStatus(customerJobCard.getJobStatus());
+			customerJobCardHistory.setCustomerFeedback(customerJobCard.getCustomerFeedback());
+			customerJobCardHistory.setJobStartTime(customerJobCard.getJobStartTime());
+			customerJobCardHistory.setJobEndTime(customerJobCard.getJobEndTime());
+			customerJobCardHistory.setPaymentMode(customerJobCard.getPaymentMode());
+			customerJobCardHistory.setPaymentAmount(customerJobCard.getPaymentAmount());
+			customerJobCardHistory.setPaidAmount(customerJobCard.getPaidAmount());
+			customerJobCardHistory.setPaymentComments(customerJobCard.getPaymentComments());
+			customerJobCardHistory.setInvoiceUrl(customerJobCard.getInvoiceUrl());
+
+			List<String> subJobIds = x.getValue().stream().map(CustomerJobsInput::getSubJobId)
+					.collect(Collectors.toList());
+			List<CustomerJobCardDetailsHistory> customerJobCardDetailsList = new ArrayList<>();
+			customerJobCard.getCustomerJobCardDetails().forEach(customerJobCardDetail -> {
+				if (subJobIds.contains(customerJobCardDetail.getSubJobId())) {
+					CustomerJobCardDetailsHistory customerJobCardDetailsHistory = new CustomerJobCardDetailsHistory();
+					customerJobCardDetailsHistory.setJobId(customerJobCardHistory);
+					customerJobCardDetailsHistory.setSubJobId(customerJobCardDetail.getSubJobId());
+					customerJobCardDetailsHistory.setJobStatus(customerJobCardDetail.getJobStatus());
+					customerJobCardDetailsHistory.setActivityEmployee(customerJobCardDetail.getActivityEmployee());
+					customerJobCardDetailsHistory.setService(customerJobCardDetail.getService());
+					customerJobCardDetailsHistory.setCustomerFeedback(customerJobCardDetail.getCustomerFeedback());
+					customerJobCardDetailsHistory.setJobStartTime(customerJobCardDetail.getJobStartTime());
+					customerJobCardDetailsHistory.setJobEndTime(customerJobCardDetail.getJobEndTime());
+					customerJobCardDetailsList.add(customerJobCardDetailsHistory);
+				}
+			});
+			customerJobCardHistory.setCustomerJobCardDetailsHistory(customerJobCardDetailsList);
+			customerOrderHistory.getCustomerJobCards().add(customerJobCardHistory);
+		});
+		return customerOrderHistory;
 	}
 
 }

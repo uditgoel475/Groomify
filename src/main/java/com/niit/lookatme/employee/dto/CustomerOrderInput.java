@@ -2,6 +2,7 @@ package com.niit.lookatme.employee.dto;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -12,16 +13,19 @@ public class CustomerOrderInput {
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	private Date appointmentDate;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
-	private Date appointmentTime;
-	private List<String> serviceList;
+	private Date initTime;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
+	private Date endTime;
+	private Map<Date, List<String>> createNewServicesMap;
+	private Map<String, List<CustomerJobsInput>> initiateJobs; // jobid, [subjobids, employee, datetime]
+	private Map<String, List<CustomerJobsInput>> endJobs; // jobid, [subjobids, employee, datetime]
 
-	public CustomerOrderInput(String customerOrderRequestId, String username, Date appointmentDate, Date appointmentTime, List<String> serviceList) {
+	public CustomerOrderInput(String customerOrderRequestId, String username, Date appointmentDate, Date initTime) {
 		super();
 		this.customerOrderRequestId = customerOrderRequestId;
 		this.username = username;
 		this.appointmentDate = appointmentDate;
-		this.appointmentTime = appointmentTime;
-		this.serviceList = serviceList;
+		this.initTime = initTime;
 	}
 
 	/**
@@ -29,13 +33,6 @@ public class CustomerOrderInput {
 	 */
 	public String getCustomerOrderRequestId() {
 		return customerOrderRequestId;
-	}
-
-	/**
-	 * @param customerOrderRequestId the customerOrderRequestId to set
-	 */
-	public void setCustomerOrderRequestId(String customerOrderRequestId) {
-		this.customerOrderRequestId = customerOrderRequestId;
 	}
 
 	/**
@@ -53,17 +50,46 @@ public class CustomerOrderInput {
 	}
 
 	/**
-	 * @return the appointmentTime
+	 * @return the initTime
 	 */
-	public Date getAppointmentTime() {
-		return appointmentTime;
+	public Date getInitTime() {
+		return initTime;
 	}
 
 	/**
-	 * @return the serviceList
+	 * @return the endTime
 	 */
-	public List<String> getServiceList() {
-		return serviceList;
+	public Date getEndTime() {
+		return endTime;
+	}
+
+	/**
+	 * @return the createNewServicesMap
+	 */
+	public Map<Date, List<String>> getCreateNewServicesMap() {
+		return createNewServicesMap;
+	}
+
+	/**
+	 * @return the initiateJobs
+	 */
+	public Map<String, List<CustomerJobsInput>> getInitiateJobs() {
+		return initiateJobs;
+	}
+
+	/**
+	 * @return the endJobs
+	 */
+	public Map<String, List<CustomerJobsInput>> getEndJobs() {
+		return endJobs;
+	}
+
+	/**
+	 * @param customerOrderRequestId
+	 *            the customerOrderRequestId to set
+	 */
+	public void setCustomerOrderRequestId(String customerOrderRequestId) {
+		this.customerOrderRequestId = customerOrderRequestId;
 	}
 
 	/**
@@ -83,19 +109,43 @@ public class CustomerOrderInput {
 	}
 
 	/**
-	 * @param appointmentTime
-	 *            the appointmentTime to set
+	 * @param initTime
+	 *            the initTime to set
 	 */
-	public void setAppointmentTime(Date appointmentTime) {
-		this.appointmentTime = appointmentTime;
+	public void setInitTime(Date initTime) {
+		this.initTime = initTime;
 	}
 
 	/**
-	 * @param serviceList
-	 *            the serviceList to set
+	 * @param endTime
+	 *            the endTime to set
 	 */
-	public void setServiceList(List<String> serviceList) {
-		this.serviceList = serviceList;
+	public void setEndTime(Date endTime) {
+		this.endTime = endTime;
+	}
+
+	/**
+	 * @param createNewServicesMap
+	 *            the createNewServicesMap to set
+	 */
+	public void setCreateNewServicesMap(Map<Date, List<String>> createNewServicesMap) {
+		this.createNewServicesMap = createNewServicesMap;
+	}
+
+	/**
+	 * @param initiateJobs
+	 *            the initiateJobs to set
+	 */
+	public void setInitiateJobs(Map<String, List<CustomerJobsInput>> initiateJobs) {
+		this.initiateJobs = initiateJobs;
+	}
+
+	/**
+	 * @param endJobs
+	 *            the endJobs to set
+	 */
+	public void setEndJobs(Map<String, List<CustomerJobsInput>> endJobs) {
+		this.endJobs = endJobs;
 	}
 
 }

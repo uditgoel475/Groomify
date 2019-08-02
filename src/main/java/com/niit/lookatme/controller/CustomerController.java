@@ -87,4 +87,14 @@ public class CustomerController {
 	public ResponseEntity<String> createNewEnquiry(@RequestBody CustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.createNewCustomerEnquiry(customerOrderInput));
 	}
+	
+	@PostMapping("initiateEnquiryToOrder")
+	public ResponseEntity<Boolean> initiateEnquiryToOrder(@RequestBody CustomerOrderInput customerOrderInput) {
+		return ResponseEntity.ok(customerFacade.initiateEnquiryToOrder(customerOrderInput));
+	}
+	
+	@PostMapping("order")
+	public ResponseEntity<String> createNewOrder(@RequestBody CustomerOrderInput customerOrderInput) {
+		return ResponseEntity.ok(customerFacade.createNewCustomerOrder(customerOrderInput));
+	}
 }

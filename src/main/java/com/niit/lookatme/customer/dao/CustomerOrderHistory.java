@@ -1,5 +1,6 @@
 package com.niit.lookatme.customer.dao;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -140,6 +141,9 @@ public class CustomerOrderHistory extends AuditInfo{
 	 * @return the customerJobCards
 	 */
 	public List<CustomerJobCardHistory> getCustomerJobCards() {
+		if(null == customerJobCards) {
+			customerJobCards = new ArrayList<>();
+		}
 		return customerJobCards;
 	}
 

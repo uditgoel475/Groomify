@@ -55,11 +55,11 @@ public class CustomerJobCard extends AuditInfo{
 	@Column(name = "CUSTOMER_FEEDBACK")
 	private String customerFeedback;
 	
-	@Temporal(value = TemporalType.DATE)
+	@Temporal(value = TemporalType.TIMESTAMP)
 	@Column(name = "JOB_START_TIME")
 	private Date jobStartTime;
 	
-	@Temporal(value = TemporalType.DATE)
+	@Temporal(value = TemporalType.TIMESTAMP)
 	@Column(name = "JOB_END_TIME")
 	private Date jobEndTime;
 	
