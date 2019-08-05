@@ -5,8 +5,9 @@ import java.util.List;
 
 import com.niit.lookatme.customer.dao.Customer;
 import com.niit.lookatme.customer.dao.CustomerOrder;
+import com.niit.lookatme.employee.dto.CreateCustomerOrderInput;
 import com.niit.lookatme.employee.dto.CustomerInput;
-import com.niit.lookatme.employee.dto.CustomerOrderInput;
+import com.niit.lookatme.employee.dto.UpdateCustomerOrderInput;
 
 public interface CustomerFacade {
 	
@@ -28,11 +29,13 @@ public interface CustomerFacade {
 
 	List<CustomerOrder> fetchAllEnquiriesGivenDate(Date date);
 
-	String createNewCustomerEnquiry(CustomerOrderInput enquiryInput);
+	String createNewCustomerEnquiry(CreateCustomerOrderInput enquiryInput);
 
 	List<CustomerOrder> fetchAllCustomerEnquiriesDateRange(Date startDate, Date endDate);
 
-	String createNewCustomerOrder(CustomerOrderInput customerOrderInput);
+	String createNewCustomerOrder(CreateCustomerOrderInput customerOrderInput);
 
-	Boolean initiateEnquiryToOrder(CustomerOrderInput customerOrderInput);
+	Boolean initiateEnquiryToOrder(UpdateCustomerOrderInput customerOrderInput);
+
+	Boolean cancelEntireOrder(String requestId);
 }

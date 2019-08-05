@@ -29,22 +29,19 @@ public interface CustomerOrderRepository extends CrudRepository<CustomerOrder, L
 			+ "EXTRACT (month from c.appointmentDate) = EXTRACT(month from :date) and "
 			+ "EXTRACT (year from c.appointmentDate) = EXTRACT(year from :date) and "
 			+ "c.requestStatus in (com.niit.lookatme.dao.JobStatus.PENDING, com.niit.lookatme.dao.JobStatus.INPROGRESS) and "
-			+ "t.username = :username "
-			+ "order by c.appointmentDate")
+			+ "t.username = :username " + "order by c.appointmentDate")
 	List<CustomerOrder> findCustomerCalendarOpenAppointmentGivenDate(String username, Date date);
 
 	@Query("select c from CustomerOrder c LEFT JOIN FETCH c.customer t where "
 			+ "EXTRACT (day from c.appointmentDate) = EXTRACT(day from :date) and "
 			+ "EXTRACT (month from c.appointmentDate) = EXTRACT(month from :date) and "
 			+ "EXTRACT (year from c.appointmentDate) = EXTRACT(year from :date) and "
-			+ "c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY and "
-			+ "t.username = :username "
+			+ "c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY and " + "t.username = :username "
 			+ "order by c.appointmentDate")
 	List<CustomerOrder> findAllCustomerEnquiryGivenDate(String username, Date date);
 
 	@Query("select c from CustomerOrder c LEFT JOIN FETCH c.customer t where "
-			+ "c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY and "
-			+ "t.username = :username "
+			+ "c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY and " + "t.username = :username "
 			+ "order by c.appointmentDate")
 	List<CustomerOrder> fetchAllCustomerEnquiries(String custNo);
 
@@ -52,17 +49,19 @@ public interface CustomerOrderRepository extends CrudRepository<CustomerOrder, L
 			+ "EXTRACT (day from c.appointmentDate) = EXTRACT(day from :date) and "
 			+ "EXTRACT (month from c.appointmentDate) = EXTRACT(month from :date) and "
 			+ "EXTRACT (year from c.appointmentDate) = EXTRACT(year from :date) and "
-			+ "c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY "
-			+ "order by c.appointmentDate")
+			+ "c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY " + "order by c.appointmentDate")
 	List<CustomerOrder> fetchAllEnquiriesGivenDate(Date date);
-	
+
 	@Query("select c from CustomerOrder c where c.requestId = :requestId and c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY")
 	CustomerOrder findEnquiryByRequestId(String requestId);
 
-	@Query("select c from CustomerOrder c where "
-			+ "c.appointmentDate >= :startDate and "
-			+ "c.appointmentDate <= :endDate and "
-			+ "c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY and "
+	@Query("select c from CustomerOrder c where " + "c.appointmentDate >= :startDate and "
+			+ "c.appointmentDate <= :endDate and " + "c.requestStatus = com.niit.lookatme.dao.JobStatus.ENQUIRY and "
 			+ "order by c.appointmentDate")
 	List<CustomerOrder> findAllCustomerEnquiriesDateRange(Date startDate, Date endDate);
+
+	@Query("select c from CustomerOrder c where c.requestId = :requestId and "
+			+ "c.requestStatus not in (com.niit.lookatme.dao.JobStatus.COMPLETED, "
+			+ "com.niit.lookatme.dao.JobStatus.CANCELLED)")
+	CustomerOrder findCancellableOrderById(String requestId);
 }

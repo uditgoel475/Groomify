@@ -1,7 +1,6 @@
 package com.niit.lookatme.customer.dao;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -15,8 +14,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -47,14 +44,6 @@ public class CustomerOrderHistory extends AuditInfo{
 	@ManyToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "CUSTOMER", referencedColumnName = "CUSTOMER_ID")
 	private Customer customer;
-	
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "REQUEST_INIT_DATE")
-	private Date requestInitTime;
-	
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "REQUEST_END_DATE")
-	private Date requestEndTime;
 	
 	@OneToMany(mappedBy = "customerOrderHistory", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
@@ -89,20 +78,6 @@ public class CustomerOrderHistory extends AuditInfo{
 	}
 
 	/**
-	 * @return the requestInitTime
-	 */
-	public Date getRequestInitTime() {
-		return requestInitTime;
-	}
-
-	/**
-	 * @return the requestEndTime
-	 */
-	public Date getRequestEndTime() {
-		return requestEndTime;
-	}
-
-	/**
 	 * @param requestId the requestId to set
 	 */
 	public void setRequestId(String requestId) {
@@ -121,20 +96,6 @@ public class CustomerOrderHistory extends AuditInfo{
 	 */
 	public void setCustomer(Customer customer) {
 		this.customer = customer;
-	}
-
-	/**
-	 * @param requestInitTime the requestInitTime to set
-	 */
-	public void setRequestInitTime(Date requestInitTime) {
-		this.requestInitTime = requestInitTime;
-	}
-
-	/**
-	 * @param requestEndTime the requestEndTime to set
-	 */
-	public void setRequestEndTime(Date requestEndTime) {
-		this.requestEndTime = requestEndTime;
 	}
 
 	/**

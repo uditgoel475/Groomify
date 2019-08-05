@@ -51,14 +51,6 @@ public class CustomerOrder extends AuditInfo {
 	@Column(name = "APPOINTMENT_DATE")
 	private Date appointmentDate;
 	
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "REQUEST_INIT_DATE")
-	private Date requestInitTime;
-	
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "REQUEST_END_DATE")
-	private Date requestEndTime;
-	
 	@OneToMany(mappedBy = "customerOrder", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
 	private List<CustomerJobCard> customerJobCards;
@@ -92,20 +84,6 @@ public class CustomerOrder extends AuditInfo {
 	}
 
 	/**
-	 * @return the requestInitTime
-	 */
-	public Date getRequestInitTime() {
-		return requestInitTime;
-	}
-
-	/**
-	 * @return the requestEndTime
-	 */
-	public Date getRequestEndTime() {
-		return requestEndTime;
-	}
-
-	/**
 	 * @param requestId the requestId to set
 	 */
 	public void setRequestId(String requestId) {
@@ -124,20 +102,6 @@ public class CustomerOrder extends AuditInfo {
 	 */
 	public void setCustomer(Customer customer) {
 		this.customer = customer;
-	}
-
-	/**
-	 * @param requestInitTime the requestInitTime to set
-	 */
-	public void setRequestInitTime(Date requestInitTime) {
-		this.requestInitTime = requestInitTime;
-	}
-
-	/**
-	 * @param requestEndTime the requestEndTime to set
-	 */
-	public void setRequestEndTime(Date requestEndTime) {
-		this.requestEndTime = requestEndTime;
 	}
 
 	/**

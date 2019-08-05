@@ -9,11 +9,14 @@ import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -37,8 +40,6 @@ import com.niit.lookatme.dao.Gender;
 import com.niit.lookatme.dao.GovtIdType;
 import com.niit.lookatme.dao.JobStatus;
 import com.niit.lookatme.dao.Password;
-import com.niit.lookatme.dao.repository.CustomerJobCardDetailsRepository;
-import com.niit.lookatme.dao.repository.CustomerJobCardRepository;
 import com.niit.lookatme.dao.repository.CustomerOrderHistoryRepository;
 import com.niit.lookatme.dao.repository.CustomerOrderRepository;
 import com.niit.lookatme.dao.repository.CustomerRepository;
@@ -46,9 +47,10 @@ import com.niit.lookatme.dao.repository.EmployeeRepository;
 import com.niit.lookatme.dao.repository.ServiceRepository;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
+import com.niit.lookatme.employee.dto.CreateCustomerOrderInput;
 import com.niit.lookatme.employee.dto.CustomerInput;
 import com.niit.lookatme.employee.dto.CustomerJobsInput;
-import com.niit.lookatme.employee.dto.CustomerOrderInput;
+import com.niit.lookatme.employee.dto.UpdateCustomerOrderInput;
 import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.utils.AppUtils;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
@@ -66,12 +68,6 @@ public class CustomerFacadeImpl implements CustomerFacade {
 
 	@Resource
 	private ServiceRepository serviceRepository;
-
-	@Resource
-	private CustomerJobCardRepository customerJobCardRepository;
-
-	@Resource
-	private CustomerJobCardDetailsRepository customerJobCardDetailsRepository;
 
 	@Resource
 	private CustomerOrderHistoryRepository customerOrderHistoryRepository;
@@ -214,26 +210,25 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
-	public String createNewCustomerEnquiry(CustomerOrderInput enquiryInput) {
+	public String createNewCustomerEnquiry(CreateCustomerOrderInput enquiryInput) {
 
 		return createNewCustomerOrder(JobStatus.ENQUIRY, enquiryInput);
 	}
 
-	private String createNewCustomerOrder(JobStatus jobStatus, CustomerOrderInput enquiryInput) {
+	private String createNewCustomerOrder(JobStatus jobStatus, CreateCustomerOrderInput enquiryInput) {
 		CustomerOrder customerOrder = new CustomerOrder();
 		customerOrder
 				.setRequestId(CustomerAndEmployeeUtils.createRegId(jobStatus.toString(), enquiryInput.getUsername()));
 		customerOrder.setRequestStatus(jobStatus);
 		customerOrder.setCustomer(customerRepository.findByUsername(enquiryInput.getUsername()));
 		customerOrder.setAppointmentDate(enquiryInput.getAppointmentDate());
-		customerOrder.setRequestInitTime(enquiryInput.getInitTime());
 		customerOrder.getCustomerJobCards().addAll(createCustomerJobCard(jobStatus, enquiryInput, customerOrder));
 		CustomerOrder customerOrderPersist = customerOrderRepository.save(customerOrder);
 		return (!StringUtils.isEmpty(customerOrderPersist.getRequestId())) ? customerOrderPersist.getRequestId()
 				: StringUtils.EMPTY;
 	}
 
-	private List<CustomerJobCard> createCustomerJobCard(JobStatus jobStatus, CustomerOrderInput enquiryInput,
+	private List<CustomerJobCard> createCustomerJobCard(JobStatus jobStatus, CreateCustomerOrderInput enquiryInput,
 			CustomerOrder customerOrder) {
 		List<CustomerJobCard> customerJobCardList = new ArrayList<>();
 		int counter = 0;
@@ -268,67 +263,132 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
-	public String createNewCustomerOrder(CustomerOrderInput customerOrderInput) {
+	public String createNewCustomerOrder(CreateCustomerOrderInput customerOrderInput) {
 		return createNewCustomerOrder(JobStatus.PENDING, customerOrderInput);
 	}
-
-	//For every customerOrder, CustomerJobCard, CustomerJobCardDetails, do separate operation.
+	
 	@Override
-	public Boolean initiateEnquiryToOrder(CustomerOrderInput customerOrderInput) {
+	public Boolean cancelEntireOrder(String requestId) {
+		CustomerOrder customerOrder = customerOrderRepository.findCancellableOrderById(requestId);
+		if (customerOrder == null) {
+			throw new NoSuchElementException("Order doesn't exist or is already completed or cancelled");
+		}
+
+		if (customerOrder.getRequestStatus() == JobStatus.ENQUIRY
+				|| customerOrder.getRequestStatus() == JobStatus.PENDING) {
+			completeCustomerOrderByGivenJobStatus(customerOrder, JobStatus.CANCELLED);
+			return true;
+		}
+
+		String completedJobs = customerOrder.getCustomerJobCards().stream()
+				.filter(x -> x.getJobStatus() == JobStatus.COMPLETED).map(CustomerJobCard::getJobId)
+				.collect(Collectors.joining());
+		if (!StringUtils.isEmpty(completedJobs)) {
+			throw new IllegalStateException("Order cannot be cancelled : job cards with IDs : " + completedJobs
+					+ " are already completed. Please cancel all the jobs to cancel the order.");
+		}
+
+		Map<String, List<CustomerJobCardDetails>> customerOpenJobCards = customerOrder.getCustomerJobCards().stream()
+				.filter(x -> x.getJobStatus() == JobStatus.INPROGRESS)
+				.collect(Collectors.toMap(CustomerJobCard::getJobId, CustomerJobCard::getCustomerJobCardDetails));
+
+		if (!customerOpenJobCards.isEmpty()) {
+			StringBuilder strBuilder = new StringBuilder(
+					"Order cannot be cancelled : job cards with IDs having services are already completed or in progress: ");
+			customerOpenJobCards.entrySet().forEach(x -> {
+				String services = x.getValue().stream().filter(
+						y -> (y.getJobStatus() == JobStatus.COMPLETED || y.getJobStatus() == JobStatus.INPROGRESS))
+						.map(CustomerJobCardDetails::getService).map(com.niit.lookatme.services.dao.Service::getName)
+						.collect(Collectors.joining());
+				strBuilder.append(x.getKey()).append(" : ").append(services).append("\n");
+			});
+			strBuilder.append("Please cancel these services and then cancel the order");
+			throw new IllegalStateException(strBuilder.toString());
+		}
+		completeCustomerOrderByGivenJobStatus(customerOrder, JobStatus.CANCELLED);
+		return true;
+	}
+
+	private void completeCustomerOrderByGivenJobStatus(CustomerOrder customerOrder, JobStatus updatedJobStatus) {
+		CustomerOrderHistory customerOrderHistory = createCustomerOrderHistoryAllServices(customerOrder);
+		customerOrderHistoryRepository.save(customerOrderHistory);
+		Date currentDate = Calendar.getInstance().getTime();
+		customerOrder.setRequestStatus(updatedJobStatus);
+		customerOrder.setLastModifiedDate(currentDate);
+		for(CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
+			customerJobCard.setJobStatus(updatedJobStatus);
+			customerJobCard.setJobEndTime(currentDate);
+			customerJobCard.setLastModifiedDate(currentDate);
+			for(CustomerJobCardDetails customerJobCardDetails : customerJobCard.getCustomerJobCardDetails()) {
+				customerJobCardDetails.setJobStatus(updatedJobStatus);
+				customerJobCardDetails.setJobEndTime(currentDate);
+				customerJobCardDetails.setLastModifiedDate(currentDate);
+			}
+		}
+		customerOrderRepository.save(customerOrder);
+	}
+	
+	
+
+	// For every customerOrder, CustomerJobCard, CustomerJobCardDetails, do separate
+	// operation.
+	@Override
+	public Boolean initiateEnquiryToOrder(UpdateCustomerOrderInput customerOrderInput) {
 		CustomerOrder customerOrder = customerOrderRepository
 				.findEnquiryByRequestId(customerOrderInput.getCustomerOrderRequestId());
+		if (customerOrder == null)
+			return false;
 		CustomerOrderHistory customerOrderHistory = createCustomerOrderHistoryForCustomerOrderForGivenServices(
 				customerOrderInput, customerOrder);
 
 		CustomerOrderHistory customerOrderHistorySave = customerOrderHistoryRepository.save(customerOrderHistory);
-		Date currentDate = Calendar.getInstance().getTime();
 		JobStatus newJobStatus = (customerOrderInput.getInitiateJobs().isEmpty()) ? JobStatus.PENDING
 				: JobStatus.INPROGRESS;
 		if (customerOrderHistorySave.getId() != null) {
 			customerOrder.setRequestStatus(newJobStatus);
-			customerOrder.setRequestInitTime(currentDate);
 
 			Set<String> initiateJobsKeySet = customerOrderInput.getInitiateJobs().keySet();
-			customerOrder.getCustomerJobCards().forEach(customerJobCard -> {
-				if (initiateJobsKeySet.contains(customerJobCard.getJobId())) {
-					customerJobCard.setJobStatus(newJobStatus);
-					customerJobCard.setJobStartTime(currentDate);
+			if (!initiateJobsKeySet.isEmpty()) {
+				for (CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
 
-					Map<String, CustomerJobsInput> subJobIds = customerOrderInput.getInitiateJobs()
-							.get(customerJobCard.getJobId()).stream()
-							.collect(Collectors.toMap(CustomerJobsInput::getSubJobId, x -> x));
-					if (!subJobIds.isEmpty()) {
-						customerJobCard.getCustomerJobCardDetails().forEach(customerJobCardDetails -> {
-							if (subJobIds.keySet().contains(customerJobCardDetails.getSubJobId())) {
-								customerJobCardDetails.setJobStatus(newJobStatus);
-								CustomerJobsInput customerJobsInput = subJobIds
-										.get(customerJobCardDetails.getSubJobId());
-								customerJobCardDetails.setActivityEmployee(
-										employeeRepository.findByUsername(customerJobsInput.getEmployeeUsername()));
-								customerJobCardDetails.setJobStartTime(customerJobsInput.getDate());
+					if (initiateJobsKeySet.contains(customerJobCard.getJobId())) {
+						customerJobCard.setJobStatus(newJobStatus);
+						Map<String, CustomerJobsInput> subJobIds = customerOrderInput.getInitiateJobs()
+								.get(customerJobCard.getJobId()).stream()
+								.collect(Collectors.toMap(CustomerJobsInput::getSubJobId, Function.identity()));
+						if (!subJobIds.isEmpty()) {
+							customerJobCard.setJobStartTime(subJobIds.values().stream().map(CustomerJobsInput::getDate)
+									.min(Comparator.comparing(Date::getTime)).orElse(null));
+
+							for (CustomerJobCardDetails customerJobCardDetails : customerJobCard
+									.getCustomerJobCardDetails()) {
+								if (subJobIds.keySet().contains(customerJobCardDetails.getSubJobId())) {
+									customerJobCardDetails.setJobStatus(newJobStatus);
+									CustomerJobsInput customerJobsInput = subJobIds
+											.get(customerJobCardDetails.getSubJobId());
+									customerJobCardDetails.setActivityEmployee(
+											employeeRepository.findByUsername(customerJobsInput.getEmployeeUsername()));
+									customerJobCardDetails.setJobStartTime(customerJobsInput.getDate());
+								}
 							}
-
-						});
+						}
 					}
+
 				}
-			});
-			customerOrderRepository.save(customerOrder);
+				customerOrderRepository.save(customerOrder);
+			}
 
 		}
 		return true;
 	}
-
-	private CustomerOrderHistory createCustomerOrderHistoryForCustomerOrderForGivenServices(
-			CustomerOrderInput customerOrderInput, CustomerOrder customerOrder) {
+	
+	private CustomerOrderHistory createCustomerOrderHistoryAllServices(CustomerOrder customerOrder) {
 		CustomerOrderHistory customerOrderHistory = new CustomerOrderHistory();
 		customerOrderHistory.setRequestId(customerOrder.getRequestId());
 		customerOrderHistory.setRequestStatus(customerOrder.getRequestStatus());
 		customerOrderHistory.setCustomer(customerOrder.getCustomer());
-		customerOrderHistory.setRequestInitTime(customerOrder.getRequestInitTime());
-		customerOrderHistory.setRequestEndTime(customerOrder.getRequestEndTime());
 
-		customerOrderInput.getInitiateJobs().entrySet().forEach(x -> {
-			CustomerJobCard customerJobCard = customerJobCardRepository.findEnquiryJobCardByJobId(x.getKey());
+		for (CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
 
 			CustomerJobCardHistory customerJobCardHistory = new CustomerJobCardHistory();
 			customerJobCardHistory.setJobId(customerJobCard.getJobId());
@@ -343,7 +403,53 @@ public class CustomerFacadeImpl implements CustomerFacade {
 			customerJobCardHistory.setPaymentComments(customerJobCard.getPaymentComments());
 			customerJobCardHistory.setInvoiceUrl(customerJobCard.getInvoiceUrl());
 
-			List<String> subJobIds = x.getValue().stream().map(CustomerJobsInput::getSubJobId)
+			List<CustomerJobCardDetailsHistory> customerJobCardDetailsList = new ArrayList<>();
+			for (CustomerJobCardDetails customerJobCardDetail : customerJobCard.getCustomerJobCardDetails()) {
+				CustomerJobCardDetailsHistory customerJobCardDetailsHistory = new CustomerJobCardDetailsHistory();
+				customerJobCardDetailsHistory.setJobId(customerJobCardHistory);
+				customerJobCardDetailsHistory.setSubJobId(customerJobCardDetail.getSubJobId());
+				customerJobCardDetailsHistory.setJobStatus(customerJobCardDetail.getJobStatus());
+				customerJobCardDetailsHistory.setActivityEmployee(customerJobCardDetail.getActivityEmployee());
+				customerJobCardDetailsHistory.setService(customerJobCardDetail.getService());
+				customerJobCardDetailsHistory.setCustomerFeedback(customerJobCardDetail.getCustomerFeedback());
+				customerJobCardDetailsHistory.setJobStartTime(customerJobCardDetail.getJobStartTime());
+				customerJobCardDetailsHistory.setJobEndTime(customerJobCardDetail.getJobEndTime());
+				customerJobCardDetailsList.add(customerJobCardDetailsHistory);
+			}
+			customerJobCardHistory.setCustomerJobCardDetailsHistory(customerJobCardDetailsList);
+			customerOrderHistory.getCustomerJobCards().add(customerJobCardHistory);
+		}
+		return customerOrderHistory;
+	}
+
+	private CustomerOrderHistory createCustomerOrderHistoryForCustomerOrderForGivenServices(
+			UpdateCustomerOrderInput customerOrderInput, CustomerOrder customerOrder) {
+		CustomerOrderHistory customerOrderHistory = new CustomerOrderHistory();
+		customerOrderHistory.setRequestId(customerOrder.getRequestId());
+		customerOrderHistory.setRequestStatus(customerOrder.getRequestStatus());
+		customerOrderHistory.setCustomer(customerOrder.getCustomer());
+
+		Map<String, CustomerJobCard> customerJobCardsMap = customerOrder.getCustomerJobCards().stream()
+				.filter(x -> x.getJobStatus() == JobStatus.ENQUIRY)
+				.collect(Collectors.toMap(CustomerJobCard::getJobId, Function.identity()));
+
+		customerOrderInput.getInitiateJobs().entrySet().forEach(jobIdEntry -> {
+			CustomerJobCard customerJobCard = customerJobCardsMap.get(jobIdEntry.getKey());
+
+			CustomerJobCardHistory customerJobCardHistory = new CustomerJobCardHistory();
+			customerJobCardHistory.setJobId(customerJobCard.getJobId());
+			customerJobCardHistory.setCustomerOrderHistory(customerOrderHistory);
+			customerJobCardHistory.setJobStatus(customerJobCard.getJobStatus());
+			customerJobCardHistory.setCustomerFeedback(customerJobCard.getCustomerFeedback());
+			customerJobCardHistory.setJobStartTime(customerJobCard.getJobStartTime());
+			customerJobCardHistory.setJobEndTime(customerJobCard.getJobEndTime());
+			customerJobCardHistory.setPaymentMode(customerJobCard.getPaymentMode());
+			customerJobCardHistory.setPaymentAmount(customerJobCard.getPaymentAmount());
+			customerJobCardHistory.setPaidAmount(customerJobCard.getPaidAmount());
+			customerJobCardHistory.setPaymentComments(customerJobCard.getPaymentComments());
+			customerJobCardHistory.setInvoiceUrl(customerJobCard.getInvoiceUrl());
+
+			List<String> subJobIds = jobIdEntry.getValue().stream().map(CustomerJobsInput::getSubJobId)
 					.collect(Collectors.toList());
 			List<CustomerJobCardDetailsHistory> customerJobCardDetailsList = new ArrayList<>();
 			customerJobCard.getCustomerJobCardDetails().forEach(customerJobCardDetail -> {
