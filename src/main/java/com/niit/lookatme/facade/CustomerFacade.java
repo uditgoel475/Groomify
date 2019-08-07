@@ -38,4 +38,6 @@ public interface CustomerFacade {
 	Boolean initiateEnquiryToOrder(UpdateCustomerOrderInput customerOrderInput);
 
 	Boolean cancelEntireOrder(String requestId);
+
+	Boolean updateServices(UpdateCustomerOrderInput customerOrderInput);
 }

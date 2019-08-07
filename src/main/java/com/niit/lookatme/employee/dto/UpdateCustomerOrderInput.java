@@ -13,6 +13,7 @@ public class UpdateCustomerOrderInput {
 	
 	private Map<String, List<CustomerJobsInput>> initiateJobs; // jobid, [subjobids, employee, datetime]
 	private Map<String, List<CustomerJobsInput>> endJobs; // jobid, [subjobids, employee, datetime]
+	private Map<String, List<String>> cancelJobs; // jobid, [subjobids]
 	/**
 	 * @return the customerOrderRequestId
 	 */
@@ -60,5 +61,17 @@ public class UpdateCustomerOrderInput {
 	 */
 	public void setEndJobs(Map<String, List<CustomerJobsInput>> endJobs) {
 		this.endJobs = endJobs;
+	}
+	/**
+	 * @return the cancelJobs
+	 */
+	public Map<String, List<String>> getCancelJobs() {
+		return cancelJobs;
+	}
+	/**
+	 * @param cancelJobs the cancelJobs to set
+	 */
+	public void setCancelJobs(Map<String, List<String>> cancelJobs) {
+		this.cancelJobs = cancelJobs;
 	}
 }

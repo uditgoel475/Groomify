@@ -10,8 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name ="SERVICE_GROUP")
-public class ServiceGroup  implements Serializable{
+@Table(name ="SERVICE_TYPE")
+public class ServiceType  implements Serializable{
 	
 	/**
 	 * 
@@ -20,7 +20,7 @@ public class ServiceGroup  implements Serializable{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "SERVICE_GROUP_ID", nullable=false, updatable = false)
+	@Column(name = "SERVICE_TYPE_ID", nullable=false, updatable = false)
 	private Long id;
 	
 	@Column(name = "NAME", unique = true, nullable = false)

@@ -266,7 +266,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	public String createNewCustomerOrder(CreateCustomerOrderInput customerOrderInput) {
 		return createNewCustomerOrder(JobStatus.PENDING, customerOrderInput);
 	}
-	
+
 	@Override
 	public Boolean cancelEntireOrder(String requestId) {
 		CustomerOrder customerOrder = customerOrderRepository.findCancellableOrderById(requestId);
@@ -315,11 +315,11 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		Date currentDate = Calendar.getInstance().getTime();
 		customerOrder.setRequestStatus(updatedJobStatus);
 		customerOrder.setLastModifiedDate(currentDate);
-		for(CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
+		for (CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
 			customerJobCard.setJobStatus(updatedJobStatus);
 			customerJobCard.setJobEndTime(currentDate);
 			customerJobCard.setLastModifiedDate(currentDate);
-			for(CustomerJobCardDetails customerJobCardDetails : customerJobCard.getCustomerJobCardDetails()) {
+			for (CustomerJobCardDetails customerJobCardDetails : customerJobCard.getCustomerJobCardDetails()) {
 				customerJobCardDetails.setJobStatus(updatedJobStatus);
 				customerJobCardDetails.setJobEndTime(currentDate);
 				customerJobCardDetails.setLastModifiedDate(currentDate);
@@ -327,9 +327,43 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		}
 		customerOrderRepository.save(customerOrder);
 	}
-	
-	
 
+	@Override
+	public Boolean updateServices(UpdateCustomerOrderInput customerOrderInput) {
+		CustomerOrder customerOrder = customerOrderRepository
+				.findCancellableOrderById(customerOrderInput.getCustomerOrderRequestId());
+		if (customerOrder == null)
+			return false;
+		CustomerOrderHistory customerOrderHistory  = customerOrderHistoryRepository.findByRequestId(customerOrder.getRequestId());
+		Map<String, CustomerJobCardHistory> customerJobHistoryCards = customerOrderHistory.getCustomerJobCards().stream().collect(Collectors.toMap(CustomerJobCardHistory::getJobId, Function.identity()));
+		for (CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
+			CustomerJobCardHistory customerJobCardHistory = customerJobHistoryCards.get(customerJobCard.getJobId());
+			if(null == customerJobCardHistory) {
+				customerJobCardHistory = new CustomerJobCardHistory();
+				customerJobCardHistory.setJobId(customerJobCard.getJobId());
+				customerJobCardHistory.setCustomerOrderHistory(customerOrderHistory);
+				customerJobCardHistory.setJobStatus(customerJobCard.getJobStatus());
+				customerJobCardHistory.setCustomerFeedback(customerJobCard.getCustomerFeedback());
+				customerJobCardHistory.setJobStartTime(customerJobCard.getJobStartTime());
+				customerJobCardHistory.setJobEndTime(customerJobCard.getJobEndTime());
+				customerJobCardHistory.setPaymentMode(customerJobCard.getPaymentMode());
+				customerJobCardHistory.setPaymentAmount(customerJobCard.getPaymentAmount());
+				customerJobCardHistory.setPaidAmount(customerJobCard.getPaidAmount());
+				customerJobCardHistory.setPaymentComments(customerJobCard.getPaymentComments());
+				customerJobCardHistory.setInvoiceUrl(customerJobCard.getInvoiceUrl());
+			}
+			
+			List<CustomerJobCardDetailsHistory> customerJobCardDetailsList = new ArrayList<>();
+			updateCustomerJobCardGivenCustomerOrderInput(customerOrderInput, customerJobCard, customerJobCardDetailsList, customerJobCardHistory);
+			//update this method to work only for given customerOrders
+			
+			customerOrderHistory.getCustomerJobCards().add(customerJobCardHistory);
+		}
+		customerOrderHistoryRepository.save(customerOrderHistory);
+		customerOrderRepository.save(customerOrder);
+		return true;
+	}
+	
 	// For every customerOrder, CustomerJobCard, CustomerJobCardDetails, do separate
 	// operation.
 	@Override
@@ -338,50 +372,112 @@ public class CustomerFacadeImpl implements CustomerFacade {
 				.findEnquiryByRequestId(customerOrderInput.getCustomerOrderRequestId());
 		if (customerOrder == null)
 			return false;
-		CustomerOrderHistory customerOrderHistory = createCustomerOrderHistoryForCustomerOrderForGivenServices(
-				customerOrderInput, customerOrder);
+		/*CustomerOrderHistory customerOrderHistory = createCustomerOrderHistoryAllServices(customerOrder);
 
-		CustomerOrderHistory customerOrderHistorySave = customerOrderHistoryRepository.save(customerOrderHistory);
+		CustomerOrderHistory customerOrderHistorySave = customerOrderHistoryRepository.save(customerOrderHistory);*/
 		JobStatus newJobStatus = (customerOrderInput.getInitiateJobs().isEmpty()) ? JobStatus.PENDING
 				: JobStatus.INPROGRESS;
-		if (customerOrderHistorySave.getId() != null) {
+		//if (customerOrderHistorySave.getId() != null) {
 			customerOrder.setRequestStatus(newJobStatus);
 
-			Set<String> initiateJobsKeySet = customerOrderInput.getInitiateJobs().keySet();
-			if (!initiateJobsKeySet.isEmpty()) {
-				for (CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
+			CustomerOrderHistory customerOrderHistory = new CustomerOrderHistory();
+			customerOrderHistory.setRequestId(customerOrder.getRequestId());
+			customerOrderHistory.setRequestStatus(customerOrder.getRequestStatus());
+			customerOrderHistory.setCustomer(customerOrder.getCustomer());
+			
+			for (CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
+				
+				CustomerJobCardHistory customerJobCardHistory = new CustomerJobCardHistory();
+				customerJobCardHistory.setJobId(customerJobCard.getJobId());
+				customerJobCardHistory.setCustomerOrderHistory(customerOrderHistory);
+				customerJobCardHistory.setJobStatus(customerJobCard.getJobStatus());
+				customerJobCardHistory.setCustomerFeedback(customerJobCard.getCustomerFeedback());
+				customerJobCardHistory.setJobStartTime(customerJobCard.getJobStartTime());
+				customerJobCardHistory.setJobEndTime(customerJobCard.getJobEndTime());
+				customerJobCardHistory.setPaymentMode(customerJobCard.getPaymentMode());
+				customerJobCardHistory.setPaymentAmount(customerJobCard.getPaymentAmount());
+				customerJobCardHistory.setPaidAmount(customerJobCard.getPaidAmount());
+				customerJobCardHistory.setPaymentComments(customerJobCard.getPaymentComments());
+				customerJobCardHistory.setInvoiceUrl(customerJobCard.getInvoiceUrl());
 
-					if (initiateJobsKeySet.contains(customerJobCard.getJobId())) {
-						customerJobCard.setJobStatus(newJobStatus);
-						Map<String, CustomerJobsInput> subJobIds = customerOrderInput.getInitiateJobs()
-								.get(customerJobCard.getJobId()).stream()
-								.collect(Collectors.toMap(CustomerJobsInput::getSubJobId, Function.identity()));
-						if (!subJobIds.isEmpty()) {
-							customerJobCard.setJobStartTime(subJobIds.values().stream().map(CustomerJobsInput::getDate)
-									.min(Comparator.comparing(Date::getTime)).orElse(null));
+				List<CustomerJobCardDetailsHistory> customerJobCardDetailsList = new ArrayList<>();
+				updateCustomerJobCardGivenCustomerOrderInput(customerOrderInput, customerJobCard, customerJobCardDetailsList, customerJobCardHistory);
+				customerOrderHistory.getCustomerJobCards().add(customerJobCardHistory);
 
-							for (CustomerJobCardDetails customerJobCardDetails : customerJobCard
-									.getCustomerJobCardDetails()) {
-								if (subJobIds.keySet().contains(customerJobCardDetails.getSubJobId())) {
-									customerJobCardDetails.setJobStatus(newJobStatus);
-									CustomerJobsInput customerJobsInput = subJobIds
-											.get(customerJobCardDetails.getSubJobId());
-									customerJobCardDetails.setActivityEmployee(
-											employeeRepository.findByUsername(customerJobsInput.getEmployeeUsername()));
-									customerJobCardDetails.setJobStartTime(customerJobsInput.getDate());
-								}
-							}
-						}
-					}
-
-				}
-				customerOrderRepository.save(customerOrder);
 			}
+			customerOrderHistoryRepository.save(customerOrderHistory);
+			customerOrderRepository.save(customerOrder);
 
-		}
+		//}
 		return true;
 	}
-	
+
+	private void updateCustomerJobCardGivenCustomerOrderInput(UpdateCustomerOrderInput customerOrderInput,
+			CustomerJobCard customerJobCard, List<CustomerJobCardDetailsHistory> customerJobCardDetailsList, CustomerJobCardHistory customerJobCardHistory) {
+		Set<String> initiateJobsKeySet = customerOrderInput.getInitiateJobs().keySet();
+		Set<String> cancelJobsKeySet = customerOrderInput.getCancelJobs().keySet();
+		Set<String> endJobsKeySet = customerOrderInput.getEndJobs().keySet();
+		Map<String, CustomerJobsInput> initSubJobIds = customerOrderInput.getInitiateJobs()
+				.get(customerJobCard.getJobId()).stream()
+				.collect(Collectors.toMap(CustomerJobsInput::getSubJobId, Function.identity()));
+
+		Map<String, CustomerJobsInput> endSubJobIds = customerOrderInput.getEndJobs().get(customerJobCard.getJobId())
+				.stream().collect(Collectors.toMap(CustomerJobsInput::getSubJobId, Function.identity()));
+
+		int cancelledJobCounter = (int) customerJobCard.getCustomerJobCardDetails().stream()
+				.map(CustomerJobCardDetails::getJobStatus).filter(x -> x == JobStatus.CANCELLED).count();
+		List<String> cancelSubJobIds = customerOrderInput.getCancelJobs().get(customerJobCard.getJobId());
+		for (CustomerJobCardDetails customerJobCardDetail : customerJobCard.getCustomerJobCardDetails()) {
+			
+
+			CustomerJobCardDetailsHistory customerJobCardDetailsHistory = new CustomerJobCardDetailsHistory();
+			customerJobCardDetailsHistory.setJobId(customerJobCardHistory);
+			customerJobCardDetailsHistory.setSubJobId(customerJobCardDetail.getSubJobId());
+			customerJobCardDetailsHistory.setJobStatus(customerJobCardDetail.getJobStatus());
+			customerJobCardDetailsHistory.setActivityEmployee(customerJobCardDetail.getActivityEmployee());
+			customerJobCardDetailsHistory.setService(customerJobCardDetail.getService());
+			customerJobCardDetailsHistory.setCustomerFeedback(customerJobCardDetail.getCustomerFeedback());
+			customerJobCardDetailsHistory.setJobStartTime(customerJobCardDetail.getJobStartTime());
+			customerJobCardDetailsHistory.setJobEndTime(customerJobCardDetail.getJobEndTime());
+			customerJobCardDetailsList.add(customerJobCardDetailsHistory);
+			
+			if (initiateJobsKeySet.contains(customerJobCard.getJobId())
+					&& initSubJobIds.keySet().contains(customerJobCardDetail.getSubJobId())) {
+
+				customerJobCardDetail.setJobStatus(JobStatus.INPROGRESS);
+				CustomerJobsInput customerJobsInput = initSubJobIds.get(customerJobCardDetail.getSubJobId());
+				customerJobCardDetail.setActivityEmployee(
+						employeeRepository.findByUsername(customerJobsInput.getEmployeeUsername()));
+				customerJobCardDetail.setJobStartTime(customerJobsInput.getDate());
+
+			} else if (cancelJobsKeySet.contains(customerJobCard.getJobId())
+					&& cancelSubJobIds.contains(customerJobCardDetail.getSubJobId())) {
+
+				customerJobCardDetail.setJobStatus(JobStatus.CANCELLED);
+				cancelledJobCounter++;
+
+			} else if (customerJobCardDetail.getJobStatus() == JobStatus.INPROGRESS
+					&& customerJobCardDetail.getJobStartTime().getTime() < Calendar.getInstance().getTimeInMillis()
+					&& endJobsKeySet.contains(customerJobCard.getJobId())
+					&& endSubJobIds.keySet().contains(customerJobCardDetail.getSubJobId())) {
+				customerJobCardDetail.setJobStatus(JobStatus.COMPLETED);
+				customerJobCardDetail.setJobEndTime(endSubJobIds.get(customerJobCardDetail.getSubJobId()).getDate());
+			} else {
+				customerJobCardDetail.setJobStatus(JobStatus.PENDING);
+			}
+		}
+
+		if (!initSubJobIds.isEmpty()) {
+			customerJobCard.setJobStartTime(initSubJobIds.values().stream().map(CustomerJobsInput::getDate)
+					.min(Comparator.comparing(Date::getTime)).orElse(null));
+			customerJobCard.setJobStatus(JobStatus.INPROGRESS);
+		} else if (cancelledJobCounter == customerJobCard.getCustomerJobCardDetails().size()) {
+			customerJobCard.setJobStatus(JobStatus.CANCELLED);
+		} else {
+			customerJobCard.setJobStatus(JobStatus.PENDING);
+		}
+	}
+
 	private CustomerOrderHistory createCustomerOrderHistoryAllServices(CustomerOrder customerOrder) {
 		CustomerOrderHistory customerOrderHistory = new CustomerOrderHistory();
 		customerOrderHistory.setRequestId(customerOrder.getRequestId());
@@ -421,55 +517,4 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		}
 		return customerOrderHistory;
 	}
-
-	private CustomerOrderHistory createCustomerOrderHistoryForCustomerOrderForGivenServices(
-			UpdateCustomerOrderInput customerOrderInput, CustomerOrder customerOrder) {
-		CustomerOrderHistory customerOrderHistory = new CustomerOrderHistory();
-		customerOrderHistory.setRequestId(customerOrder.getRequestId());
-		customerOrderHistory.setRequestStatus(customerOrder.getRequestStatus());
-		customerOrderHistory.setCustomer(customerOrder.getCustomer());
-
-		Map<String, CustomerJobCard> customerJobCardsMap = customerOrder.getCustomerJobCards().stream()
-				.filter(x -> x.getJobStatus() == JobStatus.ENQUIRY)
-				.collect(Collectors.toMap(CustomerJobCard::getJobId, Function.identity()));
-
-		customerOrderInput.getInitiateJobs().entrySet().forEach(jobIdEntry -> {
-			CustomerJobCard customerJobCard = customerJobCardsMap.get(jobIdEntry.getKey());
-
-			CustomerJobCardHistory customerJobCardHistory = new CustomerJobCardHistory();
-			customerJobCardHistory.setJobId(customerJobCard.getJobId());
-			customerJobCardHistory.setCustomerOrderHistory(customerOrderHistory);
-			customerJobCardHistory.setJobStatus(customerJobCard.getJobStatus());
-			customerJobCardHistory.setCustomerFeedback(customerJobCard.getCustomerFeedback());
-			customerJobCardHistory.setJobStartTime(customerJobCard.getJobStartTime());
-			customerJobCardHistory.setJobEndTime(customerJobCard.getJobEndTime());
-			customerJobCardHistory.setPaymentMode(customerJobCard.getPaymentMode());
-			customerJobCardHistory.setPaymentAmount(customerJobCard.getPaymentAmount());
-			customerJobCardHistory.setPaidAmount(customerJobCard.getPaidAmount());
-			customerJobCardHistory.setPaymentComments(customerJobCard.getPaymentComments());
-			customerJobCardHistory.setInvoiceUrl(customerJobCard.getInvoiceUrl());
-
-			List<String> subJobIds = jobIdEntry.getValue().stream().map(CustomerJobsInput::getSubJobId)
-					.collect(Collectors.toList());
-			List<CustomerJobCardDetailsHistory> customerJobCardDetailsList = new ArrayList<>();
-			customerJobCard.getCustomerJobCardDetails().forEach(customerJobCardDetail -> {
-				if (subJobIds.contains(customerJobCardDetail.getSubJobId())) {
-					CustomerJobCardDetailsHistory customerJobCardDetailsHistory = new CustomerJobCardDetailsHistory();
-					customerJobCardDetailsHistory.setJobId(customerJobCardHistory);
-					customerJobCardDetailsHistory.setSubJobId(customerJobCardDetail.getSubJobId());
-					customerJobCardDetailsHistory.setJobStatus(customerJobCardDetail.getJobStatus());
-					customerJobCardDetailsHistory.setActivityEmployee(customerJobCardDetail.getActivityEmployee());
-					customerJobCardDetailsHistory.setService(customerJobCardDetail.getService());
-					customerJobCardDetailsHistory.setCustomerFeedback(customerJobCardDetail.getCustomerFeedback());
-					customerJobCardDetailsHistory.setJobStartTime(customerJobCardDetail.getJobStartTime());
-					customerJobCardDetailsHistory.setJobEndTime(customerJobCardDetail.getJobEndTime());
-					customerJobCardDetailsList.add(customerJobCardDetailsHistory);
-				}
-			});
-			customerJobCardHistory.setCustomerJobCardDetailsHistory(customerJobCardDetailsList);
-			customerOrderHistory.getCustomerJobCards().add(customerJobCardHistory);
-		});
-		return customerOrderHistory;
-	}
-
 }

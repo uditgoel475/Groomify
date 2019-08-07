@@ -96,6 +96,11 @@ public class CustomerController {
 	public ResponseEntity<Boolean> initiateEnquiryToOrder(@RequestBody UpdateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.initiateEnquiryToOrder(customerOrderInput));
 	}
+	
+	@PostMapping("updateServices")
+	public ResponseEntity<Boolean> updateServices(@RequestBody UpdateCustomerOrderInput customerOrderInput) {
+		return ResponseEntity.ok(customerFacade.updateServices(customerOrderInput));
+	}
 
 	@PostMapping("cancelEntireOrder/{orderId}")
 	public ResponseEntity<Boolean> cancelEntireOrder(@PathVariable("orderId") String orderId) {
