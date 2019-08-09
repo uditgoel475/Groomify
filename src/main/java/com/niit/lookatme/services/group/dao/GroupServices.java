@@ -46,7 +46,7 @@ public class GroupServices extends AuditInfo{
 	@Column(name = "END_DATE", nullable = false)
 	private Date endDate;
 	
-	@OneToMany(mappedBy = "GROUP_SERVICE")
+	@OneToMany(mappedBy = "groupServiceId")
 	private List<GroupServicePackage> groupServicePackages;
 
 	/**

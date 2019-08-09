@@ -12,8 +12,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AppUtils {
-	
-	public AppUtils() {}
+
+	public AppUtils() {
+	}
 
 	@Value("${customer.password.expire}")
 	private static boolean isPasswordExpire;
@@ -22,17 +23,21 @@ public class AppUtils {
 	private static int addExpiryDays;
 
 	public static Date getCustomerExpirationDateFromCurrent(Calendar cal) {
-		if(isPasswordExpire) {
+		if (isPasswordExpire) {
 			cal.add(Calendar.DATE, addExpiryDays);
 			return cal.getTime();
 		}
 		return null;
 	}
-	
+
 	public static Date convertDateToStartOfDay(Date date) {
 		Instant instant = Instant.ofEpochMilli(date.getTime());
 		LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
 		LocalDate localDate = localDateTime.toLocalDate();
+		return Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+	}
+
+	public static Date convertLocalDateToDate(LocalDate localDate) {
 		return Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 	}
 }

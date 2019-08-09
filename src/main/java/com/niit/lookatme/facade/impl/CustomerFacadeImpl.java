@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
@@ -69,19 +70,20 @@ public class CustomerFacadeImpl implements CustomerFacade {
 
 	@Resource
 	private EmployeeRepository employeeRepository;
-	
+
 	@Resource(name = "customerFacadeHelper")
 	private CustomerFacadeHelper customerFacadeHelper;
 
 	@Override
 	public String createNewCustomer(CustomerInput customerInput) {
-		Customer customer = customerRepository.save(customerFacadeHelper.createCustomerJPAFromCustomerInput(customerInput));
+		Customer customer = customerRepository
+				.save(customerFacadeHelper.createCustomerJPAFromCustomerInput(customerInput));
 		if (customer.getId() != null) {
-			customer.setPictureUrl(CustomerAndEmployeeUtils.createImageAndFetchUrl(UserType.CUSTOMER, UserImageInputType.PROFILE,
-					customerInput.getPictureFile(), customerInput.getUsername()));
+			customer.setPictureUrl(CustomerAndEmployeeUtils.createImageAndFetchUrl(UserType.CUSTOMER,
+					UserImageInputType.PROFILE, customerInput.getPictureFile(), customerInput.getUsername()));
 
-			customer.setGovtIdSnapUrl(CustomerAndEmployeeUtils.createImageAndFetchUrl(UserType.CUSTOMER, UserImageInputType.GOVTID,
-					customerInput.getPictureFile(), customerInput.getUsername()));
+			customer.setGovtIdSnapUrl(CustomerAndEmployeeUtils.createImageAndFetchUrl(UserType.CUSTOMER,
+					UserImageInputType.GOVTID, customerInput.getPictureFile(), customerInput.getUsername()));
 
 			if (!StringUtils.isEmpty(customer.getPictureUrl()) || !StringUtils.isEmpty(customer.getGovtIdSnapUrl()))
 				customerRepository.save(customer);
@@ -127,19 +129,17 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
-	public List<CustomerOrder> fetchAllCalendarOpenAppointmentCurrentMonth(int year, String month) {
-		LocalDate localDate = LocalDate.now().withYear(year).withMonth(Month.valueOf(month.toUpperCase()).getValue());
-		Date date = Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-		return customerOrderRepository.findAllCalendarMonthOpenAppointment(date);
+	public List<CustomerOrder> fetchAllCalendarOpenAppointmentCurrentMonth(int year, Month month) {
+		LocalDate localDate = LocalDate.now().withYear(year).withMonth(month.getValue());
+		return customerOrderRepository.findAllCalendarMonthOpenAppointment(AppUtils.convertLocalDateToDate(localDate));
 	}
 
 	@Override
 	public List<CustomerOrder> fetchAllCustomerCalendarOpenAppointmentGivenDate(String custNo, Date date) {
 		Instant instant = Instant.ofEpochMilli(date.getTime());
 		LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-		LocalDate localDate = localDateTime.toLocalDate();
-		Date searchDate = Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-		return customerOrderRepository.findCustomerCalendarOpenAppointmentGivenDate(custNo, searchDate);
+		return customerOrderRepository.findCustomerCalendarOpenAppointmentGivenDate(custNo,
+				AppUtils.convertLocalDateToDate(localDateTime.toLocalDate()));
 	}
 
 	@Override
@@ -176,8 +176,8 @@ public class CustomerFacadeImpl implements CustomerFacade {
 				: StringUtils.EMPTY;
 	}
 
-	private List<CustomerJobCard> createMultipleJobCardsNew(JobStatus jobStatus, CreateCustomerOrderInput createCustomerOrderInput,
-			CustomerOrder customerOrder) {
+	private List<CustomerJobCard> createMultipleJobCardsNew(JobStatus jobStatus,
+			CreateCustomerOrderInput createCustomerOrderInput, CustomerOrder customerOrder) {
 		List<CustomerJobCard> customerJobCardList = new ArrayList<>();
 		int counter = 0;
 		createCustomerOrderInput.getCreateNewServicesMap().entrySet().forEach(serviceDateNameEntry -> {
@@ -206,8 +206,11 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
-	public List<CustomerOrder> fetchAllCustomerEnquiriesDateRange(Date startDate, Date endDate) {
-		return customerOrderRepository.findAllCustomerEnquiriesDateRange(startDate, endDate);
+	public List<CustomerOrder> fetchAllCustomerEnquiriesGivenMonth(Month month, int year) {
+		YearMonth yearMonth = YearMonth.of(year, month);
+		return customerOrderRepository.findAllCustomerEnquiriesDateRange(
+				AppUtils.convertLocalDateToDate(yearMonth.atDay(1)),
+				AppUtils.convertLocalDateToDate(yearMonth.atEndOfMonth()));
 	}
 
 	@Override
@@ -221,7 +224,8 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		customerFacadeHelper.validateCustomerOrderForCancellation(customerOrder);
 		CustomerOrderHistory customerOrderHistory = createCustomerOrderHistoryAllServices(customerOrder);
 		customerOrderHistoryRepository.save(customerOrderHistory);
-		customerOrderRepository.save(customerFacadeHelper.updateCustomerOrderByGivenJobStatus(customerOrder, JobStatus.CANCELLED));
+		customerOrderRepository
+				.save(customerFacadeHelper.updateCustomerOrderByGivenJobStatus(customerOrder, JobStatus.CANCELLED));
 		return true;
 	}
 
@@ -238,7 +242,8 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		for (CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
 			CustomerJobCardHistory customerJobCardHistory = customerJobHistoryCards.get(customerJobCard.getJobId());
 			if (null == customerJobCardHistory) {
-				customerJobCardHistory = customerFacadeHelper.createJobCardHistoryFromJobCard(customerOrderHistory, customerJobCard);
+				customerJobCardHistory = customerFacadeHelper.createJobCardHistoryFromJobCard(customerOrderHistory,
+						customerJobCard);
 			}
 
 			List<CustomerJobCardDetailsHistory> customerJobCardDetailsList = new ArrayList<>();
@@ -252,7 +257,6 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		return true;
 	}
 
-	
 	private void updateCustomerJobCardGivenServices(UpdateCustomerOrderInput customerOrderInput,
 			CustomerJobCard customerJobCard, CustomerJobCardHistory customerJobCardHistory,
 			List<CustomerJobCardDetailsHistory> customerJobCardDetailsList) {
@@ -272,12 +276,12 @@ public class CustomerFacadeImpl implements CustomerFacade {
 			if (initSubJobIds.containsKey(customerJobCardDetail.getSubJobId())
 					|| endSubJobIds.containsKey(customerJobCardDetail.getSubJobId())
 					|| cancelSubJobIds.contains(customerJobCardDetail.getSubJobId())) {
-				customerJobCardDetailsList.add(
-						customerFacadeHelper.createJobCardDetailsHistoryFromJobCardDetails(customerJobCardHistory, customerJobCardDetail));
+				customerJobCardDetailsList.add(customerFacadeHelper
+						.createJobCardDetailsHistoryFromJobCardDetails(customerJobCardHistory, customerJobCardDetail));
 			}
 
-			cancelledJobCounter = cancelledJobCounter + updateJobCardDetailsGivenJobStatus(customerOrderInput, customerJobCard, initSubJobIds,
-					endSubJobIds, cancelSubJobIds, customerJobCardDetail);
+			cancelledJobCounter = cancelledJobCounter + updateJobCardDetailsGivenJobStatus(customerOrderInput,
+					customerJobCard, initSubJobIds, endSubJobIds, cancelSubJobIds, customerJobCardDetail);
 		}
 
 		if (customerJobCard.getJobStatus() == JobStatus.PENDING && !initSubJobIds.isEmpty()) {
@@ -301,8 +305,8 @@ public class CustomerFacadeImpl implements CustomerFacade {
 
 			customerJobCardDetail.setJobStatus(JobStatus.INPROGRESS);
 			CustomerJobsInput customerJobsInput = initSubJobIds.get(customerJobCardDetail.getSubJobId());
-			customerJobCardDetail.setActivityEmployee(
-					employeeRepository.findByUsername(customerJobsInput.getEmployeeUsername()));
+			customerJobCardDetail
+					.setActivityEmployee(employeeRepository.findByUsername(customerJobsInput.getEmployeeUsername()));
 			customerJobCardDetail.setJobStartTime(customerJobsInput.getDate());
 
 		} else if (customerOrderInput.getCancelJobs().containsKey(customerJobCard.getJobId())
@@ -341,8 +345,8 @@ public class CustomerFacadeImpl implements CustomerFacade {
 
 		for (CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
 
-			CustomerJobCardHistory customerJobCardHistory = customerFacadeHelper.createJobCardHistoryFromJobCard(customerOrderHistory,
-					customerJobCard);
+			CustomerJobCardHistory customerJobCardHistory = customerFacadeHelper
+					.createJobCardHistoryFromJobCard(customerOrderHistory, customerJobCard);
 
 			List<CustomerJobCardDetailsHistory> customerJobCardDetailsList = new ArrayList<>();
 			updateCustomerJobCardGivenCustomerOrderInput(customerOrderInput, customerJobCard,
@@ -370,12 +374,12 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		List<String> cancelSubJobIds = customerOrderInput.getCancelJobs().get(customerJobCard.getJobId());
 		for (CustomerJobCardDetails customerJobCardDetail : customerJobCard.getCustomerJobCardDetails()) {
 
-			customerJobCardDetailsList.add(customerFacadeHelper.createJobCardDetailsHistoryFromJobCardDetails(customerJobCardHistory,
-					customerJobCardDetail));
-			
-			cancelledJobCounter = cancelledJobCounter + updateJobCardDetailsGivenJobStatus(customerOrderInput, customerJobCard, initSubJobIds,
-					endSubJobIds, cancelSubJobIds, customerJobCardDetail);
-		
+			customerJobCardDetailsList.add(customerFacadeHelper
+					.createJobCardDetailsHistoryFromJobCardDetails(customerJobCardHistory, customerJobCardDetail));
+
+			cancelledJobCounter = cancelledJobCounter + updateJobCardDetailsGivenJobStatus(customerOrderInput,
+					customerJobCard, initSubJobIds, endSubJobIds, cancelSubJobIds, customerJobCardDetail);
+
 		}
 
 		if (!initSubJobIds.isEmpty()) {
@@ -397,12 +401,13 @@ public class CustomerFacadeImpl implements CustomerFacade {
 
 		for (CustomerJobCard customerJobCard : customerOrder.getCustomerJobCards()) {
 
-			CustomerJobCardHistory customerJobCardHistory = customerFacadeHelper.createJobCardHistoryFromJobCard(customerOrderHistory, customerJobCard);
+			CustomerJobCardHistory customerJobCardHistory = customerFacadeHelper
+					.createJobCardHistoryFromJobCard(customerOrderHistory, customerJobCard);
 
 			List<CustomerJobCardDetailsHistory> customerJobCardDetailsList = new ArrayList<>();
 			for (CustomerJobCardDetails customerJobCardDetail : customerJobCard.getCustomerJobCardDetails()) {
-				customerJobCardDetailsList.add(
-						customerFacadeHelper.createJobCardDetailsHistoryFromJobCardDetails(customerJobCardHistory, customerJobCardDetail));
+				customerJobCardDetailsList.add(customerFacadeHelper
+						.createJobCardDetailsHistoryFromJobCardDetails(customerJobCardHistory, customerJobCardDetail));
 			}
 			customerJobCardHistory.setCustomerJobCardDetailsHistory(customerJobCardDetailsList);
 			customerOrderHistory.getCustomerJobCards().add(customerJobCardHistory);

@@ -18,7 +18,7 @@ import com.niit.lookatme.employee.dao.Employee;
  *
  */
 @Entity
-@Table(name = "Employee_service")
+@Table(name = "EMPLOYEE_SERVICE")
 public class EmployeeServices {
 
 	@Id
@@ -32,7 +32,7 @@ public class EmployeeServices {
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "EMPLOYEE", referencedColumnName = "EMPLOYEE_ID")
-	private Employee salonMembers;
+	private Employee employee;
 
 	public Service getService() {
 		return service;
@@ -42,12 +42,18 @@ public class EmployeeServices {
 		this.service = service;
 	}
 
-	public Employee getSalonMembers() {
-		return salonMembers;
+	/**
+	 * @return the employee
+	 */
+	public Employee getEmployee() {
+		return employee;
 	}
 
-	public void setSalonMembers(Employee salonMembers) {
-		this.salonMembers = salonMembers;
+	/**
+	 * @param employee the employee to set
+	 */
+	public void setEmployee(Employee employee) {
+		this.employee = employee;
 	}
 
 	public Long getId() {

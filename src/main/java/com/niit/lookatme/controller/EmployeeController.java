@@ -1,5 +1,7 @@
 package com.niit.lookatme.controller;
 
+import java.time.Month;
+import java.time.Year;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +23,7 @@ import com.niit.lookatme.dao.Activity;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dao.EmployeeDailyActivities;
+import com.niit.lookatme.employee.dto.EmployeeActivityOut;
 import com.niit.lookatme.employee.dto.EmployeeInput;
 import com.niit.lookatme.facade.EmployeeFacade;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
@@ -66,17 +68,16 @@ public class EmployeeController {
 		return ResponseEntity.ok(employeeFacade.attendCustomer(empNo, Activity.fromValue(activity.get("activity")),
 				activity.get("custuser")));
 	}
-	
+
 	@PostMapping("vacation/new")
 	public ResponseEntity<Boolean> markEmployeeVacation(@RequestBody Map<Date, List<String>> employeeVacationMap) {
 		return ResponseEntity.ok(employeeFacade.employeeFutureActivity(employeeVacationMap, Activity.VACATION));
 	}
 
-	@GetMapping("attendance/{empNo}")
+	@GetMapping("attendance/{empNo}/{month}/{year}")
 	public ResponseEntity<Map<Date, List<EmployeeDailyActivities>>> fetchEmployeeMonthlyAttendance(
-			@PathVariable("empNo") String empNo, @RequestHeader("startDate") Date startDate,
-			@RequestHeader("endDate") Date endDate) {
-		return ResponseEntity.ok(employeeFacade.fetchEmployeeMonthlyAttendance(empNo, startDate, endDate));
+			@PathVariable("empNo") String empNo, @PathVariable("year") Year year, @PathVariable("month") Month month) {
+		return ResponseEntity.ok(employeeFacade.fetchEmployeeMonthlyAttendance(empNo, month, year.getValue()));
 	}
 
 	@GetMapping("dailyactivity/{empNo}")
@@ -85,10 +86,15 @@ public class EmployeeController {
 		return ResponseEntity.ok(employeeFacade.fetchEmployeeTodayActivity(empNo));
 	}
 
-	@GetMapping("activities/{empNo}")
+	@GetMapping("activities/{empNo}/{month}/{year}")
 	public ResponseEntity<Map<Date, List<EmployeeDailyActivities>>> findEmployeeAllMonthlyActivities(
-			@PathVariable("empNo") String empNo, @RequestHeader("startDate") Date startDate,
-			@RequestHeader("endDate") Date endDate) {
-		return ResponseEntity.ok(employeeFacade.findEmployeeAllMonthlyActivities(empNo, startDate, endDate));
+			@PathVariable("empNo") String empNo, @PathVariable("year") Year year, @PathVariable("month") Month month) {
+		return ResponseEntity.ok(employeeFacade.findEmployeeAllMonthlyActivities(empNo, month, year.getValue()));
+	}
+
+	@GetMapping("service/getemployee/{service}")
+	public ResponseEntity<List<EmployeeActivityOut>> fetchAllAvailableEmployeesMatchingSkills(
+			@PathVariable("service") String service) {
+		return ResponseEntity.ok(employeeFacade.fetchAllAvailableEmployeesMatchingSkills(service));
 	}
 }

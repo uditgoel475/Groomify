@@ -2,10 +2,13 @@ package com.niit.lookatme.employee.dto;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class CustomerJobsInput {
 
 	private String subJobId;
 	private String employeeUsername;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
 	private Date date;
 
 	public CustomerJobsInput(String subJobId, String employeeUsername, Date date) {

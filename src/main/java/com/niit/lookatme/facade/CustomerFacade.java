@@ -1,5 +1,6 @@
 package com.niit.lookatme.facade;
 
+import java.time.Month;
 import java.util.Date;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public interface CustomerFacade {
 
 	List<CustomerOrder> fetchAllOpenCustomerOrder(String username);
 
-	List<CustomerOrder> fetchAllCalendarOpenAppointmentCurrentMonth(int year, String month);
+	List<CustomerOrder> fetchAllCalendarOpenAppointmentCurrentMonth(int year, Month month);
 
 	List<CustomerOrder> fetchAllCustomerCalendarOpenAppointmentGivenDate(String custNo, Date date);
 
@@ -31,7 +32,7 @@ public interface CustomerFacade {
 
 	String createNewCustomerEnquiry(CreateCustomerOrderInput enquiryInput);
 
-	List<CustomerOrder> fetchAllCustomerEnquiriesDateRange(Date startDate, Date endDate);
+	List<CustomerOrder> fetchAllCustomerEnquiriesGivenMonth(Month month, int year);
 
 	String createNewCustomerOrder(CreateCustomerOrderInput customerOrderInput);
 

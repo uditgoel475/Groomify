@@ -1,5 +1,7 @@
 package com.niit.lookatme.controller;
 
+import java.time.Month;
+import java.time.Year;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +9,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,14 +69,14 @@ public class CustomerController {
 
 	@GetMapping("orders/all/{custNo}")
 	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerOrderGivenDate(@PathVariable("custNo") String custNo,
-			@RequestHeader("date") Date date) {
-		return ResponseEntity.ok(customerFacade.fetchAllCustomerCalendarOpenAppointmentGivenDate(custNo, date));
+			@RequestHeader("appointmentDate")  @DateTimeFormat(pattern="yyyy-MM-dd") Date appointmentDate) {
+		return ResponseEntity.ok(customerFacade.fetchAllCustomerCalendarOpenAppointmentGivenDate(custNo, appointmentDate));
 	}
 
 	@GetMapping("enquiry/{custNo}")
 	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiryGivenDate(@PathVariable("custNo") String custNo,
-			@RequestHeader("date") Date date) {
-		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiryGivenDate(custNo, date));
+			@RequestHeader("appointmentDate")  @DateTimeFormat(pattern="yyyy-MM-dd") Date appointmentDate) {
+		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiryGivenDate(custNo, appointmentDate));
 	}
 
 	@GetMapping("enquiry/all/{custNo}")
@@ -81,10 +84,9 @@ public class CustomerController {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiries(custNo));
 	}
 
-	@GetMapping("enquiry/all/dates")
-	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiriesDateRange(
-			@RequestHeader("startDate") Date startDate, @RequestHeader("endDate") Date endDate) {
-		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiriesDateRange(startDate, endDate));
+	@GetMapping("enquiry/all/{month}/{year}")
+	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiriesDateRange(@PathVariable("year") Year year, @PathVariable("month") Month month) {
+		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiriesGivenMonth(month, year.getValue()));
 	}
 
 	@PostMapping("enquiry/new")
