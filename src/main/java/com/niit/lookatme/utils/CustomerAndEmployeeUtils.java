@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Optional;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -20,6 +21,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
@@ -58,6 +60,19 @@ public class CustomerAndEmployeeUtils {
 		for(String usrname : username)
 			strBuilder.append(usrname);
 		return strBuilder.toString();
+	}
+	
+	public static String createImageAndFetchUrl(UserType userType, UserImageInputType userImageInputType, MultipartFile pictureFile, String username) {
+		if (Optional.ofNullable(pictureFile).map(MultipartFile::getSize)
+				.map(x -> Boolean.valueOf(x > 0)).orElse(false)) {
+			String filePathName = uploadPictureImage(userType,
+					pictureFile, username,
+					userImageInputType);
+			if (!StringUtils.isEmpty(filePathName)) {
+				return filePathName;
+			}
+		}
+		return null;
 	}
 
 	public static String uploadPictureImage(UserType userType, MultipartFile file, String empNo,

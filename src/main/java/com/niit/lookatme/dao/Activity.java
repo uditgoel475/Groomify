@@ -11,6 +11,7 @@ public enum Activity {
 	LUNCH_OVER("lunch_over"),
 	ATTEND_CUSTOMER("attend_cust"),
 	LEAVE_CUSTOMER("leave_cust"),
+	VACATION("vacation"),
 	MISCELLANEOUS("misc");
 	
 	private String value;

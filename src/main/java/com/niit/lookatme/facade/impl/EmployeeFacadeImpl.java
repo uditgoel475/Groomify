@@ -9,7 +9,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -20,26 +19,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.niit.lookatme.customer.dao.Customer;
 import com.niit.lookatme.dao.Activity;
-import com.niit.lookatme.dao.Address;
-import com.niit.lookatme.dao.Gender;
-import com.niit.lookatme.dao.GovtIdType;
 import com.niit.lookatme.dao.Password;
 import com.niit.lookatme.dao.repository.CustomerRepository;
 import com.niit.lookatme.dao.repository.EmployeeDailyActivitiesRepository;
 import com.niit.lookatme.dao.repository.EmployeeRepository;
-import com.niit.lookatme.dto.AddressInput;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dao.Employee;
 import com.niit.lookatme.employee.dao.EmployeeDailyActivities;
-import com.niit.lookatme.employee.dao.EmployeeQualification;
-import com.niit.lookatme.employee.dao.EmployeeRoster;
 import com.niit.lookatme.employee.dto.EmployeeInput;
 import com.niit.lookatme.facade.EmployeeFacade;
+import com.niit.lookatme.facade.helper.EmployeeFacadeHelper;
 import com.niit.lookatme.utils.AppUtils;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
@@ -47,15 +40,18 @@ import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 public class EmployeeFacadeImpl implements EmployeeFacade {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmployeeFacadeImpl.class);
-	
+
 	@Resource
 	private EmployeeRepository employeeRepository;
-	
+
 	@Resource
 	private EmployeeDailyActivitiesRepository employeeDailyActivitiesRepository;
-	
+
 	@Resource
 	private CustomerRepository customerRepository;
+
+	@Resource
+	private EmployeeFacadeHelper employeeFacadeHelper;
 
 	@Override
 	public List<Employee> fetchAllExistingEmployeeCurrentWeekBirthdays() {
@@ -71,12 +67,17 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	@Override
 	public String createNewEmployee(EmployeeInput createEmployeeInput) {
 
-		Employee employee = employeeRepository.save(createEmployeeJPAFromEmployeeInput(createEmployeeInput));
+		Employee employee = employeeRepository
+				.save(employeeFacadeHelper.createEmployeeJPAFromEmployeeInput(createEmployeeInput));
 		if (employee.getId() != null) {
 
-			employee.setPictureUrl(setImageUrl(UserImageInputType.PROFILE, createEmployeeInput));
+			employee.setPictureUrl(
+					CustomerAndEmployeeUtils.createImageAndFetchUrl(UserType.EMPLOYEE, UserImageInputType.PROFILE,
+							createEmployeeInput.getPictureFile(), createEmployeeInput.getUsername()));
 
-			employee.setGovtIdSnapUrl(setImageUrl(UserImageInputType.GOVTID, createEmployeeInput));
+			employee.setGovtIdSnapUrl(
+					CustomerAndEmployeeUtils.createImageAndFetchUrl(UserType.EMPLOYEE, UserImageInputType.GOVTID,
+							createEmployeeInput.getPictureFile(), createEmployeeInput.getUsername()));
 
 			if (!StringUtils.isEmpty(employee.getPictureUrl()) || !StringUtils.isEmpty(employee.getGovtIdSnapUrl()))
 				employeeRepository.save(employee);
@@ -85,87 +86,12 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 		return StringUtils.EMPTY;
 	}
 
-	private Employee createEmployeeJPAFromEmployeeInput(EmployeeInput createEmployeeInput) {
-		Employee employee = new Employee();
-		employee.setFname(createEmployeeInput.getfName());
-		employee.setMname(createEmployeeInput.getmName());
-		employee.setLname(createEmployeeInput.getlName());
-		employee.setDob(createEmployeeInput.getDob());
-		if (StringUtils.isEmpty(createEmployeeInput.getUsername())) {
-			createEmployeeInput.setUsername(createEmployeeUsername(createEmployeeInput));
-		}
-		employee.setUsername(createEmployeeInput.getUsername());
-
-		EmployeeRoster empRoster = new EmployeeRoster();
-		empRoster.setInTime(createEmployeeInput.getGenericInTime());
-		empRoster.setOutTime(createEmployeeInput.getGenericOutTime());
-		empRoster.setWeekStartDay(DayOfWeek.valueOf(createEmployeeInput.getShiftStartDay()));
-		empRoster.setWeekEndDay(DayOfWeek.valueOf(createEmployeeInput.getShiftEndDay()));
-
-		employee.setSchedule(empRoster);
-
-		EmployeeQualification empQualif = new EmployeeQualification();
-		empQualif.setQualificationType(createEmployeeInput.getQualificationType());
-		employee.setQualification(empQualif);
-
-		employee.setPrimaryContact(createEmployeeInput.getPrimaryContact());
-		employee.setSecondaryContact(createEmployeeInput.getSecondaryContact());
-		employee.setWhatsappContact(createEmployeeInput.getWhatsappContact());
-		employee.setEmail(createEmployeeInput.getEmail());
-
-		if (StringUtils.isEmpty(createEmployeeInput.getRegId())) {
-			createEmployeeInput.setRegId(
-					CustomerAndEmployeeUtils.createRegId(UserType.EMPLOYEE.toString(), createEmployeeInput.getUsername()));
-		}
-		employee.setRegId(createEmployeeInput.getRegId());
-		employee.setGender(Gender.valueOf(createEmployeeInput.getGender()));
-
-		AddressInput addressInput = createEmployeeInput.getCurrentAddress();
-
-		Address currentAddress = CustomerAndEmployeeUtils.populateAddressObject(addressInput);
-		employee.setCurrentAddress(currentAddress);
-		employee.setOvertimeWorker(createEmployeeInput.isAvailableOvertime());
-		employee.setPermanentAddress(createEmployeeInput.isSamePermanent() ? currentAddress
-				: CustomerAndEmployeeUtils.populateAddressObject(createEmployeeInput.getPermanentAddress()));
-
-		GovtIdType govtIdType = new GovtIdType();
-		govtIdType.setTypeName(createEmployeeInput.getGovtIdType());
-		employee.setGovtIdType(govtIdType);
-		employee.setGovtId(createEmployeeInput.getGovtId());
-		employee.setSalary(createEmployeeInput.getSalary());
-		employee.setJoiningDate(createEmployeeInput.getJoiningDate());
-		employee.setAdminUser(createEmployeeInput.isAdminUser());
-		return employee;
-	}
-
-	private String setImageUrl(UserImageInputType userImageInputType, EmployeeInput createEmployeeInput) {
-		if (Optional.ofNullable(createEmployeeInput.getPictureFile()).map(MultipartFile::getSize)
-				.map(x -> Boolean.valueOf(x > 0)).orElse(false)) {
-			String filePathName = CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE,
-					createEmployeeInput.getPictureFile(), createEmployeeInput.getUsername(),
-					userImageInputType);
-			if (!StringUtils.isEmpty(filePathName)) {
-				return filePathName;
-			}
-		}
-		return null;
-	}
-
-	private String createEmployeeUsername(EmployeeInput employee) {
-		long employeecount = employeeRepository.count();
-		String initString = employee.getfName().substring(0, 3)
-				+ (employee.getmName().isEmpty() ? "0" : employee.getmName().substring(0, 1))
-				+ employee.getlName().substring(0, 3);
-		initString = StringUtils.rightPad(initString, 13, '0');
-		return StringUtils.rightPad(initString, 13, String.valueOf(employeecount));
-	}
-
 	@Override
 	public Boolean changeEmployeePassword(String empNo, String encryptedPassword) {
 		String decryptedPassword = CustomerAndEmployeeUtils.decrypt(encryptedPassword);
 		Employee employee = employeeRepository.findByUsername(empNo);
 		Password passwords = employee.getPassword();
-		if(passwords.isMatchesPreviousPasswords(decryptedPassword))
+		if (passwords.isMatchesPreviousPasswords(decryptedPassword))
 			return false;
 		passwords.setPassword(decryptedPassword);
 		employee.setPassword(passwords);
@@ -178,40 +104,71 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 		}
 	}
 
-	@Override
-	public Boolean markActivity(String empNo, Activity activity, String custUsername) {
-		EmployeeDailyActivities employeeDailyActivities= new EmployeeDailyActivities();
+	private EmployeeDailyActivities createEmployeeActivity(String empNo, Activity activity, String custUsername,
+			Date inputTime) {
+		EmployeeDailyActivities employeeDailyActivities = new EmployeeDailyActivities();
 		employeeDailyActivities.setActivity(activity);
 		Employee employee = employeeRepository.findByUsername(empNo);
 		employeeDailyActivities.setEmployee(employee);
-		if(!StringUtils.isEmpty(custUsername)) {
+		if (!StringUtils.isEmpty(custUsername)) {
 			Customer customer = customerRepository.findByUsername(custUsername);
 			employeeDailyActivities.setCustomer(customer);
 		}
 		employeeDailyActivities.setCreatedBy("anonymous");
 		employeeDailyActivities.setLastModifiedBy("anonymous");
 		Calendar cal = Calendar.getInstance();
-		employeeDailyActivities.setTime(cal.getTime());
+		employeeDailyActivities.setTime(inputTime == null ? cal.getTime() : inputTime);
 		employeeDailyActivities.setCreationDate(cal.getTime());
 		employeeDailyActivities.setLastModifiedDate(cal.getTime());
+		return employeeDailyActivities;
+	}
+
+	@Override
+	public Boolean employeeFutureActivity(Map<Date, List<String>> employeeActivityMap, Activity activity) {
+		List<EmployeeDailyActivities> employeeDailyActivityList = new ArrayList<>();
+		employeeActivityMap.entrySet().forEach(
+				employeeActivityEntry -> employeeActivityEntry.getValue().forEach(employee -> employeeDailyActivityList
+						.add(createEmployeeActivity(employee, activity, null, employeeActivityEntry.getKey()))));
+		employeeDailyActivitiesRepository.saveAll(employeeDailyActivityList);
+		return true;
+	}
+
+	@Override
+	public Boolean attendCustomer(String empNo, Activity activity, String customer) {
+		EmployeeDailyActivities employeeDailyActivities = createEmployeeActivity(empNo, activity, customer, null);
 		employeeDailyActivities = employeeDailyActivitiesRepository.save(employeeDailyActivities);
 		return employeeDailyActivities.getId() != null;
 	}
 
 	@Override
-	public Map<Date, List<EmployeeDailyActivities>> fetchEmployeeMonthlyAttendance(String empNo, Date startDate, Date endDate) {
+	public Boolean markActivity(String empNo, Activity activity) {
+		EmployeeDailyActivities employeeDailyActivities = createEmployeeActivity(empNo, activity, null, null);
+		employeeDailyActivities = employeeDailyActivitiesRepository.save(employeeDailyActivities);
+		return employeeDailyActivities.getId() != null;
+	}
+
+	@Override
+	public Map<Date, List<EmployeeDailyActivities>> fetchEmployeeMonthlyAttendance(String empNo, Date startDate,
+			Date endDate) {
 		List<Activity> activityList = new ArrayList<>();
 		activityList.add(Activity.SALON_IN);
 		activityList.add(Activity.SALON_OUT);
-		List<EmployeeDailyActivities> employeeDailyActivities = employeeDailyActivitiesRepository.findEmployeeAttendance(activityList, empNo,AppUtils.convertDateToStartOfDay(startDate), AppUtils.convertDateToStartOfDay(endDate));
-		return employeeDailyActivities.stream().collect(Collectors.groupingBy(x->AppUtils.convertDateToStartOfDay(x.getTime())));
+		List<EmployeeDailyActivities> employeeDailyActivities = employeeDailyActivitiesRepository
+				.findEmployeeAttendance(activityList, empNo, AppUtils.convertDateToStartOfDay(startDate),
+						AppUtils.convertDateToStartOfDay(endDate));
+		return employeeDailyActivities.stream()
+				.collect(Collectors.groupingBy(x -> AppUtils.convertDateToStartOfDay(x.getTime())));
 	}
-	
+
 	@Override
-	public Map<Date, List<EmployeeDailyActivities>> findEmployeeAllMonthlyActivities(String empNo, Date startDate, Date endDate) {
-		
-		List<EmployeeDailyActivities> employeeDailyActivities = employeeDailyActivitiesRepository.findEmployeeAllMonthlyActivities(empNo,AppUtils.convertDateToStartOfDay(startDate), AppUtils.convertDateToStartOfDay(endDate));
-		return employeeDailyActivities.stream().collect(Collectors.groupingBy(x->AppUtils.convertDateToStartOfDay(x.getTime())));
+	public Map<Date, List<EmployeeDailyActivities>> findEmployeeAllMonthlyActivities(String empNo, Date startDate,
+			Date endDate) {
+
+		List<EmployeeDailyActivities> employeeDailyActivities = employeeDailyActivitiesRepository
+				.findEmployeeAllMonthlyActivities(empNo, AppUtils.convertDateToStartOfDay(startDate),
+						AppUtils.convertDateToStartOfDay(endDate));
+		return employeeDailyActivities.stream()
+				.collect(Collectors.groupingBy(x -> AppUtils.convertDateToStartOfDay(x.getTime())));
 	}
 
 	@Override

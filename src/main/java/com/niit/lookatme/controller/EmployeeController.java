@@ -61,8 +61,15 @@ public class EmployeeController {
 	@PostMapping("dailyactivity/{empNo}")
 	public ResponseEntity<Boolean> employeeActivity(@PathVariable("empNo") String empNo,
 			@RequestBody Map<String, String> activity) {
-		return ResponseEntity.ok(employeeFacade.markActivity(empNo, Activity.fromValue(activity.get("activity")),
+		if (StringUtils.isEmpty(activity.get("custuser")))
+			return ResponseEntity.ok(employeeFacade.markActivity(empNo, Activity.fromValue(activity.get("activity"))));
+		return ResponseEntity.ok(employeeFacade.attendCustomer(empNo, Activity.fromValue(activity.get("activity")),
 				activity.get("custuser")));
+	}
+	
+	@PostMapping("vacation/new")
+	public ResponseEntity<Boolean> markEmployeeVacation(@RequestBody Map<Date, List<String>> employeeVacationMap) {
+		return ResponseEntity.ok(employeeFacade.employeeFutureActivity(employeeVacationMap, Activity.VACATION));
 	}
 
 	@GetMapping("attendance/{empNo}")

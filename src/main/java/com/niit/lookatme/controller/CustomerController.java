@@ -28,7 +28,7 @@ import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
 @RestController
-@RequestMapping("api/employee")
+@RequestMapping("api/customer")
 public class CustomerController {
 
 	@Resource(name = "customerFacade")
@@ -81,18 +81,18 @@ public class CustomerController {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiries(custNo));
 	}
 
-	@GetMapping("enquiry/all")
+	@GetMapping("enquiry/all/dates")
 	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiriesDateRange(
 			@RequestHeader("startDate") Date startDate, @RequestHeader("endDate") Date endDate) {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiriesDateRange(startDate, endDate));
 	}
 
-	@PostMapping("enquiry")
+	@PostMapping("enquiry/new")
 	public ResponseEntity<String> createNewEnquiry(@RequestBody CreateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.createNewCustomerEnquiry(customerOrderInput));
 	}
 
-	@PostMapping("initiateEnquiryToOrder")
+	@PostMapping("enquiry/initiate")
 	public ResponseEntity<Boolean> initiateEnquiryToOrder(@RequestBody UpdateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.initiateEnquiryToOrder(customerOrderInput));
 	}
@@ -102,12 +102,12 @@ public class CustomerController {
 		return ResponseEntity.ok(customerFacade.updateServices(customerOrderInput));
 	}
 
-	@PostMapping("cancelEntireOrder/{orderId}")
+	@PostMapping("order/cancel/{orderId}")
 	public ResponseEntity<Boolean> cancelEntireOrder(@PathVariable("orderId") String orderId) {
 		return ResponseEntity.ok(customerFacade.cancelEntireOrder(orderId));
 	}
 
-	@PostMapping("order")
+	@PostMapping("order/new")
 	public ResponseEntity<String> createNewOrder(@RequestBody CreateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.createNewCustomerOrder(customerOrderInput));
 	}

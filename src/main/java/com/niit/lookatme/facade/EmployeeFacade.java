@@ -17,7 +17,7 @@ public interface EmployeeFacade {
 
 	Boolean changeEmployeePassword(String empNo, String encryptedPassword);
 
-	Boolean markActivity(String empNo, Activity activity, String custUsername);
+	Boolean markActivity(String empNo, Activity activity);
 
 	Map<Date, List<EmployeeDailyActivities>> fetchEmployeeMonthlyAttendance(String empNo, Date startDate, Date endDate);
 
@@ -25,5 +25,9 @@ public interface EmployeeFacade {
 
 	Map<Date, List<EmployeeDailyActivities>> findEmployeeAllMonthlyActivities(String empNo, Date startDate,
 			Date endDate);
+
+	Boolean attendCustomer(String empNo, Activity activity, String custUsername);
+
+	Boolean employeeFutureActivity(Map<Date, List<String>> employeeActivityMap, Activity activity);
 
 }
