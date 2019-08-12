@@ -1,4 +1,4 @@
-package com.niit.lookatme.employee.dto;
+package com.niit.lookatme.customer.dto;
 
 import java.util.Date;
 import java.util.List;

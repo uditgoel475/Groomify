@@ -33,6 +33,12 @@ import com.niit.lookatme.customer.dao.CustomerJobCardDetailsHistory;
 import com.niit.lookatme.customer.dao.CustomerJobCardHistory;
 import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.customer.dao.CustomerOrderHistory;
+import com.niit.lookatme.customer.dto.CreateCustomerOrderInput;
+import com.niit.lookatme.customer.dto.CustomerDTO;
+import com.niit.lookatme.customer.dto.CustomerJobsInput;
+import com.niit.lookatme.customer.dto.CustomerOrderOut;
+import com.niit.lookatme.customer.dto.CustomerOutDTO;
+import com.niit.lookatme.customer.dto.UpdateCustomerOrderInput;
 import com.niit.lookatme.dao.JobStatus;
 import com.niit.lookatme.dao.Password;
 import com.niit.lookatme.dao.repository.CustomerOrderHistoryRepository;
@@ -42,10 +48,6 @@ import com.niit.lookatme.dao.repository.EmployeeRepository;
 import com.niit.lookatme.dao.repository.ServiceRepository;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
-import com.niit.lookatme.employee.dto.CreateCustomerOrderInput;
-import com.niit.lookatme.employee.dto.CustomerDTO;
-import com.niit.lookatme.employee.dto.CustomerJobsInput;
-import com.niit.lookatme.employee.dto.UpdateCustomerOrderInput;
 import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.facade.helper.CustomerFacadeHelper;
 import com.niit.lookatme.utils.AppUtils;
@@ -93,13 +95,14 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
-	public List<Customer> fetchAllCustomerCurrentWeekBirthdays() {
+	public List<CustomerOutDTO> fetchAllCustomerCurrentWeekBirthdays() {
 		Date startDate = Date.from((LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY))).atStartOfDay()
 				.atZone(ZoneId.systemDefault()).toInstant());
 		Date endDate = Date.from(LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).atStartOfDay()
 				.atZone(ZoneId.systemDefault()).toInstant());
 
-		return customerRepository.findAllByDobBetweenOrderByDobAsc(startDate, endDate);
+		return customerRepository.findAllByDobBetweenOrderByDobAsc(startDate, endDate).stream()
+				.map(customer -> customerFacadeHelper.createCustomerOutDTO(customer)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -119,42 +122,48 @@ public class CustomerFacadeImpl implements CustomerFacade {
 			return false;
 		}
 	}
+	
+	private List<CustomerOrderOut> createCustomerOrderOut(List<CustomerOrder> customerOrderList) {
+		return customerOrderList.stream()
+				.map(customerOrder -> customerFacadeHelper.createCustomerOrderOut(customerOrder))
+				.collect(Collectors.toList());
+	}
 
 	@Override
-	public List<CustomerOrder> fetchAllOpenCustomerOrder(String username) {
+	public List<CustomerOrderOut> fetchAllOpenCustomerOrder(String username) {
 		List<JobStatus> jobStatusList = new ArrayList<>();
 		jobStatusList.add(JobStatus.PENDING);
 		jobStatusList.add(JobStatus.INPROGRESS);
-		return customerOrderRepository.findAllByRequestStatusInAndCustomer_Username(jobStatusList, username);
+		return createCustomerOrderOut(customerOrderRepository.findAllByRequestStatusInAndCustomer_Username(jobStatusList, username));
 	}
 
 	@Override
-	public List<CustomerOrder> fetchAllCalendarOpenAppointmentCurrentMonth(int year, Month month) {
+	public List<CustomerOrderOut> fetchAllCalendarOpenAppointmentCurrentMonth(int year, Month month) {
 		LocalDate localDate = LocalDate.now().withYear(year).withMonth(month.getValue());
-		return customerOrderRepository.findAllCalendarMonthOpenAppointment(AppUtils.convertLocalDateToDate(localDate));
+		return createCustomerOrderOut(customerOrderRepository.findAllCalendarMonthOpenAppointment(AppUtils.convertLocalDateToDate(localDate)));
 	}
 
 	@Override
-	public List<CustomerOrder> fetchAllCustomerCalendarOpenAppointmentGivenDate(String custNo, Date date) {
+	public List<CustomerOrderOut> fetchAllCustomerCalendarOpenAppointmentGivenDate(String custNo, Date date) {
 		Instant instant = Instant.ofEpochMilli(date.getTime());
 		LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-		return customerOrderRepository.findCustomerCalendarOpenAppointmentGivenDate(custNo,
-				AppUtils.convertLocalDateToDate(localDateTime.toLocalDate()));
+		return createCustomerOrderOut(customerOrderRepository.findCustomerCalendarOpenAppointmentGivenDate(custNo,
+				AppUtils.convertLocalDateToDate(localDateTime.toLocalDate())));
 	}
 
 	@Override
-	public List<CustomerOrder> fetchAllCustomerEnquiryGivenDate(String custNo, Date date) {
-		return customerOrderRepository.findAllCustomerEnquiryGivenDate(custNo, AppUtils.convertDateToStartOfDay(date));
+	public List<CustomerOrderOut> fetchAllCustomerEnquiryGivenDate(String custNo, Date date) {
+		return createCustomerOrderOut(customerOrderRepository.findAllCustomerEnquiryGivenDate(custNo, AppUtils.convertDateToStartOfDay(date)));
 	}
 
 	@Override
-	public List<CustomerOrder> fetchAllCustomerEnquiries(String custNo) {
-		return customerOrderRepository.fetchAllCustomerEnquiries(custNo);
+	public List<CustomerOrderOut> fetchAllCustomerEnquiries(String custNo) {
+		return createCustomerOrderOut(customerOrderRepository.fetchAllCustomerEnquiries(custNo));
 	}
 
 	@Override
-	public List<CustomerOrder> fetchAllEnquiriesGivenDate(Date date) {
-		return customerOrderRepository.fetchAllEnquiriesGivenDate(date);
+	public List<CustomerOrderOut> fetchAllEnquiriesGivenDate(Date date) {
+		return createCustomerOrderOut(customerOrderRepository.fetchAllEnquiriesGivenDate(date));
 	}
 
 	@Override
@@ -206,11 +215,11 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
-	public List<CustomerOrder> fetchAllCustomerEnquiriesGivenMonth(Month month, int year) {
+	public List<CustomerOrderOut> fetchAllCustomerEnquiriesGivenMonth(Month month, int year) {
 		YearMonth yearMonth = YearMonth.of(year, month);
-		return customerOrderRepository.findAllCustomerEnquiriesDateRange(
+		return createCustomerOrderOut(customerOrderRepository.findAllCustomerEnquiriesDateRange(
 				AppUtils.convertLocalDateToDate(yearMonth.atDay(1)),
-				AppUtils.convertLocalDateToDate(yearMonth.atEndOfMonth()));
+				AppUtils.convertLocalDateToDate(yearMonth.atEndOfMonth())));
 	}
 
 	@Override

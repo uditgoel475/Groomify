@@ -1,5 +1,6 @@
-package com.niit.lookatme.employee.dto;
+package com.niit.lookatme.dto;
 
+import com.niit.lookatme.customer.dto.CustomerDTO;
 import com.niit.lookatme.dao.Floor;
 
 public class ChairAllocateDTO {

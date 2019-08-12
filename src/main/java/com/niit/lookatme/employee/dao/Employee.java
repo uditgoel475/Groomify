@@ -20,6 +20,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.ColumnDefault;
@@ -551,6 +552,12 @@ public class Employee extends AuditInfo {
 	 */
 	public void setPermanentAddress(Address permanentAddress) {
 		this.permanentAddress = permanentAddress;
+	}
+	
+	@Transient
+	public String getName() {
+		return new StringBuilder(fname).append(" ").append(mname)
+				.append(StringUtils.isEmpty(mname) ? StringUtils.EMPTY : " ").append(lname).toString().trim();
 	}
 
 	@Override

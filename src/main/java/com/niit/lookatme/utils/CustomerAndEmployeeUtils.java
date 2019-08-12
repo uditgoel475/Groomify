@@ -41,6 +41,12 @@ public class CustomerAndEmployeeUtils {
 
 	private CustomerAndEmployeeUtils() {
 	}
+	
+	public static AddressInput populateAddressOut(Address address) {
+		AddressInput addressInput = new AddressInput(address.getAddress1(), address.getAddress2(), address.getAddress3(), address.getState(), address.getCity(), address.getRegion(), address.getPostalCode());
+		addressInput.setCountry(address.getCountry());
+		return addressInput;
+	}
 
 	public static Address populateAddressObject(AddressInput addressInput) {
 		Address currentAddress = new Address();

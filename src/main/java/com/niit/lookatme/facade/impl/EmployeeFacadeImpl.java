@@ -37,6 +37,7 @@ import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dao.Employee;
 import com.niit.lookatme.employee.dao.EmployeeDailyActivities;
 import com.niit.lookatme.employee.dto.EmployeeActivityOut;
+import com.niit.lookatme.employee.dto.EmployeeDTO;
 import com.niit.lookatme.employee.dto.EmployeeInput;
 import com.niit.lookatme.facade.EmployeeFacade;
 import com.niit.lookatme.facade.helper.EmployeeFacadeHelper;
@@ -64,14 +65,15 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	private EmployeeServicesRepository employeeServicesRepository;
 
 	@Override
-	public List<Employee> fetchAllExistingEmployeeCurrentWeekBirthdays() {
+	public List<EmployeeDTO> fetchAllExistingEmployeeCurrentWeekBirthdays() {
 
 		Date startDate = Date.from((LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.SUNDAY))).atStartOfDay()
 				.atZone(ZoneId.systemDefault()).toInstant());
 		Date endDate = Date.from(LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.SUNDAY)).atStartOfDay()
 				.atZone(ZoneId.systemDefault()).toInstant());
-		return employeeRepository.findAllByDobBetweenAndLeavingDateGreaterThanOrEqualToOrderByDobAsc(startDate, endDate,
+		List<Employee> employeeList = employeeRepository.findAllByDobBetweenAndLeavingDateGreaterThanOrEqualToOrderByDobAsc(startDate, endDate,
 				Calendar.getInstance().getTime());
+		return employeeList.stream().map(x->employeeFacadeHelper.createEmployeeDTO(x)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -158,7 +160,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	}
 
 	@Override
-	public Map<Date, List<EmployeeDailyActivities>> fetchEmployeeMonthlyAttendance(String empNo, Month month,
+	public Map<Date, List<EmployeeActivityOut>> fetchEmployeeMonthlyAttendance(String empNo, Month month,
 			int year) {
 
 		YearMonth yearMonth = YearMonth.of(year, month);
@@ -166,28 +168,31 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 		List<Activity> activityList = new ArrayList<>();
 		activityList.add(Activity.SALON_IN);
 		activityList.add(Activity.SALON_OUT);
-		List<EmployeeDailyActivities> employeeDailyActivities = employeeDailyActivitiesRepository
+		List<EmployeeActivityOut> employeeDailyActivities = employeeDailyActivitiesRepository
 				.findEmployeeAttendance(activityList, empNo, AppUtils.convertLocalDateToDate(yearMonth.atDay(1)),
-						AppUtils.convertLocalDateToDate(yearMonth.atEndOfMonth()));
+						AppUtils.convertLocalDateToDate(yearMonth.atEndOfMonth())).stream()
+				.map(x -> createEmployeeActivityOutFromEmployeeDailyActivities(x)).collect(Collectors.toList());
 		return employeeDailyActivities.stream()
-				.collect(Collectors.groupingBy(x -> AppUtils.convertDateToStartOfDay(x.getTime())));
+				.collect(Collectors.groupingBy(x -> AppUtils.convertDateToStartOfDay(x.getActivityTime())));
 	}
 
 	@Override
-	public Map<Date, List<EmployeeDailyActivities>> findEmployeeAllMonthlyActivities(String empNo, Month month,
+	public Map<Date, List<EmployeeActivityOut>> findEmployeeAllMonthlyActivities(String empNo, Month month,
 			int year) {
 
 		YearMonth yearMonth = YearMonth.of(year, month);
-		List<EmployeeDailyActivities> employeeDailyActivities = employeeDailyActivitiesRepository
+		List<EmployeeActivityOut> employeeDailyActivities = employeeDailyActivitiesRepository
 				.findEmployeeAllMonthlyActivities(empNo, AppUtils.convertLocalDateToDate(yearMonth.atDay(1)),
-						AppUtils.convertLocalDateToDate(yearMonth.atEndOfMonth()));
+						AppUtils.convertLocalDateToDate(yearMonth.atEndOfMonth())).stream()
+				.map(x -> createEmployeeActivityOutFromEmployeeDailyActivities(x)).collect(Collectors.toList());
 		return employeeDailyActivities.stream()
-				.collect(Collectors.groupingBy(x -> AppUtils.convertDateToStartOfDay(x.getTime())));
+				.collect(Collectors.groupingBy(x -> AppUtils.convertDateToStartOfDay(x.getActivityTime())));
 	}
 
 	@Override
-	public List<EmployeeDailyActivities> fetchEmployeeTodayActivity(String empNo) {
-		return employeeDailyActivitiesRepository.findEmployeeTodayActivities(empNo);
+	public List<EmployeeActivityOut> fetchEmployeeTodayActivity(String empNo) {
+		return employeeDailyActivitiesRepository.findEmployeeTodayActivities(empNo).stream()
+				.map(x -> createEmployeeActivityOutFromEmployeeDailyActivities(x)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -217,13 +222,8 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 						EmployeeDailyActivities employeeLastActivity = listEmplActivities.stream()
 								.max(Comparator.comparing(EmployeeDailyActivities::getTime)).orElse(null);
 						if (null != employeeLastActivity) {
-							EmployeeActivityOut employeeActivityOut = new EmployeeActivityOut(employee.getFname(),
-									employee.getSchedule().getInTime(), employee.getSchedule().getOutTime(),
-									employee.isOvertimeWorker(), employee.getPrimaryContact(),
-									employeeLastActivity.getActivity(), employeeLastActivity.getTime());
-							employeeActivityOut.setUsername(employee.getUsername());
-							employeeActivityOut.setmName(employee.getMname());
-							employeeActivityOut.setlName(employee.getLname());
+							EmployeeActivityOut employeeActivityOut = createEmployeeActivityOutFromEmployeeDailyActivities(
+									employee, employeeLastActivity);
 							employeeActivityOutList.add(employeeActivityOut);
 						}
 					}
@@ -231,6 +231,27 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 				});
 
 		return employeeActivityOutList;
+	}
+	
+	private EmployeeActivityOut createEmployeeActivityOutFromEmployeeDailyActivities(EmployeeDailyActivities employeeLastActivity) {
+		return createEmployeeActivityOutFromEmployeeDailyActivities(employeeLastActivity.getEmployee(), employeeLastActivity);
+	}
+
+	private EmployeeActivityOut createEmployeeActivityOutFromEmployeeDailyActivities(Employee employee,
+			EmployeeDailyActivities employeeLastActivity) {
+		EmployeeActivityOut employeeActivityOut = new EmployeeActivityOut(employee.getFname(),
+				employee.getSchedule().getInTime(), employee.getSchedule().getOutTime(),
+				employee.isOvertimeWorker(), employee.getPrimaryContact(),
+				employeeLastActivity.getActivity(), employeeLastActivity.getTime());
+		employeeActivityOut.setUsername(employee.getUsername());
+		employeeActivityOut.setmName(employee.getMname());
+		employeeActivityOut.setlName(employee.getLname());
+		if(null != employeeLastActivity.getCustomer()) {
+			employeeActivityOut.setCustomerUsername(employeeLastActivity.getCustomer().getUsername());
+			employeeActivityOut.setCustomerName(employeeLastActivity.getCustomer().getName());
+		}
+		
+		return employeeActivityOut;
 	}
 
 }

@@ -7,12 +7,12 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import com.niit.lookatme.customer.dto.CustomerDTO;
 import com.niit.lookatme.dao.ChairAllocate;
 import com.niit.lookatme.dao.Floor;
 import com.niit.lookatme.dao.repository.ChairAllocateRepository;
 import com.niit.lookatme.dao.repository.CustomerRepository;
-import com.niit.lookatme.employee.dto.ChairAllocateDTO;
-import com.niit.lookatme.employee.dto.CustomerDTO;
+import com.niit.lookatme.dto.ChairAllocateDTO;
 import com.niit.lookatme.facade.ChairAllocateFacade;
 import com.niit.lookatme.facade.helper.CustomerFacadeHelper;
 

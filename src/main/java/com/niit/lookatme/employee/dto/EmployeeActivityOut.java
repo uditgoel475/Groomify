@@ -22,6 +22,10 @@ public class EmployeeActivityOut {
 	private Activity activity;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-mm-dd'T'HH:mm:ss")
 	private Date activityTime;
+	
+	private String customerUsername;
+	private String customerName;
+
 	public EmployeeActivityOut(String fName, Date genericInTime,
 			Date genericOutTime, boolean availableOvertime, long primaryContact, Activity activity, Date activityTime) {
 		super();
@@ -176,6 +180,30 @@ public class EmployeeActivityOut {
 	 */
 	public void setActivityTime(Date activityTime) {
 		this.activityTime = activityTime;
+	}
+	/**
+	 * @return the customerUsername
+	 */
+	public String getCustomerUsername() {
+		return customerUsername;
+	}
+	/**
+	 * @return the customerName
+	 */
+	public String getCustomerName() {
+		return customerName;
+	}
+	/**
+	 * @param customerUsername the customerUsername to set
+	 */
+	public void setCustomerUsername(String customerUsername) {
+		this.customerUsername = customerUsername;
+	}
+	/**
+	 * @param customerName the customerName to set
+	 */
+	public void setCustomerName(String customerName) {
+		this.customerName = customerName;
 	}
 
 

@@ -16,14 +16,25 @@ import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dao.Employee;
 import com.niit.lookatme.employee.dao.EmployeeQualification;
 import com.niit.lookatme.employee.dao.EmployeeRoster;
+import com.niit.lookatme.employee.dto.EmployeeDTO;
 import com.niit.lookatme.employee.dto.EmployeeInput;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
 @Component("employeeFacadeHelper")
 public class EmployeeFacadeHelper {
-	
+
 	@Resource
 	private EmployeeRepository employeeRepository;
+
+	public EmployeeDTO createEmployeeDTO(Employee employee) {
+		EmployeeDTO employeeDTO = new EmployeeDTO(employee.getName(), employee.getUsername(), employee.getDob(),
+				employee.getPrimaryContact(), employee.getGender().toString(),
+				CustomerAndEmployeeUtils.populateAddressOut(employee.getCurrentAddress()),
+				CustomerAndEmployeeUtils.populateAddressOut(employee.getPermanentAddress()));
+		employeeDTO.setRegId(employee.getRegId());
+		employeeDTO.setEmail(employee.getEmail());
+		return employeeDTO;
+	}
 
 	public Employee createEmployeeJPAFromEmployeeInput(EmployeeInput createEmployeeInput) {
 		Employee employee = new Employee();
@@ -77,7 +88,7 @@ public class EmployeeFacadeHelper {
 		employee.setAdminUser(createEmployeeInput.isAdminUser());
 		return employee;
 	}
-	
+
 	private String createEmployeeUsername(EmployeeInput employee) {
 		long employeecount = employeeRepository.count();
 		String initString = employee.getfName().substring(0, 3)

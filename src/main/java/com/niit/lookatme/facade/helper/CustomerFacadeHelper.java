@@ -19,22 +19,29 @@ import com.niit.lookatme.customer.dao.CustomerJobCardDetailsHistory;
 import com.niit.lookatme.customer.dao.CustomerJobCardHistory;
 import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.customer.dao.CustomerOrderHistory;
+import com.niit.lookatme.customer.dto.CustomerDTO;
+import com.niit.lookatme.customer.dto.CustomerJobCardDetailsOut;
+import com.niit.lookatme.customer.dto.CustomerJobCardOut;
+import com.niit.lookatme.customer.dto.CustomerOrderOut;
+import com.niit.lookatme.customer.dto.CustomerOutDTO;
 import com.niit.lookatme.dao.Gender;
 import com.niit.lookatme.dao.GovtIdType;
 import com.niit.lookatme.dao.JobStatus;
 import com.niit.lookatme.dao.Password;
 import com.niit.lookatme.dao.repository.CustomerRepository;
-import com.niit.lookatme.employee.dto.CustomerDTO;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
 @Component("customerFacadeHelper")
 public class CustomerFacadeHelper {
-	
+
 	@Resource
 	private CustomerRepository customerRepository;
-	
+
+	@Resource
+	private EmployeeFacadeHelper employeeFacadeHelper;
+
 	public CustomerOrder updateCustomerOrderByGivenJobStatus(CustomerOrder customerOrder, JobStatus updatedJobStatus) {
-		
+
 		Date currentDate = Calendar.getInstance().getTime();
 		customerOrder.setRequestStatus(updatedJobStatus);
 		customerOrder.setLastModifiedDate(currentDate);
@@ -50,7 +57,7 @@ public class CustomerFacadeHelper {
 		}
 		return customerOrder;
 	}
-	
+
 	public void validateCustomerOrderForCancellation(CustomerOrder customerOrder) {
 		if (customerOrder == null) {
 			throw new NoSuchElementException("Order doesn't exist or is already completed or cancelled");
@@ -60,14 +67,13 @@ public class CustomerFacadeHelper {
 	}
 
 	public void validateCustomerJobCardsForCancellation(List<CustomerJobCard> listCustomerJobCards) {
-		String completedJobs = listCustomerJobCards.stream()
-				.filter(x -> x.getJobStatus() == JobStatus.COMPLETED).map(CustomerJobCard::getJobId)
-				.collect(Collectors.joining());
+		String completedJobs = listCustomerJobCards.stream().filter(x -> x.getJobStatus() == JobStatus.COMPLETED)
+				.map(CustomerJobCard::getJobId).collect(Collectors.joining());
 		if (!StringUtils.isEmpty(completedJobs)) {
 			throw new IllegalStateException("Job Card cannot be cancelled : Job Cards : " + completedJobs
 					+ " are already completed. Please manually cancel them to cancel the Job Card.");
 		}
-		
+
 		Map<String, List<CustomerJobCardDetails>> customerOpenJobCards = listCustomerJobCards.stream()
 				.filter(x -> x.getJobStatus() == JobStatus.INPROGRESS)
 				.collect(Collectors.toMap(CustomerJobCard::getJobId, CustomerJobCard::getCustomerJobCardDetails));
@@ -86,7 +92,7 @@ public class CustomerFacadeHelper {
 			throw new IllegalStateException(strBuilder.toString());
 		}
 	}
-	
+
 	public CustomerJobCardHistory createJobCardHistoryFromJobCard(CustomerOrderHistory customerOrderHistory,
 			CustomerJobCard customerJobCard) {
 		CustomerJobCardHistory customerJobCardHistory = new CustomerJobCardHistory();
@@ -148,7 +154,7 @@ public class CustomerFacadeHelper {
 		customer.setGovtId(customerInput.getGovtId());
 		return customer;
 	}
-	
+
 	private String createCustomerUsername(CustomerDTO customer) {
 		long customerCount = customerRepository.count();
 		String initString = customer.getfName().substring(0, 3)
@@ -157,19 +163,54 @@ public class CustomerFacadeHelper {
 		initString = StringUtils.rightPad(initString, 13, '0');
 		return StringUtils.rightPad(initString, 13, String.valueOf(customerCount));
 	}
-	
+
 	public CustomerDTO createCustomerDTOFromCustomer(Customer customer) {
-		CustomerDTO customerDTO = new CustomerDTO();
-		customerDTO.setUsername(customer.getUsername());
+		CustomerDTO customerDTO = new CustomerDTO(customer.getUsername(), customer.getName(), customer.getDob(),
+				customer.getContact(), customer.getGender().toString(), customer.getRegId(), customer.getEmail());
 		customerDTO.setfName(customer.getFname());
 		customerDTO.setmName(customer.getMname());
 		customerDTO.setlName(customer.getLname());
-		customerDTO.setDob(customer.getDob());
-		customerDTO.setContact(customer.getContact());
 		customerDTO.setAlternateContact(customer.getAlternateContact());
-		customerDTO.setGender(customer.getGender().toString());
-		customerDTO.setRegId(customer.getRegId());
-		customerDTO.setEmail(customer.getEmail());
 		return customerDTO;
+	}
+
+	public CustomerJobCardDetailsOut createCustomerJobCardDetailsOut(CustomerJobCardDetails customerJobCardDetails) {
+		return new CustomerJobCardDetailsOut(customerJobCardDetails.getSubJobId(),
+				customerJobCardDetails.getJobStatus(),
+				employeeFacadeHelper.createEmployeeDTO(customerJobCardDetails.getActivityEmployee()),
+				customerJobCardDetails.getService().getName(), customerJobCardDetails.getCustomerFeedback(),
+				customerJobCardDetails.getJobStartTime(), customerJobCardDetails.getJobEndTime());
+	}
+
+	public CustomerJobCardOut createCustomerJobCardOut(CustomerJobCard customerJobCard) {
+		List<CustomerJobCardDetailsOut> customerJobCardDetailsOutList = customerJobCard.getCustomerJobCardDetails()
+				.stream().map(x -> createCustomerJobCardDetailsOut(x)).collect(Collectors.toList());
+		CustomerJobCardOut customerJobCardOut = new CustomerJobCardOut(customerJobCard.getJobId(),
+				customerJobCard.getJobStatus(), customerJobCard.getJobStartTime(), customerJobCard.getJobEndTime(),
+				customerJobCard.getPaymentMode(), customerJobCard.getPaymentAmount(), customerJobCardDetailsOutList);
+		customerJobCardOut.setCustomerFeedback(customerJobCard.getCustomerFeedback());
+		customerJobCardOut.setPaidAmount(customerJobCard.getPaidAmount());
+		customerJobCardOut.setPaymentComments(customerJobCard.getPaymentComments());
+		return customerJobCardOut;
+	}
+	
+	public CustomerOutDTO createCustomerOutDTO(Customer customer) {
+		CustomerOutDTO customerOutDTO = new CustomerOutDTO(customer.getUsername(), customer.getName(),
+				customer.getDob(), customer.getContact(), customer.getGender().toString(), customer.getRegId(),
+				customer.getEmail());
+		customerOutDTO.setAlternateContact(customer.getAlternateContact());
+		customerOutDTO.setBillingAddress(CustomerAndEmployeeUtils.populateAddressOut(customer.getBillingAddress()));
+		customerOutDTO.setShippingAddress(CustomerAndEmployeeUtils.populateAddressOut(customer.getShippingAddress()));
+		return customerOutDTO;
+	}
+
+	public CustomerOrderOut createCustomerOrderOut(CustomerOrder customerOrder) {
+		Customer customer = customerOrder.getCustomer();
+		CustomerOutDTO customerOutDTO = createCustomerOutDTO(customer);
+
+		List<CustomerJobCardOut> customerJobCardList = customerOrder.getCustomerJobCards().stream()
+				.map(x -> createCustomerJobCardOut(x)).collect(Collectors.toList());
+		return new CustomerOrderOut(customerOrder.getRequestId(), customerOrder.getRequestStatus(), customerOutDTO,
+				customerOrder.getAppointmentDate(), customerJobCardList);
 	}
 }

@@ -4,35 +4,35 @@ import java.time.Month;
 import java.util.Date;
 import java.util.List;
 
-import com.niit.lookatme.customer.dao.Customer;
-import com.niit.lookatme.customer.dao.CustomerOrder;
-import com.niit.lookatme.employee.dto.CreateCustomerOrderInput;
-import com.niit.lookatme.employee.dto.CustomerDTO;
-import com.niit.lookatme.employee.dto.UpdateCustomerOrderInput;
+import com.niit.lookatme.customer.dto.CreateCustomerOrderInput;
+import com.niit.lookatme.customer.dto.CustomerDTO;
+import com.niit.lookatme.customer.dto.CustomerOrderOut;
+import com.niit.lookatme.customer.dto.CustomerOutDTO;
+import com.niit.lookatme.customer.dto.UpdateCustomerOrderInput;
 
 public interface CustomerFacade {
 	
-	List<Customer> fetchAllCustomerCurrentWeekBirthdays();
+	List<CustomerOutDTO> fetchAllCustomerCurrentWeekBirthdays();
 
 	String createNewCustomer(CustomerDTO customerInput);
 
 	Boolean changeCustomerPassword(String custNo, String encryptedPassword);
 
-	List<CustomerOrder> fetchAllOpenCustomerOrder(String username);
+	List<CustomerOrderOut> fetchAllOpenCustomerOrder(String username);
 
-	List<CustomerOrder> fetchAllCalendarOpenAppointmentCurrentMonth(int year, Month month);
+	List<CustomerOrderOut> fetchAllCalendarOpenAppointmentCurrentMonth(int year, Month month);
 
-	List<CustomerOrder> fetchAllCustomerCalendarOpenAppointmentGivenDate(String custNo, Date date);
+	List<CustomerOrderOut> fetchAllCustomerCalendarOpenAppointmentGivenDate(String custNo, Date date);
 
-	List<CustomerOrder> fetchAllCustomerEnquiryGivenDate(String custNo, Date date);
+	List<CustomerOrderOut> fetchAllCustomerEnquiryGivenDate(String custNo, Date date);
 
-	List<CustomerOrder> fetchAllCustomerEnquiries(String custNo);
+	List<CustomerOrderOut> fetchAllCustomerEnquiries(String custNo);
 
-	List<CustomerOrder> fetchAllEnquiriesGivenDate(Date date);
+	List<CustomerOrderOut> fetchAllEnquiriesGivenDate(Date date);
 
 	String createNewCustomerEnquiry(CreateCustomerOrderInput enquiryInput);
 
-	List<CustomerOrder> fetchAllCustomerEnquiriesGivenMonth(Month month, int year);
+	List<CustomerOrderOut> fetchAllCustomerEnquiriesGivenMonth(Month month, int year);
 
 	String createNewCustomerOrder(CreateCustomerOrderInput customerOrderInput);
 

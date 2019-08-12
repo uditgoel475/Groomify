@@ -22,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.niit.lookatme.dao.Activity;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
-import com.niit.lookatme.employee.dao.EmployeeDailyActivities;
 import com.niit.lookatme.employee.dto.EmployeeActivityOut;
 import com.niit.lookatme.employee.dto.EmployeeInput;
 import com.niit.lookatme.facade.EmployeeFacade;
@@ -75,19 +74,19 @@ public class EmployeeController {
 	}
 
 	@GetMapping("attendance/{empNo}/{month}/{year}")
-	public ResponseEntity<Map<Date, List<EmployeeDailyActivities>>> fetchEmployeeMonthlyAttendance(
+	public ResponseEntity<Map<Date, List<EmployeeActivityOut>>> fetchEmployeeMonthlyAttendance(
 			@PathVariable("empNo") String empNo, @PathVariable("year") Year year, @PathVariable("month") Month month) {
 		return ResponseEntity.ok(employeeFacade.fetchEmployeeMonthlyAttendance(empNo, month, year.getValue()));
 	}
 
 	@GetMapping("dailyactivity/{empNo}")
-	public ResponseEntity<List<EmployeeDailyActivities>> fetchEmployeeTodayActivity(
+	public ResponseEntity<List<EmployeeActivityOut>> fetchEmployeeTodayActivity(
 			@PathVariable("empNo") String empNo) {
 		return ResponseEntity.ok(employeeFacade.fetchEmployeeTodayActivity(empNo));
 	}
 
 	@GetMapping("activities/{empNo}/{month}/{year}")
-	public ResponseEntity<Map<Date, List<EmployeeDailyActivities>>> findEmployeeAllMonthlyActivities(
+	public ResponseEntity<Map<Date, List<EmployeeActivityOut>>> findEmployeeAllMonthlyActivities(
 			@PathVariable("empNo") String empNo, @PathVariable("year") Year year, @PathVariable("month") Month month) {
 		return ResponseEntity.ok(employeeFacade.findEmployeeAllMonthlyActivities(empNo, month, year.getValue()));
 	}

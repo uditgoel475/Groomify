@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.niit.lookatme.dao.Activity;
-import com.niit.lookatme.employee.dao.Employee;
-import com.niit.lookatme.employee.dao.EmployeeDailyActivities;
 import com.niit.lookatme.employee.dto.EmployeeActivityOut;
+import com.niit.lookatme.employee.dto.EmployeeDTO;
 import com.niit.lookatme.employee.dto.EmployeeInput;
 
 public interface EmployeeFacade {
 
-	List<Employee> fetchAllExistingEmployeeCurrentWeekBirthdays();
+	List<EmployeeDTO> fetchAllExistingEmployeeCurrentWeekBirthdays();
 
 	String createNewEmployee(EmployeeInput createEmployeeInput);
 
@@ -21,11 +20,11 @@ public interface EmployeeFacade {
 
 	Boolean markActivity(String empNo, Activity activity);
 
-	Map<Date, List<EmployeeDailyActivities>> fetchEmployeeMonthlyAttendance(String empNo, Month month, int year);
+	Map<Date, List<EmployeeActivityOut>> fetchEmployeeMonthlyAttendance(String empNo, Month month, int year);
 
-	List<EmployeeDailyActivities> fetchEmployeeTodayActivity(String empNo);
+	List<EmployeeActivityOut> fetchEmployeeTodayActivity(String empNo);
 
-	Map<Date, List<EmployeeDailyActivities>> findEmployeeAllMonthlyActivities(String empNo, Month month, int year);
+	Map<Date, List<EmployeeActivityOut>> findEmployeeAllMonthlyActivities(String empNo, Month month, int year);
 
 	Boolean attendCustomer(String empNo, Activity activity, String custUsername);
 

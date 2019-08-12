@@ -17,7 +17,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.ColumnDefault;
@@ -352,6 +354,12 @@ public class Customer extends AuditInfo {
 	 */
 	public void setRegId(String regId) {
 		this.regId = regId;
+	}
+	
+	@Transient
+	public String getName() {
+		return new StringBuilder(fname).append(" ").append(mname)
+				.append(StringUtils.isEmpty(mname) ? StringUtils.EMPTY : " ").append(lname).toString().trim();
 	}
 
 	@Override
