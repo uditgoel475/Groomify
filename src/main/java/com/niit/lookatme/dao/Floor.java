@@ -26,9 +26,13 @@ public enum Floor {
 	}
 
 	@Override
-	@JsonValue
 	public String toString() {
 		return String.valueOf(value);
+	}
+	
+	@JsonValue	
+	public String enumName() {
+		return name();
 	}
 
 	@JsonCreator

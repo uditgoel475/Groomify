@@ -20,7 +20,7 @@ public class SwaggerConfig {
 	public Docket productApi() {
 		return new Docket(DocumentationType.SWAGGER_2).select()
 				.apis(RequestHandlerSelectors.basePackage("com.niit.lookatme.controller")).paths(PathSelectors.any())
-				.build().pathMapping("/api").apiInfo(metaData());
+				.build().apiInfo(metaData());
 	}
 
 	private ApiInfo metaData() {
