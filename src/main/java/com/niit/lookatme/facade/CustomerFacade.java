@@ -7,14 +7,14 @@ import java.util.List;
 import com.niit.lookatme.customer.dao.Customer;
 import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.employee.dto.CreateCustomerOrderInput;
-import com.niit.lookatme.employee.dto.CustomerInput;
+import com.niit.lookatme.employee.dto.CustomerDTO;
 import com.niit.lookatme.employee.dto.UpdateCustomerOrderInput;
 
 public interface CustomerFacade {
 	
 	List<Customer> fetchAllCustomerCurrentWeekBirthdays();
 
-	String createNewCustomer(CustomerInput customerInput);
+	String createNewCustomer(CustomerDTO customerInput);
 
 	Boolean changeCustomerPassword(String custNo, String encryptedPassword);
 

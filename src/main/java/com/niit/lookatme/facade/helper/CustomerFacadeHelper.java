@@ -24,7 +24,7 @@ import com.niit.lookatme.dao.GovtIdType;
 import com.niit.lookatme.dao.JobStatus;
 import com.niit.lookatme.dao.Password;
 import com.niit.lookatme.dao.repository.CustomerRepository;
-import com.niit.lookatme.employee.dto.CustomerInput;
+import com.niit.lookatme.employee.dto.CustomerDTO;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
 @Component("customerFacadeHelper")
@@ -118,7 +118,7 @@ public class CustomerFacadeHelper {
 		return customerJobCardDetailsHistory;
 	}
 
-	public Customer createCustomerJPAFromCustomerInput(CustomerInput customerInput) {
+	public Customer createCustomerJPAFromCustomerInput(CustomerDTO customerInput) {
 		Customer customer = new Customer();
 		customer.setFname(customerInput.getfName());
 		customer.setMname(customerInput.getmName());
@@ -149,12 +149,27 @@ public class CustomerFacadeHelper {
 		return customer;
 	}
 	
-	private String createCustomerUsername(CustomerInput customer) {
+	private String createCustomerUsername(CustomerDTO customer) {
 		long customerCount = customerRepository.count();
 		String initString = customer.getfName().substring(0, 3)
 				+ (customer.getmName().isEmpty() ? "0" : customer.getmName().substring(0, 1))
 				+ customer.getlName().substring(0, 3);
 		initString = StringUtils.rightPad(initString, 13, '0');
 		return StringUtils.rightPad(initString, 13, String.valueOf(customerCount));
+	}
+	
+	public CustomerDTO createCustomerDTOFromCustomer(Customer customer) {
+		CustomerDTO customerDTO = new CustomerDTO();
+		customerDTO.setUsername(customer.getUsername());
+		customerDTO.setfName(customer.getFname());
+		customerDTO.setmName(customer.getMname());
+		customerDTO.setlName(customer.getLname());
+		customerDTO.setDob(customer.getDob());
+		customerDTO.setContact(customer.getContact());
+		customerDTO.setAlternateContact(customer.getAlternateContact());
+		customerDTO.setGender(customer.getGender().toString());
+		customerDTO.setRegId(customer.getRegId());
+		customerDTO.setEmail(customer.getEmail());
+		return customerDTO;
 	}
 }

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.service.Contact;
@@ -18,7 +19,8 @@ public class SwaggerConfig {
 	@Bean
 	public Docket productApi() {
 		return new Docket(DocumentationType.SWAGGER_2).select()
-				.apis(RequestHandlerSelectors.basePackage("com.niit.lookatme.controller")).build().apiInfo(metaData());
+				.apis(RequestHandlerSelectors.basePackage("com.niit.lookatme.controller")).paths(PathSelectors.any())
+				.build().pathMapping("/api").apiInfo(metaData());
 	}
 
 	private ApiInfo metaData() {

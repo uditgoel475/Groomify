@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.niit.lookatme.dto.AddressInput;
 
-public class CustomerInput {
+public class CustomerDTO {
 
 	private String username;
 	private String fName;

@@ -43,7 +43,7 @@ import com.niit.lookatme.dao.repository.ServiceRepository;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.employee.dto.CreateCustomerOrderInput;
-import com.niit.lookatme.employee.dto.CustomerInput;
+import com.niit.lookatme.employee.dto.CustomerDTO;
 import com.niit.lookatme.employee.dto.CustomerJobsInput;
 import com.niit.lookatme.employee.dto.UpdateCustomerOrderInput;
 import com.niit.lookatme.facade.CustomerFacade;
@@ -75,7 +75,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	private CustomerFacadeHelper customerFacadeHelper;
 
 	@Override
-	public String createNewCustomer(CustomerInput customerInput) {
+	public String createNewCustomer(CustomerDTO customerInput) {
 		Customer customer = customerRepository
 				.save(customerFacadeHelper.createCustomerJPAFromCustomerInput(customerInput));
 		if (customer.getId() != null) {
