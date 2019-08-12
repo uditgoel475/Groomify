@@ -7,8 +7,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.niit.lookatme.employee.dao.Employee;
-import com.niit.lookatme.services.dao.EmployeeServices;
+import com.niit.lookatme.dao.employee.Employee;
+import com.niit.lookatme.dao.services.EmployeeServices;
 
 @Repository("employeeServicesRepository")
 public interface EmployeeServicesRepository extends CrudRepository<EmployeeServices, Long> {

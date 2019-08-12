@@ -3,7 +3,7 @@ package com.niit.lookatme.facade;
 import java.util.List;
 
 import com.niit.lookatme.dao.Floor;
-import com.niit.lookatme.employee.dto.ChairAllocateDTO;
+import com.niit.lookatme.dto.ChairAllocateDTO;
 
 public interface ChairAllocateFacade {
 

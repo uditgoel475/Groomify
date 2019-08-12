@@ -6,6 +6,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
-import com.niit.lookatme.employee.dto.CustomerDTO;
+import com.niit.lookatme.dto.customer.CustomerOutDTO;
 import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
@@ -41,9 +42,9 @@ public class CustomerController {
 				file, custNo, UserImageInputType.GOVTID)));
 	}
 
-	@PostMapping("create")
-	public ResponseEntity<String> createCustomer(@RequestBody CustomerDTO customerInput) {
-		return ResponseEntity.ok(customerFacade.createNewCustomer(customerInput));
+	@GetMapping("{username}")
+	public ResponseEntity<CustomerOutDTO> getCustomerDTO(@PathVariable("username") String username) {
+		return ResponseEntity.ok(customerFacade.fetchCustomerDTO(username));
 	}
 
 	@PostMapping("changepwd/{custNo}")

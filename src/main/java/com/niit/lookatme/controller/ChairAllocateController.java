@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.niit.lookatme.dao.Floor;
-import com.niit.lookatme.employee.dto.ChairAllocateDTO;
+import com.niit.lookatme.dto.ChairAllocateDTO;
 import com.niit.lookatme.facade.ChairAllocateFacade;
 
 @RestController

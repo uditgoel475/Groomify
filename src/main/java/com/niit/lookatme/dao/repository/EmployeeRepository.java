@@ -2,13 +2,14 @@ package com.niit.lookatme.dao.repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.niit.lookatme.employee.dao.Employee;
+import com.niit.lookatme.dao.employee.Employee;
 /**
  * 
  * @author Konika
@@ -22,5 +23,7 @@ public interface EmployeeRepository extends CrudRepository<Employee, Long> {
 	List<Employee> findAllByDobBetweenAndLeavingDateGreaterThanOrEqualToOrderByDobAsc(@Param("first") Date first, @Param("last") Date last, @Param("today") Date today);
 
 	@Query("Select e from Employee e where e.username = :username")
-	Employee findByUsername(@Param("username") String username);
+	Optional<Employee> findByUsername(@Param("username") String username);
+	
+	Boolean existsByUsername(String username);
 }

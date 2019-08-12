@@ -16,7 +16,7 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.ColumnDefault;
 
-import com.niit.lookatme.customer.dao.Customer;
+import com.niit.lookatme.dao.customer.Customer;
 
 @Entity
 @Table(name="CHAIR_ALLOCATE")

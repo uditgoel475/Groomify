@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Optional;
@@ -41,6 +41,12 @@ public class CustomerAndEmployeeUtils {
 
 	private CustomerAndEmployeeUtils() {
 	}
+	
+	public static AddressInput populateAddressOut(Address address) {
+		AddressInput addressInput = new AddressInput(address.getAddress1(), address.getAddress2(), address.getAddress3(), address.getState(), address.getCity(), address.getRegion(), address.getPostalCode());
+		addressInput.setCountry(address.getCountry());
+		return addressInput;
+	}
 
 	public static Address populateAddressObject(AddressInput addressInput) {
 		Address currentAddress = new Address();
@@ -56,7 +62,7 @@ public class CustomerAndEmployeeUtils {
 	}
 
 	public static String createRegId(String userType, String... username) {
-		StringBuilder strBuilder = new StringBuilder(userType).append(DateTimeFormatter.ofPattern("yyyymmddHHmmss").format(LocalDate.now()));
+		StringBuilder strBuilder = new StringBuilder(userType).append(DateTimeFormatter.ofPattern("yyyymmddHHmmss").format(LocalDateTime.now()));
 		for(String usrname : username)
 			strBuilder.append(usrname);
 		return strBuilder.toString();

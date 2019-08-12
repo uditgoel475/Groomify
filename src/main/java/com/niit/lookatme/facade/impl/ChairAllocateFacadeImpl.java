@@ -9,10 +9,13 @@ import org.springframework.stereotype.Service;
 
 import com.niit.lookatme.dao.ChairAllocate;
 import com.niit.lookatme.dao.Floor;
+import com.niit.lookatme.dao.customer.Customer;
 import com.niit.lookatme.dao.repository.ChairAllocateRepository;
 import com.niit.lookatme.dao.repository.CustomerRepository;
-import com.niit.lookatme.employee.dto.ChairAllocateDTO;
-import com.niit.lookatme.employee.dto.CustomerDTO;
+import com.niit.lookatme.dto.ChairAllocateDTO;
+import com.niit.lookatme.dto.customer.CustomerDTO;
+import com.niit.lookatme.exception.AlreadyExistsException;
+import com.niit.lookatme.exception.ResourceNotFoundException;
 import com.niit.lookatme.facade.ChairAllocateFacade;
 import com.niit.lookatme.facade.helper.CustomerFacadeHelper;
 
@@ -35,9 +38,14 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 
 	@Override
 	public ChairAllocateDTO fetchChairAllocatedByCustomer(String username) {
-		ChairAllocate chairAllocated = chairAllocateRepository.findChairAllocateByCustomer(username);
+		ChairAllocate chairAllocated = findChairAllocateByCustomer(username);
 		CustomerDTO customerDTO = customerFacadeHelper.createCustomerDTOFromCustomer(chairAllocated.getCustomer());
 		return new ChairAllocateDTO(chairAllocated.getFloor(), chairAllocated.getNum(), customerDTO);
+	}
+
+	private ChairAllocate findChairAllocateByCustomer(String username) {
+		return chairAllocateRepository.findChairAllocateByCustomer(username)
+				.orElseThrow(() -> new ResourceNotFoundException("Chair", "customer", username));
 	}
 
 	@Override
@@ -45,25 +53,33 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 		return chairAllocateRepository.findAvailableByNum(floor, num);
 	}
 
+	private ChairAllocate findFirstByNum(String num) {
+		return chairAllocateRepository.findFirstByNum(num)
+				.orElseThrow(() -> new ResourceNotFoundException("Chair", "ID", num));
+	}
+
 	@Override
 	public String allocateChair(String num, String username) {
-		ChairAllocate chairAllocate = chairAllocateRepository.findFirstByNum(num);
-		if (chairAllocate == null)
-			throw new RuntimeException("Chair Not Found");
+		ChairAllocate chairAllocate = findFirstByNum(num);
 		if (chairAllocate.getOccupied())
-			throw new RuntimeException("Chair Already Allocated");
-		chairAllocate.setCustomer(customerRepository.findByUsername(username));
+			throw new AlreadyExistsException("Chair Already Allocated");
+		chairAllocate.setCustomer(findByUsername(username));
 		chairAllocate.setOccupied(true);
 		chairAllocate = chairAllocateRepository.save(chairAllocate);
 		return chairAllocate.getNum();
 	}
-	
+
+	private Customer findByUsername(String username) {
+		return customerRepository.findByUsername(username)
+				.orElseThrow(() -> new ResourceNotFoundException("Customer", "username", username));
+	}
+
 	@Override
 	public String allocateChair(Floor floor, String username) {
-		ChairAllocate chairAllocate = chairAllocateRepository.findFirstByFloorAndAvailableAndOccupied(floor, true, false);
-		if (chairAllocate == null)
-			throw new RuntimeException("Chair Not Found");
-		chairAllocate.setCustomer(customerRepository.findByUsername(username));
+		ChairAllocate chairAllocate = chairAllocateRepository
+				.findFirstByFloorAndAvailableAndOccupied(floor, true, false)
+				.orElseThrow(() -> new ResourceNotFoundException("Chair", "Floor", floor));
+		chairAllocate.setCustomer(findByUsername(username));
 		chairAllocate.setOccupied(true);
 		chairAllocate = chairAllocateRepository.save(chairAllocate);
 		return chairAllocate.getNum();
@@ -71,21 +87,17 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 
 	@Override
 	public Boolean unAllocateChair(String num) {
-		ChairAllocate chairAllocate = chairAllocateRepository.findFirstByNum(num);
-		if (chairAllocate == null)
-			throw new RuntimeException("Chair Not Found");
+		ChairAllocate chairAllocate = findFirstByNum(num);
 		if (chairAllocate.getOccupied()) {
 			chairAllocate.setOccupied(false);
 			chairAllocate = chairAllocateRepository.save(chairAllocate);
 		}
 		return chairAllocate.getOccupied();
 	}
-	
+
 	@Override
 	public Boolean unAllocateChairByCustomer(String username) {
-		ChairAllocate chairAllocate = chairAllocateRepository.findChairAllocateByCustomer(username);
-		if (chairAllocate == null)
-			throw new RuntimeException("Chair Not Found");
+		ChairAllocate chairAllocate = findChairAllocateByCustomer(username);
 		if (chairAllocate.getOccupied()) {
 			chairAllocate.setOccupied(false);
 			chairAllocate = chairAllocateRepository.save(chairAllocate);
@@ -95,18 +107,14 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 
 	@Override
 	public Boolean removeChair(String num) {
-		ChairAllocate chairAllocate = chairAllocateRepository.findFirstByNum(num);
-		if (chairAllocate == null)
-			throw new RuntimeException("Chair Not Found");
+		ChairAllocate chairAllocate = findFirstByNum(num);
 		chairAllocateRepository.delete(chairAllocate);
 		return true;
 	}
 
 	@Override
 	public Boolean expireChair(String num) {
-		ChairAllocate chairAllocate = chairAllocateRepository.findFirstByNum(num);
-		if (chairAllocate == null)
-			throw new RuntimeException("Chair Not Found");
+		ChairAllocate chairAllocate = findFirstByNum(num);
 		if (chairAllocate.getAvailable()) {
 			chairAllocate.setAvailable(false);
 			chairAllocate = chairAllocateRepository.save(chairAllocate);

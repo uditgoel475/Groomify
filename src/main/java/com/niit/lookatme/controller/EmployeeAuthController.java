@@ -1,0 +1,81 @@
+package com.niit.lookatme.controller;
+
+import java.net.URI;
+
+import javax.annotation.Resource;
+import javax.validation.Valid;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.niit.lookatme.dao.repository.EmployeeRepository;
+import com.niit.lookatme.dto.JwtAuthenticationResponse;
+import com.niit.lookatme.dto.JwtJsonSubjectKey;
+import com.niit.lookatme.dto.LoginRequest;
+import com.niit.lookatme.dto.UserType;
+import com.niit.lookatme.dto.employee.EmployeeInput;
+import com.niit.lookatme.exception.AlreadyExistsException;
+import com.niit.lookatme.facade.EmployeeFacade;
+import com.niit.lookatme.security.JwtTokenProvider;
+
+@RestController
+@RequestMapping("api/auth/employee")
+public class EmployeeAuthController {
+
+	@Resource
+	private AuthenticationManager authenticationManager;
+
+	@Resource
+	private EmployeeRepository employeeRepository;
+
+	@Resource
+	private PasswordEncoder passwordEncoder;
+
+	@Resource
+	private JwtTokenProvider tokenProvider;
+
+	@Resource(name = "employeeFacade")
+	private EmployeeFacade employeeFacade;
+	
+	@Resource
+	private ObjectMapper objectMapper;
+
+	@PostMapping("signin")
+	public ResponseEntity<JwtAuthenticationResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
+			throws JsonProcessingException {
+
+		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+				objectMapper.writeValueAsString(new JwtJsonSubjectKey(loginRequest.getUsername(), UserType.EMPLOYEE)),
+				loginRequest.getPassword()));
+
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+
+		String jwt = tokenProvider.generateToken(authentication, UserType.EMPLOYEE);
+		return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
+	}
+
+	@PostMapping("signup")
+	public ResponseEntity<String> createEmployee(@RequestBody EmployeeInput employeeInput) {
+		if (employeeRepository.existsByUsername(employeeInput.getUsername())) {
+			throw new AlreadyExistsException("Username", employeeInput.getUsername());
+		}
+		employeeInput.setPassword(passwordEncoder.encode(employeeInput.getPassword()));
+
+		String username = employeeFacade.createNewEmployee(employeeInput);
+		URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("api/employee/{username}")
+				.buildAndExpand(username).toUri();
+		return ResponseEntity.created(location).body("Employee Created Successfully");
+	}
+
+}

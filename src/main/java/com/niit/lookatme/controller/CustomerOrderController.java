@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.niit.lookatme.customer.dao.CustomerOrder;
-import com.niit.lookatme.employee.dto.CreateCustomerOrderInput;
-import com.niit.lookatme.employee.dto.UpdateCustomerOrderInput;
+import com.niit.lookatme.dto.customer.CreateCustomerOrderInput;
+import com.niit.lookatme.dto.customer.CustomerOrderOut;
+import com.niit.lookatme.dto.customer.UpdateCustomerOrderInput;
 import com.niit.lookatme.facade.CustomerFacade;
 
 @RestController
@@ -30,29 +30,29 @@ public class CustomerOrderController {
 	private CustomerFacade customerFacade;
 	
 	@GetMapping("orders/open/{custNo}")
-	public ResponseEntity<List<CustomerOrder>> fetchAllOpenCustomerOrders(@PathVariable("custNo") String custNo) {
+	public ResponseEntity<List<CustomerOrderOut>> fetchAllOpenCustomerOrders(@PathVariable("custNo") String custNo) {
 		return ResponseEntity.ok(customerFacade.fetchAllOpenCustomerOrder(custNo));
 	}
 
 	@GetMapping("orders/all/{custNo}")
-	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerOrderGivenDate(@PathVariable("custNo") String custNo,
+	public ResponseEntity<List<CustomerOrderOut>> fetchAllCustomerOrderGivenDate(@PathVariable("custNo") String custNo,
 			@RequestHeader("appointmentDate")  @DateTimeFormat(pattern="yyyy-MM-dd") Date appointmentDate) {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerCalendarOpenAppointmentGivenDate(custNo, appointmentDate));
 	}
 
 	@GetMapping("enquiry/{custNo}")
-	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiryGivenDate(@PathVariable("custNo") String custNo,
+	public ResponseEntity<List<CustomerOrderOut>> fetchAllCustomerEnquiryGivenDate(@PathVariable("custNo") String custNo,
 			@RequestHeader("appointmentDate")  @DateTimeFormat(pattern="yyyy-MM-dd") Date appointmentDate) {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiryGivenDate(custNo, appointmentDate));
 	}
 
 	@GetMapping("enquiry/all/{custNo}")
-	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiries(@PathVariable("custNo") String custNo) {
+	public ResponseEntity<List<CustomerOrderOut>> fetchAllCustomerEnquiries(@PathVariable("custNo") String custNo) {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiries(custNo));
 	}
 
 	@GetMapping("enquiry/all/{month}/{year}")
-	public ResponseEntity<List<CustomerOrder>> fetchAllCustomerEnquiriesDateRange(@PathVariable("year") Year year, @PathVariable("month") Month month) {
+	public ResponseEntity<List<CustomerOrderOut>> fetchAllCustomerEnquiriesDateRange(@PathVariable("year") Year year, @PathVariable("month") Month month) {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiriesGivenMonth(month, year.getValue()));
 	}
 	

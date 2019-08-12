@@ -8,8 +8,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.niit.lookatme.customer.dao.CustomerOrder;
 import com.niit.lookatme.dao.JobStatus;
+import com.niit.lookatme.dao.customer.CustomerOrder;
 
 @Repository("customerOrderRepository")
 public interface CustomerOrderRepository extends CrudRepository<CustomerOrder, Long> {

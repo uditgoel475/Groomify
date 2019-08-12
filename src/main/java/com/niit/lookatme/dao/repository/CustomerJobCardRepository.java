@@ -5,7 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.niit.lookatme.customer.dao.CustomerJobCard;
+import com.niit.lookatme.dao.customer.CustomerJobCard;
 
 @Repository("customerJobCardRepository")
 public interface CustomerJobCardRepository extends CrudRepository<CustomerJobCard, Long> {

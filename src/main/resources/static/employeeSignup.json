@@ -1,0 +1,24 @@
+{
+	"fName" : "Udit",
+	"lName" : "Goel",
+	"username" : "uditgoel007",
+	"dob" : "1990-09-10",
+	"primaryContact" : "9654075084",
+	"gender" : "MALE",
+	"currentAddress" : {
+		"address1" : "475",
+		"address2" : "sector 19",
+		"city" : "Faridabad",
+		"state" : "Haryana",
+		"region" : "sector 19",
+		"postalCode" : "121002",
+		"country" : "India"
+	},
+	"regId" : "8IT113",
+	"email" : "virgorebel@gmail.com",
+	"samePermanent" : true,
+	"password" : "123456",
+	"roleName" : "ROLE_EMPLOYEE",
+	"govtIdType" : "PAN CARD",
+	"govtId" : "BGGPG8236C"
+}

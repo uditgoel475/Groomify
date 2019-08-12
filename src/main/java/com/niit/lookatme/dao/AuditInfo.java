@@ -9,6 +9,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -37,19 +40,23 @@ public class AuditInfo implements Serializable {
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "CREATION_DATE", nullable = false, updatable = false)
 	@CreatedDate
+	@CreationTimestamp
 	private Date creationDate;
 
 	@Column(name = "CREATED_BY", updatable = false)
 	@CreatedBy
+	@ColumnDefault("'admin'")
 	private String createdBy;
 
 	@Column(name = "LAST_MODIFIED_BY")
 	@LastModifiedBy
+	@ColumnDefault("'admin'")
 	private String lastModifiedBy;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "LAST_MODIFICATION_DATE", nullable = false)
 	@LastModifiedDate
+	@UpdateTimestamp
 	private Date lastModifiedDate;
 
 	/**

@@ -31,8 +31,18 @@ public class GovtIdType implements Serializable{
 	@Column(name = "TYPE_NAME", nullable = false)
 	private String typeName;
 	
-	@Column(name = "REGEX", nullable = false)
+	@Column(name = "REGEX")
 	private String regex;
+
+	public GovtIdType(String typeName, String regex) {
+		super();
+		this.typeName = typeName;
+		this.regex = regex;
+	}
+	
+	public GovtIdType() {
+		super();
+	}
 
 	/**
 	 * @return the typeName

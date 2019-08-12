@@ -2,13 +2,14 @@ package com.niit.lookatme.dao.repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.niit.lookatme.customer.dao.Customer;
+import com.niit.lookatme.dao.customer.Customer;
 /**
  * 
  * @author Konika
@@ -22,5 +23,9 @@ public interface CustomerRepository extends CrudRepository<Customer, Long> {
 	List<Customer> findAllByDobBetweenOrderByDobAsc(@Param("first") Date first, @Param("last") Date last);
 	
 	@Query("Select c from Customer c where c.username = :username")
-	Customer findByUsername(@Param("username") String username);
+	Optional<Customer> findByUsername(@Param("username") String username);
+	
+	Boolean existsByUsername(String username);
+	
+	Boolean existsByEmail(String email);
 }
