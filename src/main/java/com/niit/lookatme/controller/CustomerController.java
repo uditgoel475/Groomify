@@ -51,4 +51,14 @@ public class CustomerController {
 			@RequestBody Map<String, String> psswrds) {
 		return ResponseEntity.ok(customerFacade.changeCustomerPassword(custNo, psswrds.get("currentPassword"), psswrds.get("newPassword")));
 	}
+	
+	@GetMapping("checkEmailAvailability/{email:.+}")
+	public ResponseEntity<Boolean> checkEmailAvailability(@PathVariable("email") String email) {
+		return ResponseEntity.ok(customerFacade.checkEmailAvailability(email));
+	}
+	
+	@GetMapping("checkUsernameAvailability/{username:.+}")
+	public ResponseEntity<Boolean> checkUsernameAvailability(@PathVariable("username") String username) {
+		return ResponseEntity.ok(customerFacade.checkUsernameAvailability(username));
+	}
 }

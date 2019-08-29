@@ -25,5 +25,6 @@ public interface EmployeeRepository extends CrudRepository<Employee, Long> {
 	@Query("Select e from Employee e where e.username = :username")
 	Optional<Employee> findByUsername(@Param("username") String username);
 	
-	Boolean existsByUsername(String username);
+	@Query("select case when count(e)> 0 then true else false end from Employee e where e.username = :username")
+	Boolean existsByUsername(@Param("username") String username);
 }

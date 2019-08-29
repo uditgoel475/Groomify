@@ -25,7 +25,9 @@ public interface CustomerRepository extends CrudRepository<Customer, Long> {
 	@Query("Select c from Customer c where c.username = :username")
 	Optional<Customer> findByUsername(@Param("username") String username);
 	
-	Boolean existsByUsername(String username);
+	@Query("select case when count(c)> 0 then true else false end from Customer c where c.username = :username")
+	Boolean existsByUsername(@Param("username") String username);
 	
-	Boolean existsByEmail(String email);
+	@Query("select case when count(e)> 0 then true else false end from Employee e where e.email = :email")
+	Boolean existsByEmail(@Param("email") String email);
 }

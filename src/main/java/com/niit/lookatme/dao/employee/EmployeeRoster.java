@@ -2,7 +2,7 @@ package com.niit.lookatme.dao.employee;
 
 import java.io.Serializable;
 import java.time.DayOfWeek;
-import java.time.LocalTime;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -16,6 +16,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Fetch;
@@ -40,11 +42,13 @@ public class EmployeeRoster implements Serializable {
 	@Column(name = "SCHEDULE_ID")
 	private Long id;
 
+	@Temporal(TemporalType.TIME)
 	@Column(name = "IN_TIME", nullable = false)
-	private LocalTime inTime;
+	private Date inTime;
 
+	@Temporal(TemporalType.TIME)
 	@Column(name = "OUT_TIME", nullable = false)
-	private LocalTime outTime;
+	private Date outTime;
 
 	@Enumerated(value = EnumType.STRING)
 	@Column(name = "WEEK_START_DAY")
@@ -74,14 +78,14 @@ public class EmployeeRoster implements Serializable {
 	/**
 	 * @return the inTime
 	 */
-	public LocalTime getInTime() {
+	public Date getInTime() {
 		return inTime;
 	}
 
 	/**
 	 * @return the outTime
 	 */
-	public LocalTime getOutTime() {
+	public Date getOutTime() {
 		return outTime;
 	}
 
@@ -120,7 +124,7 @@ public class EmployeeRoster implements Serializable {
 	 * @param inTime
 	 *            the inTime to set
 	 */
-	public void setInTime(LocalTime inTime) {
+	public void setInTime(Date inTime) {
 		this.inTime = inTime;
 	}
 
@@ -128,7 +132,7 @@ public class EmployeeRoster implements Serializable {
 	 * @param outTime
 	 *            the outTime to set
 	 */
-	public void setOutTime(LocalTime outTime) {
+	public void setOutTime(Date outTime) {
 		this.outTime = outTime;
 	}
 

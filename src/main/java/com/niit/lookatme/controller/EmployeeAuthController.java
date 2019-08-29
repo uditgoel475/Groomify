@@ -10,7 +10,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +18,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.niit.lookatme.dao.repository.EmployeeRepository;
 import com.niit.lookatme.dto.JwtAuthenticationResponse;
 import com.niit.lookatme.dto.JwtJsonSubjectKey;
 import com.niit.lookatme.dto.LoginRequest;
@@ -35,12 +33,6 @@ public class EmployeeAuthController {
 
 	@Resource
 	private AuthenticationManager authenticationManager;
-
-	@Resource
-	private EmployeeRepository employeeRepository;
-
-	@Resource
-	private PasswordEncoder passwordEncoder;
 
 	@Resource
 	private JwtTokenProvider tokenProvider;
@@ -67,11 +59,9 @@ public class EmployeeAuthController {
 
 	@PostMapping("signup")
 	public ResponseEntity<String> createEmployee(@RequestBody EmployeeInput employeeInput) {
-		if (employeeRepository.existsByUsername(employeeInput.getUsername())) {
+		if (employeeFacade.checkUsernameAvailability(employeeInput.getUsername())) {
 			throw new AlreadyExistsException("Username", employeeInput.getUsername());
 		}
-		employeeInput.setPassword(passwordEncoder.encode(employeeInput.getPassword()));
-
 		String username = employeeFacade.createNewEmployee(employeeInput);
 		URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("api/employee/{username}")
 				.buildAndExpand(username).toUri();

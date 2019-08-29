@@ -43,4 +43,8 @@ public interface CustomerFacade {
 	CustomerOutDTO fetchCustomerDTO(String username);
 
 	Boolean changeCustomerPassword(String custNo, String currentPass, String newPass);
+
+	Boolean checkEmailAvailability(String email);
+
+	Boolean checkUsernameAvailability(String username);
 }

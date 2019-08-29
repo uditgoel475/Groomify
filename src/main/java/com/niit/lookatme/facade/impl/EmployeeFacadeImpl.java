@@ -140,17 +140,16 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	@Override
 	public Boolean changeEmployeePassword(String empNo, String currentPass, String newPass) {
 		validatePassword(newPass);
-		String encryptCurrent = passwordEncoder.encode(currentPass);
 		String encryptNew = passwordEncoder.encode(newPass);
 
 		Employee employee = findByUsername(empNo);
 		Password passwords = employee.getPassword();
 		
-		if(!passwords.getCurrentPassword().equals(encryptCurrent)) {
+		if(!passwordEncoder.matches(currentPass, passwords.getCurrentPassword())) {
 			throw new IllegalArgumentException("Current Password is incorrect.");
 		}
 		
-		if (passwords.isMatchesPreviousPasswords(encryptNew)) {
+		if (passwords.getAllPasswordList().stream().anyMatch(pwd -> passwordEncoder.matches(currentPass, pwd))) {
 			throw new IllegalArgumentException("Password must not match the last 5 passwords. Please provide a different input");
 		}
 		passwords.setPassword(encryptNew, UserType.CUSTOMER);
@@ -305,6 +304,11 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 		}
 
 		return employeeActivityOut;
+	}
+	
+	@Override
+	public Boolean checkUsernameAvailability(String username) {
+		return employeeRepository.existsByUsername(username);
 	}
 
 }
