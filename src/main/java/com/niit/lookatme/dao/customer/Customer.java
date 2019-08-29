@@ -45,14 +45,8 @@ import com.niit.lookatme.dao.role.Role;
  *
  */
 @Entity
-@Table(name = "CUSTOMER", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {
-            "USERNAME"
-        }),
-        @UniqueConstraint(columnNames = {
-            "EMAIL"
-        })
-})
+@Table(name = "CUSTOMER", uniqueConstraints = { @UniqueConstraint(columnNames = { "USERNAME" }),
+		@UniqueConstraint(columnNames = { "EMAIL" }) })
 public class Customer extends AuditInfo {
 
 	/**
@@ -80,7 +74,7 @@ public class Customer extends AuditInfo {
 	@Column(name = "PICTURE_URL", unique = true)
 	private String pictureUrl;
 
-	@OneToOne(fetch = FetchType.LAZY)
+	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "PASSWORD", updatable = false, referencedColumnName = "PASSWORD_ID")
 	private Password password;
 
@@ -99,14 +93,14 @@ public class Customer extends AuditInfo {
 	@Column(length = 10, name = "GENDER")
 	private Gender gender;
 
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "BILLING_ADDRESS", referencedColumnName = "ADDRESS_ID")
 	private Address billingAddress;
 
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "SHIPPING_ADDRESS", referencedColumnName = "ADDRESS_ID")
 	private Address shippingAddress;
-	
+
 	@Column(name = "REGISTRATION_ID", nullable = false, unique = true)
 	private String regId;
 
@@ -116,7 +110,7 @@ public class Customer extends AuditInfo {
 
 	@Column(name = "ALTERNATE_CONTACT")
 	private Long alternateContact;
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "GOVT_ID_TYPE", referencedColumnName = "TYPE_ID")
 	private GovtIdType govtIdType;
@@ -130,13 +124,10 @@ public class Customer extends AuditInfo {
 	@Temporal(value = TemporalType.DATE)
 	@Column(name = "ACCOUNT_CLOSURE_DATE")
 	private Date accountClosureDate;
-	
+
 	@ManyToMany(cascade = { CascadeType.ALL })
-    @JoinTable(
-        name = "CUSTOMER_ROLES", 
-        joinColumns = { @JoinColumn(name = "CUSTOMER_ID") }, 
-        inverseJoinColumns = { @JoinColumn(name = "ROLE_ID") }
-    )
+	@JoinTable(name = "CUSTOMER_ROLES", joinColumns = { @JoinColumn(name = "CUSTOMER_ID") }, inverseJoinColumns = {
+			@JoinColumn(name = "ROLE_ID") })
 	private Set<Role> customerRoles;
 
 	/**
@@ -350,21 +341,24 @@ public class Customer extends AuditInfo {
 	}
 
 	/**
-	 * @param govtIdType the govtIdType to set
+	 * @param govtIdType
+	 *            the govtIdType to set
 	 */
 	public void setGovtIdType(GovtIdType govtIdType) {
 		this.govtIdType = govtIdType;
 	}
 
 	/**
-	 * @param govtId the govtId to set
+	 * @param govtId
+	 *            the govtId to set
 	 */
 	public void setGovtId(String govtId) {
 		this.govtId = govtId;
 	}
 
 	/**
-	 * @param govtIdSnapUrl the govtIdSnapUrl to set
+	 * @param govtIdSnapUrl
+	 *            the govtIdSnapUrl to set
 	 */
 	public void setGovtIdSnapUrl(String govtIdSnapUrl) {
 		this.govtIdSnapUrl = govtIdSnapUrl;
@@ -378,12 +372,13 @@ public class Customer extends AuditInfo {
 	}
 
 	/**
-	 * @param regId the regId to set
+	 * @param regId
+	 *            the regId to set
 	 */
 	public void setRegId(String regId) {
 		this.regId = regId;
 	}
-	
+
 	@Transient
 	public String getName() {
 		return new StringBuilder(fname).append(" ").append(mname)
@@ -398,7 +393,8 @@ public class Customer extends AuditInfo {
 	}
 
 	/**
-	 * @param customerRoles the customerRoles to set
+	 * @param customerRoles
+	 *            the customerRoles to set
 	 */
 	public void setCustomerRoles(Set<Role> customerRoles) {
 		this.customerRoles = customerRoles;
@@ -408,7 +404,8 @@ public class Customer extends AuditInfo {
 	public int hashCode() {
 		return new HashCodeBuilder().append(alternateContact).append(billingAddress).append(contact).append(dob)
 				.append(email).append(accountClosureDate).append(gender).append(fname).append(mname).append(lname)
-				.append(pictureUrl).append(shippingAddress).append(username).append(govtIdType).append(govtId).append(regId).toHashCode();
+				.append(pictureUrl).append(shippingAddress).append(username).append(govtIdType).append(govtId)
+				.append(regId).toHashCode();
 	}
 
 	@Override
@@ -428,7 +425,8 @@ public class Customer extends AuditInfo {
 				.append(email, rhs.email).append(accountClosureDate, rhs.accountClosureDate).append(gender, rhs.gender)
 				.append(fname, rhs.fname).append(lname, rhs.lname).append(mname, rhs.mname)
 				.append(pictureUrl, rhs.pictureUrl).append(shippingAddress, rhs.shippingAddress)
-				.append(username, rhs.username).append(govtIdType, rhs.govtIdType).append(govtId, rhs.govtId).append(regId, rhs.regId).isEquals();
+				.append(username, rhs.username).append(govtIdType, rhs.govtIdType).append(govtId, rhs.govtId)
+				.append(regId, rhs.regId).isEquals();
 	}
-	
+
 }

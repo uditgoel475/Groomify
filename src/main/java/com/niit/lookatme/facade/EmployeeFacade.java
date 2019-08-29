@@ -16,7 +16,7 @@ public interface EmployeeFacade {
 
 	String createNewEmployee(EmployeeInput createEmployeeInput);
 
-	Boolean changeEmployeePassword(String empNo, String encryptedPassword);
+	Boolean changeEmployeePassword(String empNo, String currentPass, String newPass);
 
 	Boolean markActivity(String empNo, Activity activity);
 

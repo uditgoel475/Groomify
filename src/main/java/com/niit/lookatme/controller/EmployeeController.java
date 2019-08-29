@@ -47,7 +47,7 @@ public class EmployeeController {
 	}
 
 	@PostMapping("upload/govt/{empNo}")
-	public ResponseEntity<Boolean> uploadEmployeeImageGovt(@RequestParam("file") MultipartFile file,
+	public ResponseEntity<Boolean> uploadEmployeeImageGovt(@RequestBody MultipartFile file,
 			@PathVariable("empNo") String empNo) {
 		return ResponseEntity.ok(!StringUtils.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE,
 				file, empNo, UserImageInputType.GOVTID)));
@@ -55,8 +55,8 @@ public class EmployeeController {
 
 	@PostMapping("changepwd/{empNo}")
 	public ResponseEntity<Boolean> updateEmployeePassword(@PathVariable("empNo") String empNo,
-			@RequestBody Map<String, String> encryptedPassword) {
-		return ResponseEntity.ok(employeeFacade.changeEmployeePassword(empNo, encryptedPassword.get("empPass")));
+			@RequestBody Map<String, String> psswrds) {
+		return ResponseEntity.ok(employeeFacade.changeEmployeePassword(empNo, psswrds.get("currentPassword"), psswrds.get("newPassword")));
 	}
 
 	@PostMapping("dailyactivity/{empNo}")

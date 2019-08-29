@@ -11,10 +11,13 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import org.springframework.util.StringUtils;
 
+import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.utils.AppUtils;
 
 /**
@@ -49,9 +52,11 @@ public class Password implements Serializable {
 	@Column(name = "PASSWORD_5")
 	private String password5;
 
-	@Column(name = "PWD_CREATION_DATE")
+	@Column(name = "PWD_CREATION_DATE", nullable = false)
+	@Temporal(TemporalType.DATE)
 	private Date pwdCreationDate;
 
+	@Temporal(TemporalType.DATE)
 	@Column(name = "PWD_EXPIRATION_DATE")
 	private Date pwdExpirationDate;
 
@@ -103,7 +108,7 @@ public class Password implements Serializable {
 	}
 
 	@Transient
-	public void setPassword(String password) {
+	public void setPassword(String password, UserType userType) {
 		if (StringUtils.isEmpty(password1))
 			password1 = password;
 		else if (StringUtils.isEmpty(password2))
@@ -123,7 +128,12 @@ public class Password implements Serializable {
 		}
 		Calendar cal = Calendar.getInstance();
 		pwdCreationDate = cal.getTime();
-		pwdExpirationDate = AppUtils.getCustomerExpirationDateFromCurrent(cal);
+		
+		if(userType == UserType.CUSTOMER) {
+			pwdExpirationDate = AppUtils.getCustomerExpirationDateFromCurrent(cal);
+		} else if(userType == UserType.EMPLOYEE) {
+			pwdExpirationDate = AppUtils.getEmployeeExpirationDateFromCurrent(cal);
+		}
 	}
 
 	@Transient

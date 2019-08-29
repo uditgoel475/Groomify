@@ -22,7 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.niit.lookatme.dao.Activity;
@@ -44,7 +46,7 @@ import com.niit.lookatme.dto.employee.Roster;
 import com.niit.lookatme.exception.ResourceNotFoundException;
 import com.niit.lookatme.facade.EmployeeFacade;
 import com.niit.lookatme.facade.helper.EmployeeFacadeHelper;
-import com.niit.lookatme.utils.AppUtils;
+import com.niit.lookatme.utils.Converter;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
 @Service("employeeFacade")
@@ -66,6 +68,15 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 	@Resource
 	private EmployeeServicesRepository employeeServicesRepository;
+	
+	@Resource
+	private PasswordEncoder passwordEncoder;
+	
+	@Value("${employee.password.regex}")
+	private String passwrdRegex;
+	
+	@Value("${employee.password.notes}")
+	private String passwrdExceptionMsg;
 
 	@Override
 	public List<EmployeeDTO> fetchAllExistingEmployeeCurrentWeekBirthdays() {
@@ -93,7 +104,12 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 	@Override
 	public String createNewEmployee(EmployeeInput createEmployeeInput) {
-
+		
+		if(!StringUtils.isEmpty(createEmployeeInput.getPassword())) {
+			validatePassword(createEmployeeInput.getPassword());
+			createEmployeeInput.setPassword(passwordEncoder.encode(createEmployeeInput.getPassword()));
+		}
+		
 		Employee employee = employeeRepository
 				.save(employeeFacadeHelper.createEmployeeJPAFromEmployeeInput(createEmployeeInput));
 		if (employee.getId() != null) {
@@ -115,14 +131,29 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 		return StringUtils.EMPTY;
 	}
 
+	private void validatePassword(String password) {
+		if(!password.matches(passwrdRegex)) {
+			throw new IllegalArgumentException("Input password doesn't pass the strength test. " + passwrdExceptionMsg);
+		}
+	}
+
 	@Override
-	public Boolean changeEmployeePassword(String empNo, String encryptedPassword) {
-		String decryptedPassword = CustomerAndEmployeeUtils.decrypt(encryptedPassword);
+	public Boolean changeEmployeePassword(String empNo, String currentPass, String newPass) {
+		validatePassword(newPass);
+		String encryptCurrent = passwordEncoder.encode(currentPass);
+		String encryptNew = passwordEncoder.encode(newPass);
+
 		Employee employee = findByUsername(empNo);
 		Password passwords = employee.getPassword();
-		if (passwords.isMatchesPreviousPasswords(decryptedPassword))
-			return false;
-		passwords.setPassword(decryptedPassword);
+		
+		if(!passwords.getCurrentPassword().equals(encryptCurrent)) {
+			throw new IllegalArgumentException("Current Password is incorrect.");
+		}
+		
+		if (passwords.isMatchesPreviousPasswords(encryptNew)) {
+			throw new IllegalArgumentException("Password must not match the last 5 passwords. Please provide a different input");
+		}
+		passwords.setPassword(encryptNew, UserType.CUSTOMER);
 		employee.setPassword(passwords);
 		try {
 			employeeRepository.save(employee);
@@ -186,11 +217,11 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 		activityList.add(Activity.SALON_IN);
 		activityList.add(Activity.SALON_OUT);
 		List<EmployeeActivityOut> employeeDailyActivities = employeeDailyActivitiesRepository
-				.findEmployeeAttendance(activityList, empNo, AppUtils.convertLocalDateToDate(yearMonth.atDay(1)),
-						AppUtils.convertLocalDateToDate(yearMonth.atEndOfMonth()))
+				.findEmployeeAttendance(activityList, empNo, Converter.convertLocalDateToDate(yearMonth.atDay(1)),
+						Converter.convertLocalDateToDate(yearMonth.atEndOfMonth()))
 				.stream().map(this::createEmployeeActivityOutFromEmployeeDailyActivities).collect(Collectors.toList());
 		return employeeDailyActivities.stream()
-				.collect(Collectors.groupingBy(x -> AppUtils.convertDateToStartOfDay(x.getActivityTime())));
+				.collect(Collectors.groupingBy(x -> Converter.convertDateToStartOfDay(x.getActivityTime())));
 	}
 
 	@Override
@@ -198,11 +229,11 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 		YearMonth yearMonth = YearMonth.of(year, month);
 		List<EmployeeActivityOut> employeeDailyActivities = employeeDailyActivitiesRepository
-				.findEmployeeAllMonthlyActivities(empNo, AppUtils.convertLocalDateToDate(yearMonth.atDay(1)),
-						AppUtils.convertLocalDateToDate(yearMonth.atEndOfMonth()))
+				.findEmployeeAllMonthlyActivities(empNo, Converter.convertLocalDateToDate(yearMonth.atDay(1)),
+						Converter.convertLocalDateToDate(yearMonth.atEndOfMonth()))
 				.stream().map(this::createEmployeeActivityOutFromEmployeeDailyActivities).collect(Collectors.toList());
 		return employeeDailyActivities.stream()
-				.collect(Collectors.groupingBy(x -> AppUtils.convertDateToStartOfDay(x.getActivityTime())));
+				.collect(Collectors.groupingBy(x -> Converter.convertDateToStartOfDay(x.getActivityTime())));
 	}
 
 	@Override

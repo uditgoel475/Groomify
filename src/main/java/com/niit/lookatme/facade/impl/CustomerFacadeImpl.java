@@ -23,7 +23,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.niit.lookatme.dao.JobStatus;
@@ -51,7 +53,7 @@ import com.niit.lookatme.dto.customer.UpdateCustomerOrderInput;
 import com.niit.lookatme.exception.ResourceNotFoundException;
 import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.facade.helper.CustomerFacadeHelper;
-import com.niit.lookatme.utils.AppUtils;
+import com.niit.lookatme.utils.Converter;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
 @Service("customerFacade")
@@ -77,8 +79,28 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	@Resource(name = "customerFacadeHelper")
 	private CustomerFacadeHelper customerFacadeHelper;
 
+	@Resource
+	private PasswordEncoder passwordEncoder;
+
+	@Value("${customer.password.regex}")
+	private String passwrdRegex;
+
+	@Value("${customer.password.notes}")
+	private String passwrdExceptionMsg;
+	
+	private void validatePassword(String password) {
+		if (!password.matches(passwrdRegex)) {
+			throw new IllegalArgumentException("Input password doesn't pass the strength test. " + passwrdExceptionMsg);
+		}
+	}
+
 	@Override
 	public String createNewCustomer(CustomerDTO customerInput) {
+		if (!StringUtils.isEmpty(customerInput.getPassword())) {
+			validatePassword(customerInput.getPassword());
+			customerInput.setPassword(passwordEncoder.encode(customerInput.getPassword()));
+		}
+
 		Customer customer = customerRepository
 				.save(customerFacadeHelper.createCustomerJPAFromCustomerInput(customerInput));
 		if (customer.getId() != null) {
@@ -107,14 +129,25 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
-	public Boolean changeCustomerPassword(String custNo, String encryptedPassword) {
-		String decryptedPassword = CustomerAndEmployeeUtils.decrypt(encryptedPassword);
+	public Boolean changeCustomerPassword(String custNo, String currentPass, String newPass) {
+		validatePassword(newPass);
+		String encryptCurrent = passwordEncoder.encode(currentPass);
+		String encryptNew = passwordEncoder.encode(newPass);
+
 		Customer customer = findByUsername(custNo);
 		Password passwords = customer.getPassword();
-		if (passwords.isMatchesPreviousPasswords(decryptedPassword))
-			return false;
-		passwords.setPassword(decryptedPassword);
+
+		if (!passwords.getCurrentPassword().equals(encryptCurrent)) {
+			throw new IllegalArgumentException("Current Password is incorrect.");
+		}
+
+		if (passwords.isMatchesPreviousPasswords(encryptNew)) {
+			throw new IllegalArgumentException(
+					"Password must not match the last 5 passwords. Please provide a different input");
+		}
+		passwords.setPassword(encryptNew, UserType.CUSTOMER);
 		customer.setPassword(passwords);
+		
 		try {
 			customerRepository.save(customer);
 			return true;
@@ -143,7 +176,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	public List<CustomerOrderOut> fetchAllCalendarOpenAppointmentCurrentMonth(int year, Month month) {
 		LocalDate localDate = LocalDate.now().withYear(year).withMonth(month.getValue());
 		return createCustomerOrderOut(customerOrderRepository
-				.findAllCalendarMonthOpenAppointment(AppUtils.convertLocalDateToDate(localDate)));
+				.findAllCalendarMonthOpenAppointment(Converter.convertLocalDateToDate(localDate)));
 	}
 
 	@Override
@@ -151,13 +184,13 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		Instant instant = Instant.ofEpochMilli(date.getTime());
 		LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
 		return createCustomerOrderOut(customerOrderRepository.findCustomerCalendarOpenAppointmentGivenDate(custNo,
-				AppUtils.convertLocalDateToDate(localDateTime.toLocalDate())));
+				Converter.convertLocalDateToDate(localDateTime.toLocalDate())));
 	}
 
 	@Override
 	public List<CustomerOrderOut> fetchAllCustomerEnquiryGivenDate(String custNo, Date date) {
 		return createCustomerOrderOut(customerOrderRepository.findAllCustomerEnquiryGivenDate(custNo,
-				AppUtils.convertDateToStartOfDay(date)));
+				Converter.convertDateToStartOfDay(date)));
 	}
 
 	@Override
@@ -222,8 +255,8 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	public List<CustomerOrderOut> fetchAllCustomerEnquiriesGivenMonth(Month month, int year) {
 		YearMonth yearMonth = YearMonth.of(year, month);
 		return createCustomerOrderOut(customerOrderRepository.findAllCustomerEnquiriesDateRange(
-				AppUtils.convertLocalDateToDate(yearMonth.atDay(1)),
-				AppUtils.convertLocalDateToDate(yearMonth.atEndOfMonth())));
+				Converter.convertLocalDateToDate(yearMonth.atDay(1)),
+				Converter.convertLocalDateToDate(yearMonth.atEndOfMonth())));
 	}
 
 	@Override
