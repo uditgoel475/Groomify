@@ -1,16 +1,16 @@
 package com.niit.lookatme.dto.employee;
 
 import java.time.DayOfWeek;
-import java.time.LocalTime;
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class Roster {
 
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
-	private LocalTime genericInTime;
+	private Date genericInTime;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
-	private LocalTime genericOutTime;
+	private Date genericOutTime;
 	private DayOfWeek shiftStartDay;
 	private DayOfWeek shiftEndDay;
 
@@ -18,7 +18,7 @@ public class Roster {
 		super();
 	}
 	
-	public Roster(LocalTime genericInTime, LocalTime genericOutTime, DayOfWeek shiftStartDay, DayOfWeek shiftEndDay) {
+	public Roster(Date genericInTime, Date genericOutTime, DayOfWeek shiftStartDay, DayOfWeek shiftEndDay) {
 		super();
 		this.genericInTime = genericInTime;
 		this.genericOutTime = genericOutTime;
@@ -29,14 +29,14 @@ public class Roster {
 	/**
 	 * @return the genericInTime
 	 */
-	public LocalTime getGenericInTime() {
+	public Date getGenericInTime() {
 		return genericInTime;
 	}
 
 	/**
 	 * @return the genericOutTime
 	 */
-	public LocalTime getGenericOutTime() {
+	public Date getGenericOutTime() {
 		return genericOutTime;
 	}
 

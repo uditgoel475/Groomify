@@ -96,4 +96,9 @@ public class EmployeeController {
 			@PathVariable("service") String service) {
 		return ResponseEntity.ok(employeeFacade.fetchAllAvailableEmployeesMatchingSkills(service));
 	}
+	
+	@GetMapping("checkUsernameAvailability/{username:.+}")
+	public ResponseEntity<Boolean> checkUsernameAvailability(@PathVariable("username") String username) {
+		return ResponseEntity.ok(employeeFacade.checkUsernameAvailability(username));
+	}
 }

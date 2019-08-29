@@ -34,4 +34,6 @@ public interface EmployeeFacade {
 
 	EmployeeDTO fetchEmployeeDTO(String username);
 
+	Boolean checkUsernameAvailability(String username);
+
 }

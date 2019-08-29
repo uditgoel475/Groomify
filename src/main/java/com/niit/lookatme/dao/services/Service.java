@@ -61,7 +61,7 @@ public class Service extends AuditInfo{
 	@ColumnDefault("true")
 	private Boolean isActive;
 	
-	@OneToMany(mappedBy = "serviceId")
+	@OneToMany(mappedBy = "service")
 	private List<GroupServicePackage> groupServicePackages;
 
 	public String getHsn() {

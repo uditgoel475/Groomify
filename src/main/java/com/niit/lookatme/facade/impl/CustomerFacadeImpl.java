@@ -131,17 +131,16 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	@Override
 	public Boolean changeCustomerPassword(String custNo, String currentPass, String newPass) {
 		validatePassword(newPass);
-		String encryptCurrent = passwordEncoder.encode(currentPass);
 		String encryptNew = passwordEncoder.encode(newPass);
 
 		Customer customer = findByUsername(custNo);
 		Password passwords = customer.getPassword();
 
-		if (!passwords.getCurrentPassword().equals(encryptCurrent)) {
+		if (!passwordEncoder.matches(currentPass, passwords.getCurrentPassword())) {
 			throw new IllegalArgumentException("Current Password is incorrect.");
 		}
 
-		if (passwords.isMatchesPreviousPasswords(encryptNew)) {
+		if (passwords.getAllPasswordList().stream().anyMatch(pwd -> passwordEncoder.matches(currentPass, pwd))) {
 			throw new IllegalArgumentException(
 					"Password must not match the last 5 passwords. Please provide a different input");
 		}
@@ -472,5 +471,15 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	private Customer findByUsername(String username) {
 		return customerRepository.findByUsername(username)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer", "username", username));
+	}
+	
+	@Override
+	public Boolean checkEmailAvailability(String email) {
+		return !customerRepository.existsByEmail(email);
+	}
+	
+	@Override
+	public Boolean checkUsernameAvailability(String username) {
+		return !customerRepository.existsByUsername(username);
 	}
 }

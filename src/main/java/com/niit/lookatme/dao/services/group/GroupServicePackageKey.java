@@ -52,4 +52,35 @@ public class GroupServicePackageKey implements Serializable {
 	public void setGroupServiceId(Long groupServiceId) {
 		this.groupServiceId = groupServiceId;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((groupServiceId == null) ? 0 : groupServiceId.hashCode());
+		result = prime * result + ((serviceId == null) ? 0 : serviceId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GroupServicePackageKey other = (GroupServicePackageKey) obj;
+		if (groupServiceId == null) {
+			if (other.groupServiceId != null)
+				return false;
+		} else if (!groupServiceId.equals(other.groupServiceId))
+			return false;
+		if (serviceId == null) {
+			if (other.serviceId != null)
+				return false;
+		} else if (!serviceId.equals(other.serviceId))
+			return false;
+		return true;
+	}
 }

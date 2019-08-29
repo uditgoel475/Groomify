@@ -1,8 +1,10 @@
 package com.niit.lookatme.dao;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.persistence.Column;
@@ -102,9 +104,8 @@ public class Password implements Serializable {
 	}
 
 	@Transient
-	public boolean isMatchesPreviousPasswords(String password) {
-		return password.equals(password1) || password.equals(password2) || password.equals(password3)
-				|| password.equals(password4) || password.equals(password5);
+	public List<String> getAllPasswordList() {
+		return Arrays.asList(password1, password2, password3, password4, password5);
 	}
 
 	@Transient

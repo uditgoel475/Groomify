@@ -62,12 +62,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.cors().and().csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
-				.antMatchers("/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html",
-						"/**/*.css", "/**/*.js")
-				.permitAll().antMatchers("/api/auth/**").permitAll()
-				.antMatchers("/api/employee/checkUsernameAvailability", "/api/employee/checkEmailAvailability")
-				.permitAll().antMatchers(HttpMethod.GET, "/api/employee/**", "/api/customer/**").permitAll()
-				.anyRequest().authenticated();
+				.antMatchers("/", 
+						"/favicon.ico", 
+						"/**/*.png", 
+						"/**/*.gif", 
+						"/**/*.svg", 
+						"/**/*.jpg", 
+						"/**/*.html",
+						"/**/*.css", 
+						"/**/*.js", 
+						"/v2/api-docs",
+                        "/swagger-resources/**", 
+                        "/swagger-ui.html**")
+				.permitAll()
+				.antMatchers("/api/auth/**")
+				.permitAll()
+				.antMatchers(
+						"/api/employee/checkUsernameAvailability/**", 
+						"/api/customer/checkEmailAvailability/**",
+						"/api/customer/checkUsernameAvailability/**")
+				.permitAll()
+				.antMatchers(HttpMethod.GET, 
+						"/api/employee/**", 
+						"/api/customer/**")
+				.permitAll()
+				.anyRequest()
+				.authenticated();
 
 		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 

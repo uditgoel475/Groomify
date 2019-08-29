@@ -18,7 +18,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.niit.lookatme.dao.repository.CustomerRepository;
 import com.niit.lookatme.dto.JwtAuthenticationResponse;
 import com.niit.lookatme.dto.JwtJsonSubjectKey;
 import com.niit.lookatme.dto.LoginRequest;
@@ -34,9 +33,6 @@ public class CustomerAuthController {
 
 	@Resource
 	private AuthenticationManager authenticationManager;
-
-	@Resource
-	private CustomerRepository customerRepository;
 
 	@Resource
 	private JwtTokenProvider tokenProvider;
@@ -63,11 +59,11 @@ public class CustomerAuthController {
 
 	@PostMapping("signup")
 	public ResponseEntity<String> createCustomer(@RequestBody CustomerDTO customerInput) {
-		if (customerRepository.existsByUsername(customerInput.getUsername())) {
+		if (customerFacade.checkUsernameAvailability(customerInput.getUsername())) {
 			throw new AlreadyExistsException("Username", customerInput.getUsername());
 		}
 
-		if (customerRepository.existsByEmail(customerInput.getEmail())) {
+		if (customerFacade.checkEmailAvailability(customerInput.getEmail())) {
 			throw new AlreadyExistsException("Email", customerInput.getEmail());
 		}
 

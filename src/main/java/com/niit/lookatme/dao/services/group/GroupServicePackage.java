@@ -27,20 +27,20 @@ public class GroupServicePackage implements Serializable{
 	@ManyToOne
 	@MapsId("SERVICE_ID")
 	@JoinColumn(name = "SERVICE_ID")
-	private Service serviceId;
+	private Service service;
 
 	@ManyToOne
 	@MapsId("GROUP_SERVICE_ID")
 	@JoinColumn(name = "GROUP_SERVICE_ID")
-	private GroupServices groupServiceId;
+	private GroupServices groupService;
 
 	@Column(name = "NOTE")
 	private String serviceNote;
 
-	public GroupServicePackage(Service serviceId, GroupServices groupServiceId, String serviceNote) {
+	public GroupServicePackage(Service service, GroupServices groupService, String serviceNote) {
 		super();
-		this.serviceId = serviceId;
-		this.groupServiceId = groupServiceId;
+		this.service = service;
+		this.groupService = groupService;
 		this.serviceNote = serviceNote;
 	}
 
@@ -52,17 +52,17 @@ public class GroupServicePackage implements Serializable{
 	}
 
 	/**
-	 * @return the serviceId
+	 * @return the service
 	 */
-	public Service getServiceId() {
-		return serviceId;
+	public Service getService() {
+		return service;
 	}
 
 	/**
-	 * @return the groupServiceId
+	 * @return the groupService
 	 */
-	public GroupServices getGroupServiceId() {
-		return groupServiceId;
+	public GroupServices getGroupService() {
+		return groupService;
 	}
 
 	/**
@@ -73,17 +73,17 @@ public class GroupServicePackage implements Serializable{
 	}
 
 	/**
-	 * @param serviceId the serviceId to set
+	 * @param serviceId the service to set
 	 */
-	public void setServiceId(Service serviceId) {
-		this.serviceId = serviceId;
+	public void setService(Service service) {
+		this.service = service;
 	}
 
 	/**
-	 * @param groupServiceId the groupServiceId to set
+	 * @param groupServiceId the groupService to set
 	 */
-	public void setGroupServiceId(GroupServices groupServiceId) {
-		this.groupServiceId = groupServiceId;
+	public void setGroupService(GroupServices groupService) {
+		this.groupService = groupService;
 	}
 
 	/**

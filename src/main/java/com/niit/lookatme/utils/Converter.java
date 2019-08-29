@@ -3,7 +3,9 @@ package com.niit.lookatme.utils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -49,6 +51,14 @@ public class Converter {
 	public static Date convertLocalDateToDate(LocalDate localDate) {
 		return Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 	}
+	
+	 public static Date localTimeToDate(LocalTime localTime) {
+	      Calendar calendar = Calendar.getInstance();
+	      calendar.clear();
+	      //assuming year/month/date information is not important
+	      calendar.set(0, 0, 0, localTime.getHour(), localTime.getMinute(), localTime.getSecond());
+	      return calendar.getTime();
+	  }
 	
 
 }
