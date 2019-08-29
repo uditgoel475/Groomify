@@ -10,7 +10,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,9 +37,6 @@ public class CustomerAuthController {
 
 	@Resource
 	private CustomerRepository customerRepository;
-
-	@Resource
-	private PasswordEncoder passwordEncoder;
 
 	@Resource
 	private JwtTokenProvider tokenProvider;
@@ -74,10 +70,9 @@ public class CustomerAuthController {
 		if (customerRepository.existsByEmail(customerInput.getEmail())) {
 			throw new AlreadyExistsException("Email", customerInput.getEmail());
 		}
-		customerInput.setPassword(passwordEncoder.encode(customerInput.getPassword()));
 
 		String username = customerFacade.createNewCustomer(customerInput);
-		URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("/customer/{username}")
+		URI location = ServletUriComponentsBuilder.fromCurrentContextPath().path("api/customer/{username}")
 				.buildAndExpand(username).toUri();
 		return ResponseEntity.created(location).body("Customer Created Successfully");
 	}

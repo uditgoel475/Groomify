@@ -24,6 +24,7 @@ import com.niit.lookatme.dao.customer.CustomerJobCardHistory;
 import com.niit.lookatme.dao.customer.CustomerOrder;
 import com.niit.lookatme.dao.customer.CustomerOrderHistory;
 import com.niit.lookatme.dao.repository.CustomerRepository;
+import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.dto.customer.CustomerDTO;
 import com.niit.lookatme.dto.customer.CustomerJobCardDetailsOut;
 import com.niit.lookatme.dto.customer.CustomerJobCardOut;
@@ -39,7 +40,7 @@ public class CustomerFacadeHelper {
 
 	@Resource
 	private EmployeeFacadeHelper employeeFacadeHelper;
-
+	
 	public CustomerOrder updateCustomerOrderByGivenJobStatus(CustomerOrder customerOrder, JobStatus updatedJobStatus) {
 
 		Date currentDate = Calendar.getInstance().getTime();
@@ -136,8 +137,8 @@ public class CustomerFacadeHelper {
 		customer.setUsername(customerInput.getUsername());
 
 		Password password = new Password();
-		password.setPassword(CustomerAndEmployeeUtils.encrypt(customerInput.getPassword()));
-
+		password.setPassword(customerInput.getPassword(), UserType.CUSTOMER);
+		
 		customer.setPassword(password);
 		customer.setEmail(customerInput.getEmail());
 		customer.setGender(Gender.valueOf(customerInput.getGender()));

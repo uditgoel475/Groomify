@@ -16,8 +16,6 @@ public interface CustomerFacade {
 
 	String createNewCustomer(CustomerDTO customerInput);
 
-	Boolean changeCustomerPassword(String custNo, String encryptedPassword);
-
 	List<CustomerOrderOut> fetchAllOpenCustomerOrder(String username);
 
 	List<CustomerOrderOut> fetchAllCalendarOpenAppointmentCurrentMonth(int year, Month month);
@@ -43,4 +41,6 @@ public interface CustomerFacade {
 	Boolean updateServices(UpdateCustomerOrderInput customerOrderInput);
 
 	CustomerOutDTO fetchCustomerDTO(String username);
+
+	Boolean changeCustomerPassword(String custNo, String currentPass, String newPass);
 }

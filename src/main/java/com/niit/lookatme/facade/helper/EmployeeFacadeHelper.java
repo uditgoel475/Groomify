@@ -14,7 +14,6 @@ import com.niit.lookatme.dao.Password;
 import com.niit.lookatme.dao.employee.Employee;
 import com.niit.lookatme.dao.employee.EmployeeQualification;
 import com.niit.lookatme.dao.employee.EmployeeRoster;
-import com.niit.lookatme.dao.repository.AddressRepository;
 import com.niit.lookatme.dao.repository.EmployeeQualificationRepository;
 import com.niit.lookatme.dao.repository.EmployeeRepository;
 import com.niit.lookatme.dao.repository.EmployeeRosterRepository;
@@ -27,7 +26,7 @@ import com.niit.lookatme.dto.employee.EmployeeDTO;
 import com.niit.lookatme.dto.employee.EmployeeInput;
 import com.niit.lookatme.dto.employee.Roster;
 import com.niit.lookatme.exception.ResourceNotFoundException;
-import com.niit.lookatme.utils.AppUtils;
+import com.niit.lookatme.utils.Converter;
 import com.niit.lookatme.utils.CustomerAndEmployeeUtils;
 
 @Component("employeeFacadeHelper")
@@ -38,19 +37,15 @@ public class EmployeeFacadeHelper {
 
 	@Resource
 	private EmployeeRosterRepository employeeRosterRepository;
-	
+
 	@Resource
 	private EmployeeQualificationRepository employeeQualificationRepository;
-	
-	@Resource
-	private AddressRepository addressRepository;
-	
+
 	@Resource
 	private GovtIdTypeRepository govtIdTypeRepository;
-	
+
 	@Resource
 	private RoleRepository roleRepository;
-
 
 	public EmployeeDTO createEmployeeDTO(Employee employee) {
 		EmployeeDTO employeeDTO = new EmployeeDTO(employee.getName(), employee.getUsername(), employee.getDob(),
@@ -82,15 +77,18 @@ public class EmployeeFacadeHelper {
 			EmployeeRoster empRoster = employeeRosterRepository
 					.findActiveRosterByGivenInput(roster.getGenericInTime(), roster.getGenericOutTime(),
 							roster.getShiftStartDay(), roster.getShiftEndDay())
-					.orElseThrow(() -> new ResourceNotFoundException("Employee Roster", "Schedule", rosterStr.toString()));
+					.orElseThrow(
+							() -> new ResourceNotFoundException("Employee Roster", "Schedule", rosterStr.toString()));
 
 			employee.setSchedule(empRoster);
 
 		}
 
-		if(null != createEmployeeInput.getQualificationType()){
-			EmployeeQualification employeeQualification =	employeeQualificationRepository.findByQualificationType(createEmployeeInput.getQualificationType())
-			.orElseThrow(() -> new ResourceNotFoundException("Employee Qualification Type", "Value", createEmployeeInput.getQualificationType().toString()));
+		if (null != createEmployeeInput.getQualificationType()) {
+			EmployeeQualification employeeQualification = employeeQualificationRepository
+					.findByQualificationType(createEmployeeInput.getQualificationType())
+					.orElseThrow(() -> new ResourceNotFoundException("Employee Qualification Type", "Value",
+							createEmployeeInput.getQualificationType().toString()));
 			employee.setQualification(employeeQualification);
 		}
 
@@ -109,12 +107,10 @@ public class EmployeeFacadeHelper {
 		AddressInput addressInput = createEmployeeInput.getCurrentAddress();
 		if (null != addressInput) {
 			Address currentAddress = CustomerAndEmployeeUtils.populateAddressObject(addressInput);
-			currentAddress = addressRepository.save(currentAddress);
 			employee.setCurrentAddress(currentAddress);
 			employee.setOvertimeWorker(createEmployeeInput.isAvailableOvertime());
 			employee.setPermanentAddress(createEmployeeInput.isSamePermanent() ? currentAddress
-					: addressRepository.save(
-							CustomerAndEmployeeUtils.populateAddressObject(createEmployeeInput.getPermanentAddress())));
+					: CustomerAndEmployeeUtils.populateAddressObject(createEmployeeInput.getPermanentAddress()));
 		}
 
 		if (!StringUtils.isEmpty(createEmployeeInput.getGovtIdType())
@@ -122,33 +118,34 @@ public class EmployeeFacadeHelper {
 			GovtIdType govtIdType = govtIdTypeRepository.findByTypeName(createEmployeeInput.getGovtIdType())
 					.orElseThrow(() -> new ResourceNotFoundException("Government ID", "Type",
 							createEmployeeInput.getGovtIdType()));
-			if (!StringUtils.isEmpty(govtIdType.getRegex()) && !createEmployeeInput.getGovtId().matches(govtIdType.getRegex())) {
+			if (!StringUtils.isEmpty(govtIdType.getRegex())
+					&& !createEmployeeInput.getGovtId().matches(govtIdType.getRegex())) {
 				throw new IllegalArgumentException(String.format("Government ID '%s' has an invalid value : '%s' ",
 						createEmployeeInput.getGovtIdType(), createEmployeeInput.getGovtId()));
 			}
 			employee.setGovtIdType(govtIdType);
 			employee.setGovtId(createEmployeeInput.getGovtId());
 		}
-		
+
 		employee.setSalary(createEmployeeInput.getSalary());
-		
-		
-		if(null ==createEmployeeInput.getJoiningDate()) {
-			createEmployeeInput.setJoiningDate(AppUtils.convertLocalDateToDate(LocalDate.now()));
+
+		if (null == createEmployeeInput.getJoiningDate()) {
+			createEmployeeInput.setJoiningDate(Converter.convertLocalDateToDate(LocalDate.now()));
 		}
 		employee.setJoiningDate(createEmployeeInput.getJoiningDate());
-		
+
 		Role role = roleRepository.findByName(createEmployeeInput.getRoleName())
 				.orElseThrow(() -> new IllegalArgumentException(
 						String.format("Role Name '%s' not present", createEmployeeInput.getRoleName())));
-		
+
 		employee.setEmployeeRoles(Collections.singleton(role));
-		if(!StringUtils.isEmpty(createEmployeeInput.getPassword())) {
+		if (!StringUtils.isEmpty(createEmployeeInput.getPassword())) {
 			Password password = new Password();
-			password.setPassword(createEmployeeInput.getPassword());
+			password.setPassword(createEmployeeInput.getPassword(), UserType.CUSTOMER);
+			
 			employee.setPassword(password);
 		}
-		
+
 		return employee;
 	}
 

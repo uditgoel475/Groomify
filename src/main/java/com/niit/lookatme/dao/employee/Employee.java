@@ -123,11 +123,11 @@ public class Employee extends AuditInfo {
 	@ColumnDefault("'MALE'")
 	private Gender gender;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "CURRENT_ADDRESS", referencedColumnName = "ADDRESS_ID")
 	private Address currentAddress;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "PERMANENT_ADDRESS", referencedColumnName = "ADDRESS_ID")
 	private Address permanentAddress;
 
@@ -157,11 +157,8 @@ public class Employee extends AuditInfo {
 	private Rating rating;
 
 	@ManyToMany(cascade = { CascadeType.ALL })
-    @JoinTable(
-        name = "EMPLOYEE_ROLES", 
-        joinColumns = { @JoinColumn(name = "EMPLOYEE_ID") }, 
-        inverseJoinColumns = { @JoinColumn(name = "ROLE_ID") }
-    )
+	@JoinTable(name = "EMPLOYEE_ROLES", joinColumns = { @JoinColumn(name = "EMPLOYEE_ID") }, inverseJoinColumns = {
+			@JoinColumn(name = "ROLE_ID") })
 	private Set<Role> employeeRoles;
 
 	/**
@@ -559,7 +556,7 @@ public class Employee extends AuditInfo {
 
 	@Transient
 	public String getName() {
-		return new StringBuilder(fname).append(" ").append(mname)
+		return new StringBuilder(fname).append(" ").append(StringUtils.isEmpty(mname) ? StringUtils.EMPTY : mname)
 				.append(StringUtils.isEmpty(mname) ? StringUtils.EMPTY : " ").append(lname).toString().trim();
 	}
 
@@ -571,7 +568,8 @@ public class Employee extends AuditInfo {
 	}
 
 	/**
-	 * @param employeeRoles the employeeRoles to set
+	 * @param employeeRoles
+	 *            the employeeRoles to set
 	 */
 	public void setEmployeeRoles(Set<Role> employeeRoles) {
 		this.employeeRoles = employeeRoles;
