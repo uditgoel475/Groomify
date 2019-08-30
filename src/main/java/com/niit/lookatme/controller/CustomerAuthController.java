@@ -59,11 +59,11 @@ public class CustomerAuthController {
 
 	@PostMapping("signup")
 	public ResponseEntity<String> createCustomer(@RequestBody CustomerDTO customerInput) {
-		if (customerFacade.checkUsernameAvailability(customerInput.getUsername())) {
+		if (!customerFacade.checkUsernameAvailability(customerInput.getUsername())) {
 			throw new AlreadyExistsException("Username", customerInput.getUsername());
 		}
 
-		if (customerFacade.checkEmailAvailability(customerInput.getEmail())) {
+		if (!customerFacade.checkEmailAvailability(customerInput.getEmail())) {
 			throw new AlreadyExistsException("Email", customerInput.getEmail());
 		}
 
