@@ -2,6 +2,7 @@ package com.niit.lookatme.dao.customer;
 
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -46,7 +47,7 @@ public class CustomerJobCardDetails extends AuditInfo{
 	@Column(name = "JOB_STATUS", nullable = false)
 	private JobStatus jobStatus;
 	
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "EMPLOYEE", referencedColumnName = "EMPLOYEE_ID")
 	private Employee activityEmployee;
 	

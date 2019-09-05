@@ -27,7 +27,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.niit.lookatme.dao.Address;
+import com.niit.lookatme.dao.services.Service;
 import com.niit.lookatme.dto.AddressInput;
+import com.niit.lookatme.dto.ServiceExtDTO;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 
@@ -41,11 +43,18 @@ public class CustomerAndEmployeeUtils {
 
 	private CustomerAndEmployeeUtils() {
 	}
-	
+
 	public static AddressInput populateAddressOut(Address address) {
-		AddressInput addressInput = new AddressInput(address.getAddress1(), address.getAddress2(), address.getAddress3(), address.getState(), address.getCity(), address.getRegion(), address.getPostalCode());
+		AddressInput addressInput = new AddressInput(address.getAddress1(), address.getAddress2(),
+				address.getAddress3(), address.getState(), address.getCity(), address.getRegion(),
+				address.getPostalCode());
 		addressInput.setCountry(address.getCountry());
 		return addressInput;
+	}
+
+	public static ServiceExtDTO populateServiceExtDTO(Service service) {
+		return new ServiceExtDTO(service.getServiceGroup().getName(), service.getHsn(), service.getName(),
+				service.getPrice(), Converter.dateToLocalTime(service.getTime()), service.getIsActive());
 	}
 
 	public static Address populateAddressObject(AddressInput addressInput) {
@@ -62,18 +71,18 @@ public class CustomerAndEmployeeUtils {
 	}
 
 	public static String createRegId(String userType, String... username) {
-		StringBuilder strBuilder = new StringBuilder(userType).append(DateTimeFormatter.ofPattern("yyyymmddHHmmss").format(LocalDateTime.now()));
-		for(String usrname : username)
+		StringBuilder strBuilder = new StringBuilder(userType)
+				.append(DateTimeFormatter.ofPattern("yyyymmddHHmmss").format(LocalDateTime.now()));
+		for (String usrname : username)
 			strBuilder.append(usrname);
 		return strBuilder.toString();
 	}
-	
-	public static String createImageAndFetchUrl(UserType userType, UserImageInputType userImageInputType, MultipartFile pictureFile, String username) {
-		if (Optional.ofNullable(pictureFile).map(MultipartFile::getSize)
-				.map(x -> Boolean.valueOf(x > 0)).orElse(false)) {
-			String filePathName = uploadPictureImage(userType,
-					pictureFile, username,
-					userImageInputType);
+
+	public static String createImageAndFetchUrl(UserType userType, UserImageInputType userImageInputType,
+			MultipartFile pictureFile, String username) {
+		if (Optional.ofNullable(pictureFile).map(MultipartFile::getSize).map(x -> Boolean.valueOf(x > 0))
+				.orElse(false)) {
+			String filePathName = uploadPictureImage(userType, pictureFile, username, userImageInputType);
 			if (!StringUtils.isEmpty(filePathName)) {
 				return filePathName;
 			}
@@ -145,5 +154,5 @@ public class CustomerAndEmployeeUtils {
 		}
 		return encryptedText;
 	}
-	
+
 }

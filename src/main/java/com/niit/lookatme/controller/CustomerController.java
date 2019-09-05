@@ -1,5 +1,6 @@
 package com.niit.lookatme.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -10,10 +11,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.niit.lookatme.dao.customer.Customer;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.dto.customer.CustomerOutDTO;
@@ -60,5 +63,10 @@ public class CustomerController {
 	@GetMapping("checkUsernameAvailability/{username:.+}")
 	public ResponseEntity<Boolean> checkUsernameAvailability(@PathVariable("username") String username) {
 		return ResponseEntity.ok(customerFacade.checkUsernameAvailability(username));
+	}
+	
+	@GetMapping("matchingNames")
+	public ResponseEntity<List<Customer>> findAllMatchingName(@RequestHeader("name") String name) {
+		return ResponseEntity.ok(customerFacade.findAllMatchingName(name));
 	}
 }

@@ -40,7 +40,7 @@ public class CustomerFacadeHelper {
 
 	@Resource
 	private EmployeeFacadeHelper employeeFacadeHelper;
-	
+
 	public CustomerOrder updateCustomerOrderByGivenJobStatus(CustomerOrder customerOrder, JobStatus updatedJobStatus) {
 
 		Date currentDate = Calendar.getInstance().getTime();
@@ -138,7 +138,7 @@ public class CustomerFacadeHelper {
 
 		Password password = new Password();
 		password.setPassword(customerInput.getPassword(), UserType.CUSTOMER);
-		
+
 		customer.setPassword(password);
 		customer.setEmail(customerInput.getEmail());
 		customer.setGender(Gender.valueOf(customerInput.getGender()));
@@ -158,11 +158,13 @@ public class CustomerFacadeHelper {
 
 	private String createCustomerUsername(CustomerDTO customer) {
 		long customerCount = customerRepository.count();
-		String initString = customer.getfName().substring(0, 3)
-				+ (customer.getmName().isEmpty() ? "0" : customer.getmName().substring(0, 1))
-				+ customer.getlName().substring(0, 3);
-		initString = StringUtils.rightPad(initString, 13, '0');
-		return StringUtils.rightPad(initString, 13, String.valueOf(customerCount));
+		StringBuilder nameBuilder = new StringBuilder(customer.getfName().trim());
+		if (!StringUtils.isEmpty(customer.getmName()))
+			nameBuilder.append('.').append(customer.getmName().trim());
+		if (!StringUtils.isEmpty(customer.getlName()))
+			nameBuilder.append('.').append(customer.getlName().trim());
+		nameBuilder.append('.').append(customerCount);
+		return nameBuilder.toString();
 	}
 
 	public CustomerDTO createCustomerDTOFromCustomer(Customer customer) {

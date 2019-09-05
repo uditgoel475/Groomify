@@ -6,7 +6,6 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -45,7 +44,7 @@ public class CustomerOrderHistory extends AuditInfo{
 	@JoinColumn(name = "CUSTOMER", referencedColumnName = "CUSTOMER_ID")
 	private Customer customer;
 	
-	@OneToMany(mappedBy = "customerOrderHistory", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "customerOrderHistory", cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
 	private List<CustomerJobCardHistory> customerJobCards;
 

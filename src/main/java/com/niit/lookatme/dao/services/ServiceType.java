@@ -26,6 +26,11 @@ public class ServiceType  implements Serializable{
 	@Column(name = "NAME", unique = true, nullable = false)
 	private String name;		
 
+	public ServiceType(String name) {
+		super();
+		this.name = name;
+	}
+
 	public String getName() {
 		return name;
 	}

@@ -50,6 +50,7 @@ import com.niit.lookatme.dto.customer.CustomerJobsInput;
 import com.niit.lookatme.dto.customer.CustomerOrderOut;
 import com.niit.lookatme.dto.customer.CustomerOutDTO;
 import com.niit.lookatme.dto.customer.UpdateCustomerOrderInput;
+import com.niit.lookatme.exception.RequiredLengthException;
 import com.niit.lookatme.exception.ResourceNotFoundException;
 import com.niit.lookatme.facade.CustomerFacade;
 import com.niit.lookatme.facade.helper.CustomerFacadeHelper;
@@ -88,6 +89,9 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	@Value("${customer.password.notes}")
 	private String passwrdExceptionMsg;
 	
+	@Value("${customer.fname.search.min.length}")
+	private int minFNameLength;
+
 	private void validatePassword(String password) {
 		if (!password.matches(passwrdRegex)) {
 			throw new IllegalArgumentException("Input password doesn't pass the strength test. " + passwrdExceptionMsg);
@@ -146,7 +150,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		}
 		passwords.setPassword(encryptNew, UserType.CUSTOMER);
 		customer.setPassword(passwords);
-		
+
 		try {
 			customerRepository.save(customer);
 			return true;
@@ -234,7 +238,8 @@ public class CustomerFacadeImpl implements CustomerFacade {
 			customerJobCard.setCustomerOrder(customerOrder);
 			for (int i = 0; i < serviceDateNameEntry.getValue().size(); i++) {
 				String serviceName = serviceDateNameEntry.getValue().get(i);
-				com.niit.lookatme.dao.services.Service service = serviceRepository.findByName(serviceName);
+				com.niit.lookatme.dao.services.Service service = serviceRepository.findByName(serviceName)
+						.orElseThrow(() -> new ResourceNotFoundException("Service", "name", serviceName));
 
 				CustomerJobCardDetails customerJobCardDetails = new CustomerJobCardDetails();
 				customerJobCardDetails.setService(service);
@@ -472,14 +477,32 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		return customerRepository.findByUsername(username)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer", "username", username));
 	}
-	
+
 	@Override
 	public Boolean checkEmailAvailability(String email) {
 		return !customerRepository.existsByEmail(email);
 	}
-	
+
 	@Override
 	public Boolean checkUsernameAvailability(String username) {
 		return !customerRepository.existsByUsername(username);
+	}
+	
+	@Override
+	public List<Customer> findAllMatchingName(String name) {
+		if (StringUtils.isEmpty(name) || name.trim().length() < minFNameLength) {
+			throw new RequiredLengthException("Name", minFNameLength, name);
+		}
+		name = name.trim();
+		if (name.contains(" ")) {
+			/**
+			 * Trim and split on space and find the customers matching
+			 */
+			String[] nameArr = name.split("\\s+");
+			if (nameArr.length > 1)
+				return customerRepository.findAllMatchingName(nameArr[0], nameArr[1], nameArr[2]);
+			return customerRepository.findAllMatchingFNameLName(nameArr[0], nameArr[1]);
+		}
+		return customerRepository.findAllMatchingFirstName(name);
 	}
 }

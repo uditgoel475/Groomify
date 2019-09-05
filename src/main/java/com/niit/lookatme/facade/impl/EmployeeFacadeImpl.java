@@ -68,15 +68,18 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 	@Resource
 	private EmployeeServicesRepository employeeServicesRepository;
-	
+
 	@Resource
 	private PasswordEncoder passwordEncoder;
-	
+
 	@Value("${employee.password.regex}")
 	private String passwrdRegex;
-	
+
 	@Value("${employee.password.notes}")
 	private String passwrdExceptionMsg;
+
+	@Value("${employee.pass.default}")
+	private String passwrdDefault;
 
 	@Override
 	public List<EmployeeDTO> fetchAllExistingEmployeeCurrentWeekBirthdays() {
@@ -104,36 +107,47 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 	@Override
 	public String createNewEmployee(EmployeeInput createEmployeeInput) {
-		
-		if(!StringUtils.isEmpty(createEmployeeInput.getPassword())) {
+
+		if (!StringUtils.isEmpty(createEmployeeInput.getPassword())) {
 			validatePassword(createEmployeeInput.getPassword());
 			createEmployeeInput.setPassword(passwordEncoder.encode(createEmployeeInput.getPassword()));
+		} else {
+			createEmployeeInput.setPassword(passwordEncoder.encode(passwrdDefault));
 		}
-		
-		Employee employee = employeeRepository
-				.save(employeeFacadeHelper.createEmployeeJPAFromEmployeeInput(createEmployeeInput));
-		if (employee.getId() != null) {
 
-			if (null != createEmployeeInput.getPictureFile() && createEmployeeInput.getPictureFile().getSize() > 0)
-				employee.setPictureUrl(
-						CustomerAndEmployeeUtils.createImageAndFetchUrl(UserType.EMPLOYEE, UserImageInputType.PROFILE,
-								createEmployeeInput.getPictureFile(), createEmployeeInput.getUsername()));
+		try {
+			Employee employee = employeeRepository
+					.save(employeeFacadeHelper.createEmployeeJPAFromEmployeeInput(createEmployeeInput));
 
-			if (null != createEmployeeInput.getGovtIdPic() && createEmployeeInput.getGovtIdPic().getSize() > 0)
-				employee.setGovtIdSnapUrl(
-						CustomerAndEmployeeUtils.createImageAndFetchUrl(UserType.EMPLOYEE, UserImageInputType.GOVTID,
-								createEmployeeInput.getGovtIdPic(), createEmployeeInput.getUsername()));
-
-			if (!StringUtils.isEmpty(employee.getPictureUrl()) || !StringUtils.isEmpty(employee.getGovtIdSnapUrl()))
-				employeeRepository.save(employee);
-			return employee.getUsername();
+			if (employee.getId() != null) {
+				return employeeUserNameFromCreatedEmployee(createEmployeeInput, employee);
+			}
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+			throw ex;
 		}
 		return StringUtils.EMPTY;
 	}
 
+	private String employeeUserNameFromCreatedEmployee(EmployeeInput createEmployeeInput, Employee employee) {
+		if (null != createEmployeeInput.getPictureFile() && createEmployeeInput.getPictureFile().getSize() > 0)
+			employee.setPictureUrl(
+					CustomerAndEmployeeUtils.createImageAndFetchUrl(UserType.EMPLOYEE, UserImageInputType.PROFILE,
+							createEmployeeInput.getPictureFile(), createEmployeeInput.getUsername()));
+
+		if (null != createEmployeeInput.getGovtIdPic() && createEmployeeInput.getGovtIdPic().getSize() > 0)
+			employee.setGovtIdSnapUrl(CustomerAndEmployeeUtils.createImageAndFetchUrl(UserType.EMPLOYEE,
+					UserImageInputType.GOVTID, createEmployeeInput.getGovtIdPic(), createEmployeeInput.getUsername()));
+
+		if (!StringUtils.isEmpty(employee.getPictureUrl()) || !StringUtils.isEmpty(employee.getGovtIdSnapUrl()))
+			employeeRepository.save(employee);
+		return employee.getUsername();
+	}
+
 	private void validatePassword(String password) {
-		if(!password.matches(passwrdRegex)) {
-			throw new IllegalArgumentException("Input password doesn't pass the strength test. " + passwrdExceptionMsg);
+		if (!password.matches(passwrdRegex)) {
+			throw new IllegalArgumentException(String.format("Input password '%s' doesn't pass the strength test. %s",
+					password, passwrdExceptionMsg));
 		}
 	}
 
@@ -144,13 +158,14 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 		Employee employee = findByUsername(empNo);
 		Password passwords = employee.getPassword();
-		
-		if(!passwordEncoder.matches(currentPass, passwords.getCurrentPassword())) {
+
+		if (!passwordEncoder.matches(currentPass, passwords.getCurrentPassword())) {
 			throw new IllegalArgumentException("Current Password is incorrect.");
 		}
-		
-		if (passwords.getAllPasswordList().stream().anyMatch(pwd -> passwordEncoder.matches(currentPass, pwd))) {
-			throw new IllegalArgumentException("Password must not match the last 5 passwords. Please provide a different input");
+
+		if (passwords.getAllPasswordList().stream().anyMatch(pwd -> passwordEncoder.matches(newPass, pwd))) {
+			throw new IllegalArgumentException(
+					"Password must not match the last 5 passwords. Please provide a different input");
 		}
 		passwords.setPassword(encryptNew, UserType.CUSTOMER);
 		employee.setPassword(passwords);
@@ -305,7 +320,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 		return employeeActivityOut;
 	}
-	
+
 	@Override
 	public Boolean checkUsernameAvailability(String username) {
 		return !employeeRepository.existsByUsername(username);

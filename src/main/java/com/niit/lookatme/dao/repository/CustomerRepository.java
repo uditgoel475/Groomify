@@ -30,4 +30,13 @@ public interface CustomerRepository extends CrudRepository<Customer, Long> {
 	
 	@Query("select case when count(e)> 0 then true else false end from Employee e where e.email = :email")
 	Boolean existsByEmail(@Param("email") String email);
+	
+	@Query("select c from Customer c where lower(c.fname) like lower(CONCAT(:first,'%'))")
+	List<Customer> findAllMatchingFirstName(@Param("first") String first);
+	
+	@Query("select c from Customer c where lower(c.fname) = lower(:first) and lower(c.lname) = lower(:last)")
+	List<Customer> findAllMatchingFNameLName(@Param("first") String first, @Param("last") String last);
+	
+	@Query("select c from Customer c where lower(c.fname) = lower(:first) and lower(c.mname) = lower(:middle) and lower(c.lname) = lower(:last)")
+	List<Customer> findAllMatchingName(@Param("first") String first, @Param("middle") String middle, @Param("last") String last);
 }

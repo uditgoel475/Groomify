@@ -90,7 +90,7 @@ public class Employee extends AuditInfo {
 	@JoinColumn(name = "SCHEDULE", referencedColumnName = "SCHEDULE_ID")
 	private EmployeeRoster schedule;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "QUALIFICATION", referencedColumnName = "QUALIFICATION_ID")
 	private EmployeeQualification qualification;
 

@@ -4,6 +4,7 @@ import java.time.Month;
 import java.util.Date;
 import java.util.List;
 
+import com.niit.lookatme.dao.customer.Customer;
 import com.niit.lookatme.dto.customer.CreateCustomerOrderInput;
 import com.niit.lookatme.dto.customer.CustomerDTO;
 import com.niit.lookatme.dto.customer.CustomerOrderOut;
@@ -47,4 +48,6 @@ public interface CustomerFacade {
 	Boolean checkEmailAvailability(String email);
 
 	Boolean checkUsernameAvailability(String username);
+
+	List<Customer> findAllMatchingName(String name);
 }

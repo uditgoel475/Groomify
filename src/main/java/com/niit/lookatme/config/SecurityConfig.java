@@ -4,7 +4,6 @@ import javax.annotation.Resource;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -75,16 +74,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/swagger-resources/**", 
                         "/swagger-ui.html**")
 				.permitAll()
-				.antMatchers("/api/auth/**")
-				.permitAll()
-				.antMatchers(
+				.antMatchers("/api/auth/**",
 						"/api/employee/checkUsernameAvailability/**", 
 						"/api/customer/checkEmailAvailability/**",
 						"/api/customer/checkUsernameAvailability/**")
-				.permitAll()
-				.antMatchers(HttpMethod.GET, 
-						"/api/employee/**", 
-						"/api/customer/**")
 				.permitAll()
 				.anyRequest()
 				.authenticated();
