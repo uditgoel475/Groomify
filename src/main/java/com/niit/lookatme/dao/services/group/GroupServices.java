@@ -15,6 +15,10 @@ import javax.persistence.TemporalType;
 
 import com.niit.lookatme.dao.AuditInfo;
 
+/**
+ * Group of services to offer to customer. Contains the different package names, Eg: Bridal package, Groom's package
+ */
+
 @Entity
 @Table(name = "GROUP_SERVICE")
 public class GroupServices extends AuditInfo{
@@ -31,6 +35,9 @@ public class GroupServices extends AuditInfo{
 	
 	@Column(name = "NAME", nullable = false)
 	private String name;
+	
+	@Column(name = "DESCRIPTION")
+	private String description;
 	
 	@Column(name = "MARKED_PRICE", nullable = false)
 	private Double markedPrice;
@@ -131,6 +138,20 @@ public class GroupServices extends AuditInfo{
 	 */
 	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
+	}
+
+	/**
+	 * @return the description
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	/**
+	 * @param description the description to set
+	 */
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	/**

@@ -87,7 +87,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 
 	@Value("${customer.password.notes}")
 	private String passwrdExceptionMsg;
-	
+
 	private void validatePassword(String password) {
 		if (!password.matches(passwrdRegex)) {
 			throw new IllegalArgumentException("Input password doesn't pass the strength test. " + passwrdExceptionMsg);
@@ -146,7 +146,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		}
 		passwords.setPassword(encryptNew, UserType.CUSTOMER);
 		customer.setPassword(passwords);
-		
+
 		try {
 			customerRepository.save(customer);
 			return true;
@@ -234,7 +234,8 @@ public class CustomerFacadeImpl implements CustomerFacade {
 			customerJobCard.setCustomerOrder(customerOrder);
 			for (int i = 0; i < serviceDateNameEntry.getValue().size(); i++) {
 				String serviceName = serviceDateNameEntry.getValue().get(i);
-				com.niit.lookatme.dao.services.Service service = serviceRepository.findByName(serviceName);
+				com.niit.lookatme.dao.services.Service service = serviceRepository.findByName(serviceName)
+						.orElseThrow(() -> new ResourceNotFoundException("Service", "name", serviceName));
 
 				CustomerJobCardDetails customerJobCardDetails = new CustomerJobCardDetails();
 				customerJobCardDetails.setService(service);
@@ -472,12 +473,12 @@ public class CustomerFacadeImpl implements CustomerFacade {
 		return customerRepository.findByUsername(username)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer", "username", username));
 	}
-	
+
 	@Override
 	public Boolean checkEmailAvailability(String email) {
 		return !customerRepository.existsByEmail(email);
 	}
-	
+
 	@Override
 	public Boolean checkUsernameAvailability(String username) {
 		return !customerRepository.existsByUsername(username);

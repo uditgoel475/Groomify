@@ -15,10 +15,11 @@ public class CreateCustomerOrderInput {
 
 	private Map<Date, List<String>> createNewServicesMap;
 
-	public CreateCustomerOrderInput() {super();}
-	
-	public CreateCustomerOrderInput(String customerOrderRequestId, String username,
-			Date appointmentDate) {
+	public CreateCustomerOrderInput() {
+		super();
+	}
+
+	public CreateCustomerOrderInput(String customerOrderRequestId, String username, Date appointmentDate) {
 		super();
 		this.customerOrderRequestId = customerOrderRequestId;
 		this.username = username;

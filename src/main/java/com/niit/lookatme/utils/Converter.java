@@ -60,5 +60,8 @@ public class Converter {
 	      return calendar.getTime();
 	  }
 	
+	 public static LocalTime dateToLocalTime(Date date) {
+		 return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).toLocalTime();
+	 }
 
 }

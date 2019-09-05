@@ -6,6 +6,7 @@ import java.util.Collections;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.niit.lookatme.dao.Address;
@@ -47,6 +48,9 @@ public class EmployeeFacadeHelper {
 	@Resource
 	private RoleRepository roleRepository;
 
+	@Value("${employee.fname.default}")
+	private String defaultEmpName;
+
 	public EmployeeDTO createEmployeeDTO(Employee employee) {
 		EmployeeDTO employeeDTO = new EmployeeDTO(employee.getName(), employee.getUsername(), employee.getDob(),
 				employee.getPrimaryContact(), employee.getGender(),
@@ -69,19 +73,7 @@ public class EmployeeFacadeHelper {
 		employee.setUsername(createEmployeeInput.getUsername());
 
 		if (null != createEmployeeInput.getRoster()) {
-			Roster roster = createEmployeeInput.getRoster();
-
-			StringBuilder rosterStr = new StringBuilder();
-			rosterStr.append(roster.getShiftStartDay()).append(" - ").append(roster.getShiftEndDay()).append(" ")
-					.append(roster.getGenericInTime()).append(" - ").append(roster.getGenericOutTime());
-			EmployeeRoster empRoster = employeeRosterRepository
-					.findActiveRosterByGivenInput(roster.getGenericInTime(), roster.getGenericOutTime(),
-							roster.getShiftStartDay(), roster.getShiftEndDay())
-					.orElseThrow(
-							() -> new ResourceNotFoundException("Employee Roster", "Schedule", rosterStr.toString()));
-
-			employee.setSchedule(empRoster);
-
+			employee.setSchedule(findEmployeeRoster(createEmployeeInput.getRoster()));
 		}
 
 		if (null != createEmployeeInput.getQualificationType()) {
@@ -115,15 +107,7 @@ public class EmployeeFacadeHelper {
 
 		if (!StringUtils.isEmpty(createEmployeeInput.getGovtIdType())
 				&& !StringUtils.isEmpty(createEmployeeInput.getGovtId())) {
-			GovtIdType govtIdType = govtIdTypeRepository.findByTypeName(createEmployeeInput.getGovtIdType())
-					.orElseThrow(() -> new ResourceNotFoundException("Government ID", "Type",
-							createEmployeeInput.getGovtIdType()));
-			if (!StringUtils.isEmpty(govtIdType.getRegex())
-					&& !createEmployeeInput.getGovtId().matches(govtIdType.getRegex())) {
-				throw new IllegalArgumentException(String.format("Government ID '%s' has an invalid value : '%s' ",
-						createEmployeeInput.getGovtIdType(), createEmployeeInput.getGovtId()));
-			}
-			employee.setGovtIdType(govtIdType);
+			employee.setGovtIdType(validateAndGetGovtIdType(createEmployeeInput));
 			employee.setGovtId(createEmployeeInput.getGovtId());
 		}
 
@@ -139,22 +123,52 @@ public class EmployeeFacadeHelper {
 						String.format("Role Name '%s' not present", createEmployeeInput.getRoleName())));
 
 		employee.setEmployeeRoles(Collections.singleton(role));
-		if (!StringUtils.isEmpty(createEmployeeInput.getPassword())) {
-			Password password = new Password();
-			password.setPassword(createEmployeeInput.getPassword(), UserType.CUSTOMER);
-			
-			employee.setPassword(password);
-		}
+		Password password = new Password();
+		password.setPassword(createEmployeeInput.getPassword(), UserType.CUSTOMER);
+
+		employee.setPassword(password);
 
 		return employee;
 	}
 
+	private GovtIdType validateAndGetGovtIdType(EmployeeInput createEmployeeInput) {
+		GovtIdType govtIdType = govtIdTypeRepository.findByTypeName(createEmployeeInput.getGovtIdType()).orElseThrow(
+				() -> new ResourceNotFoundException("Government ID", "Type", createEmployeeInput.getGovtIdType()));
+		if (!StringUtils.isEmpty(govtIdType.getRegex())
+				&& !createEmployeeInput.getGovtId().matches(govtIdType.getRegex())) {
+			throw new IllegalArgumentException(String.format("Government ID '%s' has an invalid value : '%s' ",
+					createEmployeeInput.getGovtIdType(), createEmployeeInput.getGovtId()));
+		}
+		return govtIdType;
+	}
+
+	private EmployeeRoster findEmployeeRoster(Roster roster) {
+		StringBuilder rosterStr = new StringBuilder();
+		rosterStr.append(roster.getShiftStartDay()).append(" - ").append(roster.getShiftEndDay()).append(" ")
+				.append(roster.getGenericInTime()).append(" - ").append(roster.getGenericOutTime());
+		return employeeRosterRepository
+				.findActiveRosterByGivenInput(roster.getGenericInTime(), roster.getGenericOutTime(),
+						roster.getShiftStartDay(), roster.getShiftEndDay())
+				.orElseThrow(() -> new ResourceNotFoundException("Employee Roster", "Schedule", rosterStr.toString()));
+	}
+
 	private String createEmployeeUsername(EmployeeInput employee) {
 		long employeecount = employeeRepository.count();
-		String initString = employee.getfName().substring(0, 3)
-				+ (employee.getmName().isEmpty() ? "0" : employee.getmName().substring(0, 1))
-				+ employee.getlName().substring(0, 3);
-		initString = StringUtils.rightPad(initString, 13, '0');
-		return StringUtils.rightPad(initString, 13, String.valueOf(employeecount));
+
+		StringBuilder userNameBuilder = new StringBuilder();
+		if (StringUtils.isEmpty(employee.getfName())) {
+			userNameBuilder.append(defaultEmpName);
+		} else {
+			String mNameStr = StringUtils.isEmpty(employee.getmName()) ? "0" : employee.getmName().substring(0, 1);
+			String mlNameStr = StringUtils.isEmpty(employee.getlName()) ? "1" : employee.getlName().substring(0, 1);
+			userNameBuilder.append(employee.getfName().substring(0, 3)).append(mNameStr).append(mlNameStr);
+		}
+
+		return finalUsername(employeecount, userNameBuilder.toString());
+	}
+
+	private String finalUsername(long employeecount, String userNameBuilder) {
+		String initString = StringUtils.rightPad(userNameBuilder, 11, '0');
+		return initString.concat(String.valueOf(employeecount));
 	}
 }

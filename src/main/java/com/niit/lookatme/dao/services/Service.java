@@ -15,7 +15,10 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.ColumnDefault;
 
 import com.niit.lookatme.dao.AuditInfo;
@@ -27,8 +30,8 @@ import com.niit.lookatme.dao.services.group.GroupServicePackage;
  *
  */
 @Entity
-@Table(name = "SERVICE")
-public class Service extends AuditInfo{
+@Table(name = "SERVICE", uniqueConstraints = { @UniqueConstraint(columnNames = { "NAME", "HSN/SAC", "SERVICE_TYPE" }) })
+public class Service extends AuditInfo {
 
 	/**
 	 * 
@@ -42,13 +45,13 @@ public class Service extends AuditInfo{
 
 	@Column(name = "NAME", nullable = false)
 	private String name;
-	
+
 	@Column(name = "PRICE", nullable = false)
-	private Long price;
-	
+	private Double price;
+
 	@Column(name = "HSN/SAC")
 	private String hsn;
-	
+
 	@Temporal(value = TemporalType.TIME)
 	@Column(name = "SERVICE_TIME")
 	private Date time;
@@ -56,13 +59,27 @@ public class Service extends AuditInfo{
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "SERVICE_TYPE", referencedColumnName = "SERVICE_TYPE_ID")
 	private ServiceType serviceGroup;
-	
+
 	@Column(name = "IS_ACTIVE")
 	@ColumnDefault("true")
 	private Boolean isActive;
-	
+
 	@OneToMany(mappedBy = "service")
 	private List<GroupServicePackage> groupServicePackages;
+	
+	public Service() {
+		super();
+	}
+
+	public Service(String name, Double price, String hsn, Date time, ServiceType serviceGroup, Boolean isActive) {
+		super();
+		this.name = name;
+		this.price = price;
+		this.hsn = hsn;
+		this.time = time;
+		this.serviceGroup = serviceGroup;
+		this.isActive = isActive;
+	}
 
 	public String getHsn() {
 		return hsn;
@@ -88,11 +105,11 @@ public class Service extends AuditInfo{
 		this.name = name;
 	}
 
-	public Long getPrice() {
+	public Double getPrice() {
 		return price;
 	}
 
-	public void setPrice(Long price) {
+	public void setPrice(Double price) {
 		this.price = price;
 	}
 
@@ -116,7 +133,8 @@ public class Service extends AuditInfo{
 	}
 
 	/**
-	 * @param isActive the isActive to set
+	 * @param isActive
+	 *            the isActive to set
 	 */
 	public void setIsActive(Boolean isActive) {
 		this.isActive = isActive;
@@ -130,12 +148,37 @@ public class Service extends AuditInfo{
 	}
 
 	/**
-	 * @param groupServicePackages the groupServicePackages to set
+	 * @param groupServicePackages
+	 *            the groupServicePackages to set
 	 */
 	public void setGroupServicePackages(List<GroupServicePackage> groupServicePackages) {
 		this.groupServicePackages = groupServicePackages;
 	}
+	
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder().append(name)
+				.append(price).append(hsn).append(time)
+				.append(serviceGroup).append(isActive)
+				.toHashCode();
+	}
 
-	
-	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (obj == this) {
+			return true;
+		}
+		if (obj.getClass() != getClass()) {
+			return false;
+		}
+		Service rhs = (Service) obj;
+		return new EqualsBuilder().append(name, rhs.name)
+				.append(price, rhs.price).append(hsn, rhs.hsn).append(time, rhs.time)
+				.append(serviceGroup, rhs.serviceGroup).append(isActive, rhs.isActive)
+				.isEquals();
+	}
+
 }

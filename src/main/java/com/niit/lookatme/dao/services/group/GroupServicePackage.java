@@ -12,6 +12,10 @@ import javax.persistence.Table;
 
 import com.niit.lookatme.dao.services.Service;
 
+/**
+ * Group of services mapped to the combination of services to be offered to customer.
+ */
+
 @Entity
 @Table(name = "GROUP_SERVICE_PACKAGE")
 public class GroupServicePackage implements Serializable{
@@ -34,14 +38,14 @@ public class GroupServicePackage implements Serializable{
 	@JoinColumn(name = "GROUP_SERVICE_ID")
 	private GroupServices groupService;
 
-	@Column(name = "NOTE")
-	private String serviceNote;
+	@Column(name = "DESCRIPTION")
+	private String description;
 
-	public GroupServicePackage(Service service, GroupServices groupService, String serviceNote) {
+	public GroupServicePackage(Service service, GroupServices groupService, String description) {
 		super();
 		this.service = service;
 		this.groupService = groupService;
-		this.serviceNote = serviceNote;
+		this.description = description;
 	}
 
 	/**
@@ -66,13 +70,6 @@ public class GroupServicePackage implements Serializable{
 	}
 
 	/**
-	 * @return the serviceNote
-	 */
-	public String getServiceNote() {
-		return serviceNote;
-	}
-
-	/**
 	 * @param serviceId the service to set
 	 */
 	public void setService(Service service) {
@@ -87,9 +84,16 @@ public class GroupServicePackage implements Serializable{
 	}
 
 	/**
-	 * @param serviceNote the serviceNote to set
+	 * @return the description
 	 */
-	public void setServiceNote(String serviceNote) {
-		this.serviceNote = serviceNote;
+	public String getDescription() {
+		return description;
+	}
+
+	/**
+	 * @param description the description to set
+	 */
+	public void setDescription(String description) {
+		this.description = description;
 	}
 }

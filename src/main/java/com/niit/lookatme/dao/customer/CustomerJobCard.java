@@ -9,7 +9,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -79,7 +78,7 @@ public class CustomerJobCard extends AuditInfo{
 	@Column(name = "INVOICE_URL")
 	private String invoiceUrl;
 	
-	@OneToMany(mappedBy = "jobId", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "jobId", cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
 	private List<CustomerJobCardDetails> customerJobCardDetails;
 
