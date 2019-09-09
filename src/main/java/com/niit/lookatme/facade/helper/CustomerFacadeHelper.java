@@ -127,9 +127,18 @@ public class CustomerFacadeHelper {
 
 	public Customer createCustomerJPAFromCustomerInput(CustomerDTO customerInput) {
 		Customer customer = new Customer();
-		customer.setFname(customerInput.getfName());
-		customer.setMname(customerInput.getmName());
-		customer.setLname(customerInput.getlName());
+
+		if (!StringUtils.isEmpty(customerInput.getName())) {
+			List<String> splitName = CustomerAndEmployeeUtils.getSplittedNameArr(customerInput.getName());
+			customer.setFname(splitName.get(0));
+			if (StringUtils.isEmpty(splitName.get(1))) {
+				customer.setMname(splitName.get(1));
+			}
+			if (StringUtils.isEmpty(splitName.get(2))) {
+				customer.setLname(splitName.get(2));
+			}
+		}
+
 		customer.setDob(customerInput.getDob());
 
 		if (StringUtils.isEmpty(customerInput.getUsername()))
@@ -158,21 +167,31 @@ public class CustomerFacadeHelper {
 
 	private String createCustomerUsername(CustomerDTO customer) {
 		long customerCount = customerRepository.count();
-		StringBuilder nameBuilder = new StringBuilder(customer.getfName().trim());
-		if (!StringUtils.isEmpty(customer.getmName()))
-			nameBuilder.append('.').append(customer.getmName().trim());
-		if (!StringUtils.isEmpty(customer.getlName()))
-			nameBuilder.append('.').append(customer.getlName().trim());
-		nameBuilder.append('.').append(customerCount);
-		return nameBuilder.toString();
+
+		List<String> splitName = CustomerAndEmployeeUtils.getSplittedNameArr(customer.getName());
+
+		StringBuilder nameBuilder = new StringBuilder(splitName.get(0));
+		if (!StringUtils.isEmpty(splitName.get(1)))
+			nameBuilder.append('.').append(splitName.get(1));
+		if (!StringUtils.isEmpty(splitName.get(2)))
+			nameBuilder.append('.').append(splitName.get(2));
+		nameBuilder.append('.');
+
+		List<String> matchingUsername = customerRepository.findAllUsernameStartsWith(nameBuilder.toString());
+		while (matchingUsername.contains(nameBuilder.toString().concat(String.valueOf(customerCount)))) {
+			nameBuilder.append(0);
+		}
+
+		return nameBuilder.append(customerCount).toString();
+	}
+
+	public List<CustomerDTO> createCustomerDTOListFromCustomerList(List<Customer> customerList) {
+		return customerList.stream().map(this::createCustomerDTOFromCustomer).collect(Collectors.toList());
 	}
 
 	public CustomerDTO createCustomerDTOFromCustomer(Customer customer) {
 		CustomerDTO customerDTO = new CustomerDTO(customer.getUsername(), customer.getName(), customer.getDob(),
 				customer.getContact(), customer.getGender().toString(), customer.getRegId(), customer.getEmail());
-		customerDTO.setfName(customer.getFname());
-		customerDTO.setmName(customer.getMname());
-		customerDTO.setlName(customer.getLname());
 		customerDTO.setAlternateContact(customer.getAlternateContact());
 		return customerDTO;
 	}
@@ -195,6 +214,10 @@ public class CustomerFacadeHelper {
 		customerJobCardOut.setPaidAmount(customerJobCard.getPaidAmount());
 		customerJobCardOut.setPaymentComments(customerJobCard.getPaymentComments());
 		return customerJobCardOut;
+	}
+
+	public List<CustomerOutDTO> createCustomerOutDTOList(List<Customer> customerList) {
+		return customerList.stream().map(this::createCustomerOutDTO).collect(Collectors.toList());
 	}
 
 	public CustomerOutDTO createCustomerOutDTO(Customer customer) {

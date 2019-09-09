@@ -5,10 +5,7 @@ import java.util.Date;
 import org.springframework.web.multipart.MultipartFile;
 
 public class CustomerDTO extends CustomerOutDTO {
-
-	private String fName;
-	private String mName;
-	private String lName;
+	
 	private MultipartFile pictureFile;
 	private String password;
 
@@ -23,27 +20,6 @@ public class CustomerDTO extends CustomerOutDTO {
 			long contact, String gender, String regId,
 			String email) {
 		super(username, name, dob, contact, gender, regId, email);
-	}
-
-	/**
-	 * @return the fName
-	 */
-	public String getfName() {
-		return fName;
-	}
-
-	/**
-	 * @return the mName
-	 */
-	public String getmName() {
-		return mName;
-	}
-
-	/**
-	 * @return the lName
-	 */
-	public String getlName() {
-		return lName;
 	}
 
 	/**
@@ -86,30 +62,6 @@ public class CustomerDTO extends CustomerOutDTO {
 	 */
 	public MultipartFile getGovtIdPic() {
 		return govtIdPic;
-	}
-
-	/**
-	 * @param fName
-	 *            the fName to set
-	 */
-	public void setfName(String fName) {
-		this.fName = fName;
-	}
-
-	/**
-	 * @param mName
-	 *            the mName to set
-	 */
-	public void setmName(String mName) {
-		this.mName = mName;
-	}
-
-	/**
-	 * @param lName
-	 *            the lName to set
-	 */
-	public void setlName(String lName) {
-		this.lName = lName;
 	}
 
 	/**

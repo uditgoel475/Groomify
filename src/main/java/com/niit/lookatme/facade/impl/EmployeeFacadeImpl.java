@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +44,7 @@ import com.niit.lookatme.dto.employee.EmployeeActivityOut;
 import com.niit.lookatme.dto.employee.EmployeeDTO;
 import com.niit.lookatme.dto.employee.EmployeeInput;
 import com.niit.lookatme.dto.employee.Roster;
+import com.niit.lookatme.exception.RequiredLengthException;
 import com.niit.lookatme.exception.ResourceNotFoundException;
 import com.niit.lookatme.facade.EmployeeFacade;
 import com.niit.lookatme.facade.helper.EmployeeFacadeHelper;
@@ -80,6 +82,9 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 	@Value("${employee.pass.default}")
 	private String passwrdDefault;
+
+	@Value("${employee.name.search.min.length}")
+	private int minFNameLength;
 
 	@Override
 	public List<EmployeeDTO> fetchAllExistingEmployeeCurrentWeekBirthdays() {
@@ -123,7 +128,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 				return employeeUserNameFromCreatedEmployee(createEmployeeInput, employee);
 			}
 		} catch (Exception ex) {
-			System.out.println(ex.getMessage());
+			LOGGER.error(ex.getMessage());
 			throw ex;
 		}
 		return StringUtils.EMPTY;
@@ -324,6 +329,27 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	@Override
 	public Boolean checkUsernameAvailability(String username) {
 		return !employeeRepository.existsByUsername(username);
+	}
+
+	@Override
+	public List<EmployeeDTO> findAllMatchingName(String name) {
+		if (StringUtils.isEmpty(name) || name.trim().length() < minFNameLength) {
+			throw new RequiredLengthException("Name", minFNameLength, name);
+		}
+		name = name.trim();
+		if (name.contains(" ")) {
+			/**
+			 * Trim and split on space and find the customers matching
+			 */
+			List<String> nameArr = CustomerAndEmployeeUtils.getSplittedNameArr(name);
+			if (nameArr.size() > 2)
+				return employeeFacadeHelper.createEmployeeDTOList(employeeRepository.findAllMatchingName(nameArr.get(0),
+						nameArr.get(1), nameArr.get(2), Sort.by("fname").ascending().and(Sort.by("mname").ascending())
+								.and(Sort.by("lname").ascending())));
+			return employeeFacadeHelper.createEmployeeDTOList(employeeRepository.findAllMatchingFNameLName(
+					nameArr.get(0), nameArr.get(1), Sort.by("fname").ascending().and(Sort.by("lname").ascending())));
+		}
+		return employeeFacadeHelper.createEmployeeDTOList(employeeRepository.findAllMatchingFirstName(name));
 	}
 
 }

@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -88,8 +89,8 @@ public class CustomerFacadeImpl implements CustomerFacade {
 
 	@Value("${customer.password.notes}")
 	private String passwrdExceptionMsg;
-	
-	@Value("${customer.fname.search.min.length}")
+
+	@Value("${customer.name.search.min.length}")
 	private int minFNameLength;
 
 	private void validatePassword(String password) {
@@ -487,9 +488,9 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	public Boolean checkUsernameAvailability(String username) {
 		return !customerRepository.existsByUsername(username);
 	}
-	
+
 	@Override
-	public List<Customer> findAllMatchingName(String name) {
+	public List<CustomerOutDTO> findAllMatchingName(String name) {
 		if (StringUtils.isEmpty(name) || name.trim().length() < minFNameLength) {
 			throw new RequiredLengthException("Name", minFNameLength, name);
 		}
@@ -498,11 +499,14 @@ public class CustomerFacadeImpl implements CustomerFacade {
 			/**
 			 * Trim and split on space and find the customers matching
 			 */
-			String[] nameArr = name.split("\\s+");
-			if (nameArr.length > 1)
-				return customerRepository.findAllMatchingName(nameArr[0], nameArr[1], nameArr[2]);
-			return customerRepository.findAllMatchingFNameLName(nameArr[0], nameArr[1]);
+			List<String> nameArr = CustomerAndEmployeeUtils.getSplittedNameArr(name);
+			if (nameArr.size() > 2)
+				return customerFacadeHelper.createCustomerOutDTOList(customerRepository
+						.findAllMatchingName(nameArr.get(0), nameArr.get(1), nameArr.get(2), Sort.by("fname")
+								.ascending().and(Sort.by("mname").ascending()).and(Sort.by("lname").ascending())));
+			return customerFacadeHelper.createCustomerOutDTOList(customerRepository.findAllMatchingFNameLName(
+					nameArr.get(0), nameArr.get(1), Sort.by("fname").ascending().and(Sort.by("lname").ascending())));
 		}
-		return customerRepository.findAllMatchingFirstName(name);
+		return customerFacadeHelper.createCustomerOutDTOList(customerRepository.findAllMatchingFirstName(name));
 	}
 }

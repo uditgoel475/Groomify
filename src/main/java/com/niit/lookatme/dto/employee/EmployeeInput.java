@@ -9,10 +9,7 @@ import com.niit.lookatme.dao.employee.Qualifications;
 import com.niit.lookatme.dao.role.RoleName;
 
 public class EmployeeInput extends EmployeeDTO {
-
-	private String fName;
-	private String mName;
-	private String lName;
+	
 	private MultipartFile pictureFile;
 	private Roster roster;
 	private Qualifications qualificationType;
@@ -31,29 +28,6 @@ public class EmployeeInput extends EmployeeDTO {
 
 	public EmployeeInput() {
 		super();
-	}
-
-	
-
-	/**
-	 * @return the fName
-	 */
-	public String getfName() {
-		return fName;
-	}
-
-	/**
-	 * @return the mName
-	 */
-	public String getmName() {
-		return mName;
-	}
-
-	/**
-	 * @return the lName
-	 */
-	public String getlName() {
-		return lName;
 	}
 
 	/**
@@ -138,30 +112,6 @@ public class EmployeeInput extends EmployeeDTO {
 	 */
 	public RoleName getRoleName() {
 		return roleName;
-	}
-
-	/**
-	 * @param fName
-	 *            the fName to set
-	 */
-	public void setfName(String fName) {
-		this.fName = fName;
-	}
-
-	/**
-	 * @param mName
-	 *            the mName to set
-	 */
-	public void setmName(String mName) {
-		this.mName = mName;
-	}
-
-	/**
-	 * @param lName
-	 *            the lName to set
-	 */
-	public void setlName(String lName) {
-		this.lName = lName;
 	}
 
 	/**

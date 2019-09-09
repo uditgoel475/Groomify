@@ -10,7 +10,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 import javax.crypto.BadPaddingException;
@@ -153,6 +155,24 @@ public class CustomerAndEmployeeUtils {
 			LOGGER.error(e.getMessage());
 		}
 		return encryptedText;
+	}
+
+	public static List<String> getSplittedNameArr(String name) {
+		name = name.trim();
+		List<String> arrList = new ArrayList<>(3);
+		if (name.contains(" ")) {
+			String[] nameArr = name.split("\\s+", 3);
+			arrList.add(nameArr[0]);
+			if (nameArr.length > 2) {
+				arrList.add(nameArr[1]);
+				arrList.add(nameArr[2]);
+			} else {
+				arrList.add(nameArr[1]);
+			}
+		} else {
+			arrList.add(name);
+		}
+		return arrList;
 	}
 
 }

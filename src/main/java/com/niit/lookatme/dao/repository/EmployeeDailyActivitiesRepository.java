@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +12,7 @@ import com.niit.lookatme.dao.Activity;
 import com.niit.lookatme.dao.employee.EmployeeDailyActivities;
 
 @Repository("employeeDailyActivitiesRepository")
-public interface EmployeeDailyActivitiesRepository extends CrudRepository<EmployeeDailyActivities, Long> {
+public interface EmployeeDailyActivitiesRepository extends PagingAndSortingRepository<EmployeeDailyActivities, Long> {
 
 	@Query("select e from EmployeeDailyActivities e LEFT JOIN FETCH e.employee t where "
 			+ "e.time >= :startDate and "

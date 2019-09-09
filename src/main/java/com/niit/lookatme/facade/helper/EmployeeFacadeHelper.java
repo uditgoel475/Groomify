@@ -2,6 +2,8 @@ package com.niit.lookatme.facade.helper;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -61,11 +63,24 @@ public class EmployeeFacadeHelper {
 		return employeeDTO;
 	}
 
+	public List<EmployeeDTO> createEmployeeDTOList(List<Employee> employeeList) {
+		return employeeList.stream().map(this::createEmployeeDTO).collect(Collectors.toList());
+	}
+
 	public Employee createEmployeeJPAFromEmployeeInput(EmployeeInput createEmployeeInput) {
 		Employee employee = new Employee();
-		employee.setFname(createEmployeeInput.getfName());
-		employee.setMname(createEmployeeInput.getmName());
-		employee.setLname(createEmployeeInput.getlName());
+
+		if (!StringUtils.isEmpty(createEmployeeInput.getName())) {
+			List<String> splitName = CustomerAndEmployeeUtils.getSplittedNameArr(createEmployeeInput.getName());
+			employee.setFname(splitName.get(0));
+			if (StringUtils.isEmpty(splitName.get(1))) {
+				employee.setMname(splitName.get(1));
+			}
+			if (StringUtils.isEmpty(splitName.get(2))) {
+				employee.setLname(splitName.get(2));
+			}
+		}
+
 		employee.setDob(createEmployeeInput.getDob());
 		if (StringUtils.isEmpty(createEmployeeInput.getUsername())) {
 			createEmployeeInput.setUsername(createEmployeeUsername(createEmployeeInput));
@@ -132,8 +147,10 @@ public class EmployeeFacadeHelper {
 	}
 
 	private GovtIdType validateAndGetGovtIdType(EmployeeInput createEmployeeInput) {
-		GovtIdType govtIdType = govtIdTypeRepository.findByTypeName(createEmployeeInput.getGovtIdType()).orElseThrow(
-				() -> new ResourceNotFoundException("Government ID", "Type", createEmployeeInput.getGovtIdType()));
+		GovtIdType govtIdType = govtIdTypeRepository
+				.findByTypeNameOrderByTypeNameAsc(createEmployeeInput.getGovtIdType())
+				.orElseThrow(() -> new ResourceNotFoundException("Government ID", "Type",
+						createEmployeeInput.getGovtIdType()));
 		if (!StringUtils.isEmpty(govtIdType.getRegex())
 				&& !createEmployeeInput.getGovtId().matches(govtIdType.getRegex())) {
 			throw new IllegalArgumentException(String.format("Government ID '%s' has an invalid value : '%s' ",
@@ -156,15 +173,24 @@ public class EmployeeFacadeHelper {
 		long employeecount = employeeRepository.count();
 
 		StringBuilder userNameBuilder = new StringBuilder();
-		if (StringUtils.isEmpty(employee.getfName())) {
-			return userNameBuilder.append(defaultEmpName).append('.').append(employeecount).toString();
+		if (StringUtils.isEmpty(employee.getName())) {
+			userNameBuilder.append(defaultEmpName).append('.').append(employeecount).toString();
+		} else {
+			List<String> splitName = CustomerAndEmployeeUtils.getSplittedNameArr(employee.getName());
+			userNameBuilder.append(splitName.get(0));
+			if (!StringUtils.isEmpty(splitName.get(1)))
+				userNameBuilder.append('.').append(splitName.get(1));
+			if (!StringUtils.isEmpty(splitName.get(2)))
+				userNameBuilder.append('.').append(splitName.get(2));
+			userNameBuilder.append('.');
 		}
-		userNameBuilder.append(employee.getfName().trim());
-		if (!StringUtils.isEmpty(employee.getmName()))
-			userNameBuilder.append('.').append(employee.getmName().trim());
-		if (!StringUtils.isEmpty(employee.getlName()))
-			userNameBuilder.append('.').append(employee.getlName().trim());
-		userNameBuilder.append('.').append(employeecount);
-		return userNameBuilder.toString();
+
+		List<String> matchingUsername = employeeRepository.findAllUsernameStartsWith(userNameBuilder.toString());
+		while (matchingUsername.contains(userNameBuilder.toString().concat(String.valueOf(employeecount)))) {
+			userNameBuilder.append(0);
+		}
+
+		return userNameBuilder.append(employeecount).toString();
+
 	}
 }

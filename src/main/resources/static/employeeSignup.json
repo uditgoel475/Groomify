@@ -1,6 +1,5 @@
 {
-	"fName" : "Udit",
-	"lName" : "Goel",
+	"name" : "Udit Goel",
 	"username" : "uditgoel007",
 	"dob" : "1990-09-10",
 	"primaryContact" : "9654075084",
@@ -17,7 +16,7 @@
 	"regId" : "8IT113",
 	"email" : "virgorebel@gmail.com",
 	"samePermanent" : true,
-	"password" : "PA#_w01rda",
+	"password" : "Pa##w0rd",
 	"roleName" : "ROLE_EMPLOYEE",
 	"govtIdType" : "PAN CARD",
 	"govtId" : "BGGPG8236C"

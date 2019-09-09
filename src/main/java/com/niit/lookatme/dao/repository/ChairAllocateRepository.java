@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -12,7 +12,7 @@ import com.niit.lookatme.dao.ChairAllocate;
 import com.niit.lookatme.dao.Floor;
 
 @Repository("chairAllocateRepository")
-public interface ChairAllocateRepository extends CrudRepository<ChairAllocate, Long> {
+public interface ChairAllocateRepository extends PagingAndSortingRepository<ChairAllocate, Long> {
 
 	@Query("select c.num from ChairAllocate c where c.floor = :floor and c.available = true and c.occupied = false order by c.num")
 	List<String> findFreeAvailableChairsGivenFloor(@Param("floor") Floor floor);

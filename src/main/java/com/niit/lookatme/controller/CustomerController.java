@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.niit.lookatme.dao.customer.Customer;
 import com.niit.lookatme.dto.UserImageInputType;
 import com.niit.lookatme.dto.UserType;
 import com.niit.lookatme.dto.customer.CustomerOutDTO;
@@ -66,7 +65,7 @@ public class CustomerController {
 	}
 	
 	@GetMapping("matchingNames")
-	public ResponseEntity<List<Customer>> findAllMatchingName(@RequestHeader("name") String name) {
+	public ResponseEntity<List<CustomerOutDTO>> findAllMatchingName(@RequestHeader("name") String name) {
 		return ResponseEntity.ok(customerFacade.findAllMatchingName(name));
 	}
 }

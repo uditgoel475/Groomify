@@ -36,4 +36,6 @@ public interface EmployeeFacade {
 
 	Boolean checkUsernameAvailability(String username);
 
+	List<EmployeeDTO> findAllMatchingName(String name);
+
 }

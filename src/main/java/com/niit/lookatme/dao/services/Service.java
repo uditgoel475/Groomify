@@ -3,6 +3,7 @@ package com.niit.lookatme.dao.services;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -46,7 +47,7 @@ public class Service extends AuditInfo {
 	@Column(name = "NAME", nullable = false)
 	private String name;
 
-	@Column(name = "PRICE", nullable = false)
+	@Column(name = "PRICE")
 	private Double price;
 
 	@Column(name = "HSN/SAC")
@@ -56,7 +57,7 @@ public class Service extends AuditInfo {
 	@Column(name = "SERVICE_TIME")
 	private Date time;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@JoinColumn(name = "SERVICE_TYPE", referencedColumnName = "SERVICE_TYPE_ID")
 	private ServiceType serviceGroup;
 
