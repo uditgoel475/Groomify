@@ -2,6 +2,7 @@ package com.niit.lookatme.facade.helper;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.List;
 
 import javax.annotation.Resource;
 
@@ -164,7 +165,15 @@ public class EmployeeFacadeHelper {
 			userNameBuilder.append('.').append(employee.getmName().trim());
 		if (!StringUtils.isEmpty(employee.getlName()))
 			userNameBuilder.append('.').append(employee.getlName().trim());
-		userNameBuilder.append('.').append(employeecount);
-		return userNameBuilder.toString();
+		userNameBuilder.append('.');
+
+		List<String> matchingUsername = employeeRepository
+				.findAllUsernameStartsWith(userNameBuilder.toString());
+		while (matchingUsername.contains(userNameBuilder.toString().concat(String.valueOf(employeecount)))) {
+			userNameBuilder.append(0);
+		}
+
+		return userNameBuilder.append(employeecount).toString();
+
 	}
 }

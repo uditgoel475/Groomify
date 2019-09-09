@@ -163,8 +163,15 @@ public class CustomerFacadeHelper {
 			nameBuilder.append('.').append(customer.getmName().trim());
 		if (!StringUtils.isEmpty(customer.getlName()))
 			nameBuilder.append('.').append(customer.getlName().trim());
-		nameBuilder.append('.').append(customerCount);
-		return nameBuilder.toString();
+		nameBuilder.append('.');
+
+		List<String> matchingUsername = customerRepository
+				.findAllUsernameStartsWith(nameBuilder.toString());
+		while (matchingUsername.contains(nameBuilder.toString().concat(String.valueOf(customerCount)))) {
+			nameBuilder.append(0);
+		}
+
+		return nameBuilder.append(customerCount).toString();
 	}
 
 	public CustomerDTO createCustomerDTOFromCustomer(Customer customer) {
