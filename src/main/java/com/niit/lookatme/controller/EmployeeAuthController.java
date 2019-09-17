@@ -53,8 +53,7 @@ public class EmployeeAuthController {
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 
-		String jwt = tokenProvider.generateToken(authentication, UserType.EMPLOYEE);
-		return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
+		return ResponseEntity.ok(tokenProvider.generateToken(authentication, UserType.EMPLOYEE));
 	}
 
 	@PostMapping("signup")

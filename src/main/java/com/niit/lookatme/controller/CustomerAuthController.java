@@ -53,8 +53,7 @@ public class CustomerAuthController {
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 
-		String jwt = tokenProvider.generateToken(authentication, UserType.CUSTOMER);
-		return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
+		return ResponseEntity.ok(tokenProvider.generateToken(authentication, UserType.CUSTOMER));
 	}
 
 	@PostMapping("signup")

@@ -1,29 +1,32 @@
 package com.niit.lookatme.dto;
 
+import java.util.Date;
+
 /**
- * Created by rajeevkumarsingh on 19/08/17.
+ * @author Konika
  */
 public class JwtAuthenticationResponse {
-    private String accessToken;
-    private String tokenType = "Bearer";
+	private String accessToken;
+	private String refreshToken;
+	private Date expiresAt;
 
-    public JwtAuthenticationResponse(String accessToken) {
-        this.accessToken = accessToken;
-    }
+	public JwtAuthenticationResponse(String accessToken, String refreshToken, Date expiresAt) {
+		super();
+		this.accessToken = accessToken;
+		this.refreshToken = refreshToken;
+		this.expiresAt = expiresAt;
+	}
 
-    public String getAccessToken() {
-        return accessToken;
-    }
+	public String getAccessToken() {
+		return accessToken;
+	}
 
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
+	public String getRefreshToken() {
+		return refreshToken;
+	}
 
-    public String getTokenType() {
-        return tokenType;
-    }
+	public Date getExpiresAt() {
+		return expiresAt;
+	}
 
-    public void setTokenType(String tokenType) {
-        this.tokenType = tokenType;
-    }
 }

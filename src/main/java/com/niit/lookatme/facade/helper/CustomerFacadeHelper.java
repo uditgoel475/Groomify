@@ -131,10 +131,10 @@ public class CustomerFacadeHelper {
 		if (!StringUtils.isEmpty(customerInput.getName())) {
 			List<String> splitName = CustomerAndEmployeeUtils.getSplittedNameArr(customerInput.getName());
 			customer.setFname(splitName.get(0));
-			if (StringUtils.isEmpty(splitName.get(1))) {
+			if (splitName.size() > 1 && !StringUtils.isEmpty(splitName.get(1))) {
 				customer.setMname(splitName.get(1));
 			}
-			if (StringUtils.isEmpty(splitName.get(2))) {
+			if (splitName.size() > 2 && !StringUtils.isEmpty(splitName.get(2))) {
 				customer.setLname(splitName.get(2));
 			}
 		}
@@ -171,9 +171,9 @@ public class CustomerFacadeHelper {
 		List<String> splitName = CustomerAndEmployeeUtils.getSplittedNameArr(customer.getName());
 
 		StringBuilder nameBuilder = new StringBuilder(splitName.get(0));
-		if (!StringUtils.isEmpty(splitName.get(1)))
+		if (splitName.size() > 1 && !StringUtils.isEmpty(splitName.get(1)))
 			nameBuilder.append('.').append(splitName.get(1));
-		if (!StringUtils.isEmpty(splitName.get(2)))
+		if (splitName.size() > 2 && !StringUtils.isEmpty(splitName.get(2)))
 			nameBuilder.append('.').append(splitName.get(2));
 		nameBuilder.append('.');
 

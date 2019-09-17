@@ -12,7 +12,7 @@ import com.niit.lookatme.dao.customer.Customer;
 import com.niit.lookatme.dao.repository.CustomerRepository;
 import com.niit.lookatme.exception.ResourceNotFoundException;
 
-@Service("customCustomerDetailsService")
+@Service("customerDetailsService")
 public class CustomCustomerDetailsService implements UserDetailsService {
 
 	@Resource

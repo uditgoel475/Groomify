@@ -12,7 +12,7 @@ import com.niit.lookatme.dao.employee.Employee;
 import com.niit.lookatme.dao.repository.EmployeeRepository;
 import com.niit.lookatme.exception.ResourceNotFoundException;
 
-@Service("customEmployeeDetailsService")
+@Service("employeeDetailsService")
 public class CustomEmployeeDetailsService implements UserDetailsService {
 
 	@Resource
