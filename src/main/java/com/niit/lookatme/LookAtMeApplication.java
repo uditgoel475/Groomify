@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @EnableAutoConfiguration
 @EnableTransactionManagement
 @EnableJpaRepositories("com.niit.lookatme.dao.repository")
-@EntityScan(basePackageClasses = { LookAtMeApplication.class, Jsr310JpaConverters.class })
+@EntityScan(basePackageClasses = { LookAtMeApplication.class })
 public class LookAtMeApplication implements WebMvcConfigurer {
 
 	@Override

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.niit.lookatme.client.RedisHelper;
 import com.niit.lookatme.dto.JwtAuthenticationResponse;
 import com.niit.lookatme.dto.JwtJsonSubjectKey;
 import com.niit.lookatme.dto.UserType;
@@ -47,39 +48,46 @@ public class JwtTokenProvider {
 	private String jwtSecret;
 
 	@Value("${app.jwtExpirationInMs}")
-	private int jwtExpirationInMs;
+	private long jwtExpirationInMs;
 	
 	@Value("${app.jwt.refresh.token.length}")
 	private int refreshTokenLength;
 	
 	@Value("${app.jwt.refresh.expirationInMs}")
-	private int refreshTokenExpirationInMs;
+	private long refreshTokenExpirationInMs;
 
 	@Resource
 	private ObjectMapper objectMapper;
+	
+	@Resource
+	private RedisHelper redisHelper;
 
 	public JwtAuthenticationResponse generateToken(Authentication authentication, UserType userType) throws JsonProcessingException {
 		
-		String refreshToken = generateRefreshToken();
+		UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+		String refreshToken = generateEncryptedRefreshToken(userPrincipal, userType);
 
 		Date now = Calendar.getInstance().getTime();
 		Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
-		UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+		JwtJsonSubjectKey jwtJsonSubjectKey = new JwtJsonSubjectKey(userPrincipal.getId(),
+				userPrincipal.getUsername(), userPrincipal.getEmail(), userType);
 		String accessToken = Jwts.builder()
-				.setSubject(AppUtils.encrypt(objectMapper.writeValueAsString(new JwtJsonSubjectKey(userPrincipal.getId(),
-						userPrincipal.getUsername(), userPrincipal.getEmail(), userType)))).setHeaderParam(Header.TYPE, "JWT")
-				.setIssuedAt(new Date()).setExpiration(expiryDate).signWith(SignatureAlgorithm.HS512, jwtSecret)
+				.setSubject(AppUtils.encrypt(objectMapper.writeValueAsString(jwtJsonSubjectKey))).setHeaderParam(Header.TYPE, "JWT")
+				.setIssuedAt(now).setExpiration(expiryDate).signWith(SignatureAlgorithm.HS512, jwtSecret)
 				.compact();
-		return new JwtAuthenticationResponse(accessToken, refreshToken, expiryDate);
+		redisHelper.createRedisJwtAccessToken(userPrincipal.getUsername(), userType, accessToken, jwtJsonSubjectKey);
+		return new JwtAuthenticationResponse(accessToken, refreshToken, expiryDate, userPrincipal.getUsername());
 	}
 
-	private String generateRefreshToken() {
+	private String generateEncryptedRefreshToken(UserPrincipal userPrincipal, UserType userType) {
 		RandomStringGenerator refreshTokenGenerator = new RandomStringGenerator.Builder()
 			      .withinRange(33, 45)
 			      .build();
 		try {
-			return RSAEncryptUtil.encrypt(refreshTokenGenerator.generate(refreshTokenLength));
+			String refreshToken = refreshTokenGenerator.generate(refreshTokenLength);
+			redisHelper.createRedisJWTRefreshToken(userPrincipal.getUsername(), userType, refreshToken, "temp");
+			return RSAEncryptUtil.encrypt(refreshToken);
 		} catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException
 				| NoSuchAlgorithmException e) {
 			logger.error(String.format("couldn't generate Refresh Token : %s", e.getMessage()));

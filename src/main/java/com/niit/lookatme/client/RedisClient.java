@@ -8,7 +8,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-@Component("redisTemplate")
+@Component("redisClient")
 public class RedisClient extends RedisTemplate<String, Object> {
 
 	public RedisClient(RedisConnectionFactory connectionFactory) {
