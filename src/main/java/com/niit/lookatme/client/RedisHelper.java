@@ -36,33 +36,33 @@ public class RedisHelper {
 
 	public void createRedisJwtAccessToken(String username, UserType userType, String token,
 			JwtJsonSubjectKey unencryptedValue) throws JsonProcessingException {
-		String key = String.format(jwtAccessTokenKey, username, userType.toString(), token);
+		String key = String.format(jwtAccessTokenKey, userType.toString(), username, token);
 		redisClient.setValue(key, objectMapper.writeValueAsString(unencryptedValue), jwtExpirationInMs,
 				TimeUnit.MILLISECONDS);
 	}
 
 	public void createRedisJWTRefreshToken(String username, UserType userType, String token, String unencryptedValue) {
-		String key = String.format(jwtRefreshTokenKey, username, userType.toString(), token);
+		String key = String.format(jwtRefreshTokenKey, userType.toString(), username, token);
 		redisClient.setValue(key, unencryptedValue, refreshTokenExpirationInMs, TimeUnit.MILLISECONDS);
 	}
 
 	public String getEmployeeRefreshTokenDetails(String username, String token) {
-		String key = String.format(jwtRefreshTokenKey, username, UserType.EMPLOYEE.toString(), token);
+		String key = String.format(jwtRefreshTokenKey, UserType.EMPLOYEE.toString(), username, token);
 		return redisClient.getValue(key);
 	}
 
 	public JwtJsonSubjectKey getEmployeeAccessTokenDetails(String username, String token) throws IOException {
-		String key = String.format(jwtAccessTokenKey, username, UserType.EMPLOYEE.toString(), token);
+		String key = String.format(jwtAccessTokenKey, UserType.EMPLOYEE.toString(), username, token);
 		return objectMapper.readValue(redisClient.getValue(key), JwtJsonSubjectKey.class);
 	}
 
 	public String getCustomerRefreshTokenDetails(String username, String token) {
-		String key = String.format(jwtRefreshTokenKey, username, UserType.CUSTOMER.toString(), token);
+		String key = String.format(jwtRefreshTokenKey, UserType.CUSTOMER.toString(), username, token);
 		return redisClient.getValue(key);
 	}
 
 	public JwtJsonSubjectKey getCustomerAccessTokenDetails(String username, String token) throws IOException {
-		String key = String.format(jwtAccessTokenKey, username, UserType.CUSTOMER.toString(), token);
+		String key = String.format(jwtAccessTokenKey, UserType.CUSTOMER.toString(), username, token);
 		return objectMapper.readValue(redisClient.getValue(key), JwtJsonSubjectKey.class);
 	}
 

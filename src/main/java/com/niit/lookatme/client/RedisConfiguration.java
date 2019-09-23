@@ -37,7 +37,7 @@ public class RedisConfiguration {
 	@Bean
 	public LettuceConnectionFactory redisConnectionFactory() {
 
-		RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration();
+		/*RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration();
 		redisClusterConfiguration.setPassword(RedisPassword.of(redisMasterPass));
 
 		RedisNode redisNodeMaster = RedisNode.newRedisNode().withId("master")
@@ -48,7 +48,9 @@ public class RedisConfiguration {
 		redisClusterConfiguration.addClusterNode(redisNodeMaster);
 		redisClusterConfiguration.addClusterNode(redisNodeSlave);
 
-		return new LettuceConnectionFactory(redisClusterConfiguration);
+		return new LettuceConnectionFactory(redisClusterConfiguration);*/
+		
+		return new LettuceConnectionFactory(redisMasterHost, redisMasterPort);
 
 	}
 

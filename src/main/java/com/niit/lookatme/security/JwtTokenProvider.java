@@ -65,7 +65,9 @@ public class JwtTokenProvider {
 	public JwtAuthenticationResponse generateToken(Authentication authentication, UserType userType) throws JsonProcessingException {
 		
 		UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-		String refreshToken = generateEncryptedRefreshToken(userPrincipal, userType);
+		String refreshToken = generateEncryptedRefreshToken();
+		
+		redisHelper.createRedisJWTRefreshToken(userPrincipal.getUsername(), userType, refreshToken, "temp");
 
 		Date now = Calendar.getInstance().getTime();
 		Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
@@ -77,16 +79,15 @@ public class JwtTokenProvider {
 				.setIssuedAt(now).setExpiration(expiryDate).signWith(SignatureAlgorithm.HS512, jwtSecret)
 				.compact();
 		redisHelper.createRedisJwtAccessToken(userPrincipal.getUsername(), userType, accessToken, jwtJsonSubjectKey);
-		return new JwtAuthenticationResponse(accessToken, refreshToken, expiryDate, userPrincipal.getUsername());
+		return new JwtAuthenticationResponse(accessToken, refreshToken, expiryDate);
 	}
 
-	private String generateEncryptedRefreshToken(UserPrincipal userPrincipal, UserType userType) {
+	private String generateEncryptedRefreshToken() {
 		RandomStringGenerator refreshTokenGenerator = new RandomStringGenerator.Builder()
 			      .withinRange(33, 45)
 			      .build();
 		try {
 			String refreshToken = refreshTokenGenerator.generate(refreshTokenLength);
-			redisHelper.createRedisJWTRefreshToken(userPrincipal.getUsername(), userType, refreshToken, "temp");
 			return RSAEncryptUtil.encrypt(refreshToken);
 		} catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException
 				| NoSuchAlgorithmException e) {

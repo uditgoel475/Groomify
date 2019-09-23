@@ -9,14 +9,12 @@ public class JwtAuthenticationResponse {
 	private String accessToken;
 	private String refreshToken;
 	private Date expiresAt;
-	private String username;
 
-	public JwtAuthenticationResponse(String accessToken, String refreshToken, Date expiresAt, String username) {
+	public JwtAuthenticationResponse(String accessToken, String refreshToken, Date expiresAt) {
 		super();
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
 		this.expiresAt = expiresAt;
-		this.username = username;
 	}
 
 	public String getAccessToken() {
@@ -29,10 +27,6 @@ public class JwtAuthenticationResponse {
 
 	public Date getExpiresAt() {
 		return expiresAt;
-	}
-	
-	public String getUsername() {
-		return username;
 	}
 
 }
