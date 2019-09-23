@@ -120,16 +120,11 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 			createEmployeeInput.setPassword(passwordEncoder.encode(passwrdDefault));
 		}
 
-		try {
-			Employee employee = employeeRepository
-					.save(employeeFacadeHelper.createEmployeeJPAFromEmployeeInput(createEmployeeInput));
+		Employee employee = employeeRepository
+				.save(employeeFacadeHelper.createEmployeeJPAFromEmployeeInput(createEmployeeInput));
 
-			if (employee.getId() != null) {
-				return employeeUserNameFromCreatedEmployee(createEmployeeInput, employee);
-			}
-		} catch (Exception ex) {
-			LOGGER.error(ex.getMessage());
-			throw ex;
+		if (employee.getId() != null) {
+			return employeeUserNameFromCreatedEmployee(createEmployeeInput, employee);
 		}
 		return StringUtils.EMPTY;
 	}

@@ -1,17 +1,21 @@
 package com.niit.lookatme.client;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.niit.lookatme.dto.JwtJsonSubjectKey;
-import com.niit.lookatme.dto.UserType;
 
 @Component("redisHelper")
 public class RedisHelper {
@@ -34,36 +38,51 @@ public class RedisHelper {
 	@Resource
 	private ObjectMapper objectMapper;
 
-	public void createRedisJwtAccessToken(String username, UserType userType, String token,
-			JwtJsonSubjectKey unencryptedValue) throws JsonProcessingException {
-		String key = String.format(jwtAccessTokenKey, username, userType.toString(), token);
+	private boolean redisWorking;
+
+	@PostConstruct
+	public void init() {
+		redisWorking = Optional.ofNullable(redisClient).map(RedisClient::getConnectionFactory)
+				.map(RedisConnectionFactory::getConnection).map(RedisConnection::ping).filter("PONG"::equals)
+				.isPresent();
+	}
+
+	public void createRedisJwtAccessToken(String token, JwtJsonSubjectKey unencryptedValue)
+			throws JsonProcessingException {
+		String key = String.format(jwtAccessTokenKey, token);
 		redisClient.setValue(key, objectMapper.writeValueAsString(unencryptedValue), jwtExpirationInMs,
 				TimeUnit.MILLISECONDS);
 	}
 
-	public void createRedisJWTRefreshToken(String username, UserType userType, String token, String unencryptedValue) {
-		String key = String.format(jwtRefreshTokenKey, username, userType.toString(), token);
-		redisClient.setValue(key, unencryptedValue, refreshTokenExpirationInMs, TimeUnit.MILLISECONDS);
+	public void createRedisJWTRefreshToken(String token, JwtJsonSubjectKey unencryptedValue)
+			throws JsonProcessingException {
+		String key = String.format(jwtRefreshTokenKey, token);
+		redisClient.setValue(key, objectMapper.writeValueAsString(unencryptedValue), refreshTokenExpirationInMs,
+				TimeUnit.MILLISECONDS);
 	}
 
-	public String getEmployeeRefreshTokenDetails(String username, String token) {
-		String key = String.format(jwtRefreshTokenKey, username, UserType.EMPLOYEE.toString(), token);
-		return redisClient.getValue(key);
+	public JwtJsonSubjectKey getRefreshTokenDetails(String token) throws IOException {
+		String key = String.format(jwtRefreshTokenKey, token);
+		String redisValue = redisClient.getValue(key);
+		if (StringUtils.isEmpty(redisValue))
+			return null;
+		return objectMapper.readValue(redisValue, JwtJsonSubjectKey.class);
 	}
 
-	public JwtJsonSubjectKey getEmployeeAccessTokenDetails(String username, String token) throws IOException {
-		String key = String.format(jwtAccessTokenKey, username, UserType.EMPLOYEE.toString(), token);
-		return objectMapper.readValue(redisClient.getValue(key), JwtJsonSubjectKey.class);
+	public JwtJsonSubjectKey getAccessTokenDetails(String token) throws IOException {
+		String key = String.format(jwtAccessTokenKey, token);
+		String redisValue = redisClient.getValue(key);
+		if (StringUtils.isEmpty(redisValue))
+			return null;
+		return objectMapper.readValue(redisValue, JwtJsonSubjectKey.class);
 	}
 
-	public String getCustomerRefreshTokenDetails(String username, String token) {
-		String key = String.format(jwtRefreshTokenKey, username, UserType.CUSTOMER.toString(), token);
-		return redisClient.getValue(key);
+	public boolean isRedisWorking() {
+		return redisWorking;
 	}
 
-	public JwtJsonSubjectKey getCustomerAccessTokenDetails(String username, String token) throws IOException {
-		String key = String.format(jwtAccessTokenKey, username, UserType.CUSTOMER.toString(), token);
-		return objectMapper.readValue(redisClient.getValue(key), JwtJsonSubjectKey.class);
+	public RedisClient getRedisClient() {
+		return redisClient;
 	}
 
 }

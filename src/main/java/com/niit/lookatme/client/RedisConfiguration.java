@@ -4,10 +4,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisClusterConfiguration;
-import org.springframework.data.redis.connection.RedisNode;
-import org.springframework.data.redis.connection.RedisNode.NodeType;
-import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -37,7 +33,7 @@ public class RedisConfiguration {
 	@Bean
 	public LettuceConnectionFactory redisConnectionFactory() {
 
-		RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration();
+		/*RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration();
 		redisClusterConfiguration.setPassword(RedisPassword.of(redisMasterPass));
 
 		RedisNode redisNodeMaster = RedisNode.newRedisNode().withId("master")
@@ -48,7 +44,9 @@ public class RedisConfiguration {
 		redisClusterConfiguration.addClusterNode(redisNodeMaster);
 		redisClusterConfiguration.addClusterNode(redisNodeSlave);
 
-		return new LettuceConnectionFactory(redisClusterConfiguration);
+		return new LettuceConnectionFactory(redisClusterConfiguration);*/
+		
+		return new LettuceConnectionFactory(redisMasterHost, redisMasterPort);
 
 	}
 

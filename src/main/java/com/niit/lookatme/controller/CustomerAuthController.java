@@ -1,6 +1,7 @@
 package com.niit.lookatme.controller;
 
 import java.net.URI;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -42,6 +43,24 @@ public class CustomerAuthController {
 
 	@Resource
 	private ObjectMapper objectMapper;
+
+	@PostMapping("refreshToken")
+	public ResponseEntity<JwtAuthenticationResponse> regenerateAccessToken(
+			@RequestBody Map<String, String> refreshTokenMap) throws JsonProcessingException {
+		String refreshToken = refreshTokenMap.get("refreshToken");
+		JwtJsonSubjectKey jwtJsonSubjectKey = tokenProvider.getJwtJsonSubjectKeyFromRefreshToken(refreshToken);
+		Authentication authentication = authenticationManager
+				.authenticate(
+						new UsernamePasswordAuthenticationToken(
+								objectMapper.writeValueAsString(
+										new JwtJsonSubjectKey(jwtJsonSubjectKey.getUsername(), UserType.CUSTOMER)),
+								null));
+
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		JwtAuthenticationResponse jwtResponseToken = tokenProvider.createAccessToken(jwtJsonSubjectKey);
+		jwtResponseToken.setRefreshToken(refreshToken);
+		return ResponseEntity.ok(jwtResponseToken);
+	}
 
 	@PostMapping("signin")
 	public ResponseEntity<JwtAuthenticationResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest)
