@@ -49,14 +49,6 @@ public class CustomerAuthController {
 			@RequestBody Map<String, String> refreshTokenMap) throws JsonProcessingException {
 		String refreshToken = refreshTokenMap.get("refreshToken");
 		JwtJsonSubjectKey jwtJsonSubjectKey = tokenProvider.getJwtJsonSubjectKeyFromRefreshToken(refreshToken);
-		Authentication authentication = authenticationManager
-				.authenticate(
-						new UsernamePasswordAuthenticationToken(
-								objectMapper.writeValueAsString(
-										new JwtJsonSubjectKey(jwtJsonSubjectKey.getUsername(), UserType.CUSTOMER)),
-								null));
-
-		SecurityContextHolder.getContext().setAuthentication(authentication);
 		JwtAuthenticationResponse jwtResponseToken = tokenProvider.createAccessToken(jwtJsonSubjectKey);
 		jwtResponseToken.setRefreshToken(refreshToken);
 		return ResponseEntity.ok(jwtResponseToken);
