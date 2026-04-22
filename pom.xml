@@ -9,12 +9,12 @@
 		<version>2.1.8.RELEASE</version>
 		<relativePath />
 	</parent>
-	<groupId>com.niit</groupId>
-	<artifactId>LookAtMe</artifactId>
+	<groupId>com.uditgoel</groupId>
+	<artifactId>groomify</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
-	<name>LookAtMe</name>
-	<description>Look At Me Unisex Salon Services for online/offline booking</description>
+	<name>groomify</name>
+	<description>Groomify — salon booking backend with JWT + refresh tokens, Redis-backed sessions, and Spring Security.</description>
 	<properties>
 		<java.version>1.8</java.version>
 		<jjwt.version>0.9.0</jjwt.version>
