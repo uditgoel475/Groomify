@@ -1,15 +1,16 @@
 package com.uditgoel.groomify.security;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.Date;
 
-import javax.annotation.Resource;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 import org.apache.commons.text.RandomStringGenerator;
 import org.slf4j.Logger;
@@ -29,15 +30,25 @@ import com.uditgoel.groomify.utils.RSAEncryptUtil;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
+
+import jakarta.annotation.Resource;
 
 /**
- * @author Konika
+ * JWT issuing and validation.
+ *
+ * <p>Design:
+ * <ul>
+ *   <li>Access tokens are stateless — validated purely by HS512 signature. No Redis round-trip on
+ *       the hot path. The subject payload carries the user id / type, so no DB lookup either.</li>
+ *   <li>Refresh tokens are opaque random strings, RSA-encrypted and stored in Redis keyed by
+ *       the ciphertext. The refresh endpoint is the only place that touches Redis, which keeps
+ *       server-side revocation while still serving the vast majority of requests without it.</li>
+ * </ul>
  */
 @Component
 public class JwtTokenProvider {
@@ -62,52 +73,53 @@ public class JwtTokenProvider {
 	@Resource
 	private RedisHelper redisHelper;
 
+	private SecretKey signingKey() {
+		return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+	}
+
 	public JwtAuthenticationResponse generateToken(Authentication authentication, UserType userType)
 			throws JsonProcessingException {
 
 		UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 		String refreshToken = createRefreshToken(userPrincipal.getUsername(), userType.toString());
 
-		JwtJsonSubjectKey jwtJsonSubjectKey = new JwtJsonSubjectKey(userPrincipal.getId(), userPrincipal.getUsername(),
+		JwtJsonSubjectKey subjectKey = new JwtJsonSubjectKey(userPrincipal.getId(), userPrincipal.getUsername(),
 				userPrincipal.getEmail(), userType);
-		JwtAuthenticationResponse jwtAuthenticationResponse = getAccessToken(jwtJsonSubjectKey);
+		JwtAuthenticationResponse response = issueAccessToken(subjectKey);
 		if (redisHelper.isRedisWorking()) {
-			redisHelper.createRedisJWTRefreshToken(refreshToken, jwtJsonSubjectKey);
-			redisHelper.createRedisJwtAccessToken(jwtAuthenticationResponse.getAccessToken(), jwtJsonSubjectKey);
+			redisHelper.createRedisJWTRefreshToken(refreshToken, subjectKey);
 		}
-		jwtAuthenticationResponse.setRefreshToken(refreshToken);
-		return jwtAuthenticationResponse;
+		response.setRefreshToken(refreshToken);
+		return response;
 	}
 
-	public JwtAuthenticationResponse createAccessToken(JwtJsonSubjectKey jwtJsonSubjectKey)
-			throws JsonProcessingException {
-		JwtAuthenticationResponse jwtAuthenticationResponse = getAccessToken(jwtJsonSubjectKey);
-		if (redisHelper.isRedisWorking()) {
-			redisHelper.createRedisJwtAccessToken(jwtAuthenticationResponse.getAccessToken(), jwtJsonSubjectKey);
-		}
-		return jwtAuthenticationResponse;
+	public JwtAuthenticationResponse createAccessToken(JwtJsonSubjectKey subjectKey) throws JsonProcessingException {
+		return issueAccessToken(subjectKey);
 	}
 
-	private JwtAuthenticationResponse getAccessToken(JwtJsonSubjectKey jwtJsonSubjectKey)
-			throws JsonProcessingException {
+	private JwtAuthenticationResponse issueAccessToken(JwtJsonSubjectKey subjectKey) throws JsonProcessingException {
 		Date now = Calendar.getInstance().getTime();
 		Date expire = new Date(now.getTime() + jwtExpirationInMs);
-		return new JwtAuthenticationResponse(
-				Jwts.builder().setSubject(AppUtils.encrypt(objectMapper.writeValueAsString(jwtJsonSubjectKey)))
-						.setHeaderParam(Header.TYPE, "JWT").setIssuedAt(now).setExpiration(expire)
-						.signWith(SignatureAlgorithm.HS512, jwtSecret).compact(),
-				expire);
+		String token = Jwts.builder()
+				.subject(AppUtils.encrypt(objectMapper.writeValueAsString(subjectKey)))
+				.issuedAt(now)
+				.expiration(expire)
+				.signWith(signingKey(), Jwts.SIG.HS512)
+				.compact();
+		return new JwtAuthenticationResponse(token, expire);
 	}
 
 	public JwtJsonSubjectKey getJwtJsonSubjectKeyFromRefreshToken(String refreshToken) {
-		if (redisHelper.isRedisWorking()) {
-			try {
-				return redisHelper.getRefreshTokenDetails(refreshToken);
-			} catch (IOException e) {
-				logger.error(String.format("couldn't get refresh token details : %s", e.getMessage()));
-			}
+		if (!redisHelper.isRedisWorking()) {
+			logger.error("Redis unavailable; cannot resolve refresh token");
+			return null;
 		}
-		return null;
+		try {
+			return redisHelper.getRefreshTokenDetails(refreshToken);
+		} catch (IOException e) {
+			logger.error("Could not resolve refresh token: {}", e.getMessage());
+			return null;
+		}
 	}
 
 	private String createRefreshToken(String username, String userType) {
@@ -117,54 +129,54 @@ public class JwtTokenProvider {
 		try {
 			StringBuilder refreshTokenBuilder = new StringBuilder(refreshTokenGenerator.generate(refreshTokenLength));
 			refreshTokenBuilder.append("/username/").append(username).append("/usertype/").append(userType);
-			
+
 			String encryptedToken = RSAEncryptUtil.encrypt(refreshTokenBuilder.toString());
-			if(null != getJwtJsonSubjectKeyFromRefreshToken(encryptedToken)) {
+			if (redisHelper.isRedisWorking() && getJwtJsonSubjectKeyFromRefreshToken(encryptedToken) != null) {
 				redisHelper.getRedisClient().delete(encryptedToken);
 			}
 			return encryptedToken;
 		} catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException
 				| NoSuchAlgorithmException e) {
-			logger.error(String.format("couldn't generate Refresh Token : %s", e.getMessage()));
+			logger.error("Could not generate refresh token: {}", e.getMessage());
 		}
 		return null;
 	}
 
+	/**
+	 * Extract subject from a signed access token. Pure signature + payload decode — no Redis.
+	 */
 	public JwtJsonSubjectKey getUserIdFromJWT(String token) throws IOException {
-		if (redisHelper.isRedisWorking()) {
-			return getAccessTokenDetails(token);
-		}
-		Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+		Claims claims = Jwts.parser()
+				.verifyWith(signingKey())
+				.build()
+				.parseSignedClaims(token)
+				.getPayload();
 		return objectMapper.readValue(AppUtils.decrypt(claims.getSubject()), JwtJsonSubjectKey.class);
 	}
 
-	private JwtJsonSubjectKey getAccessTokenDetails(String token) {
-		try {
-			return redisHelper.getAccessTokenDetails(token);
-		} catch (IOException e) {
-			logger.error("Invalid JWT Access Token");
-		}
-		return null;
-	}
-
+	/**
+	 * Validate an access token by signature and expiry only.
+	 * Server-side revocation happens at the refresh endpoint (which does touch Redis).
+	 */
 	public boolean validateAccessToken(String authToken) {
-		if (redisHelper.isRedisWorking()) {
-			return null != getAccessTokenDetails(authToken);
-		}
 		try {
-			Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
+			Jwts.parser().verifyWith(signingKey()).build().parseSignedClaims(authToken);
 			return true;
 		} catch (SignatureException ex) {
 			logger.error("Invalid JWT signature");
 		} catch (MalformedJwtException ex) {
-			logger.error("Invalid JWT token");
+			logger.error("Malformed JWT token");
 		} catch (ExpiredJwtException ex) {
 			logger.error("Expired JWT token");
 		} catch (UnsupportedJwtException ex) {
 			logger.error("Unsupported JWT token");
 		} catch (IllegalArgumentException ex) {
-			logger.error("JWT claims string is empty.");
+			logger.error("JWT claims string is empty");
 		}
 		return false;
+	}
+
+	public long getRefreshTokenExpirationInMs() {
+		return refreshTokenExpirationInMs;
 	}
 }

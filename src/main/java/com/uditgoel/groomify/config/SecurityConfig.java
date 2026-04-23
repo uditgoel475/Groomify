@@ -1,55 +1,37 @@
 package com.uditgoel.groomify.config;
 
-import javax.annotation.Resource;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.BeanIds;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.uditgoel.groomify.security.CustomUserDetailsService;
 import com.uditgoel.groomify.security.JwtAuthenticationEntryPoint;
 import com.uditgoel.groomify.security.JwtAuthenticationFilter;
 
-/**
- * Created by rajeevkumarsingh on 01/08/17.
- */
-
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+@EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
+public class SecurityConfig {
 
-	@Resource
-	private CustomUserDetailsService customUserDetailsService;
+	private final CustomUserDetailsService customUserDetailsService;
+	private final JwtAuthenticationEntryPoint unauthorizedHandler;
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-	@Resource
-	private JwtAuthenticationEntryPoint unauthorizedHandler;
-
-	@Bean
-	public JwtAuthenticationFilter jwtAuthenticationFilter() {
-		return new JwtAuthenticationFilter();
-	}
-
-	@Override
-	public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-		authenticationManagerBuilder.userDetailsService(customUserDetailsService)
-				.passwordEncoder(passwordEncoder());
-	}
-
-	@Bean(BeanIds.AUTHENTICATION_MANAGER)
-	@Override
-	public AuthenticationManager authenticationManagerBean() throws Exception {
-		return super.authenticationManagerBean();
+	public SecurityConfig(CustomUserDetailsService customUserDetailsService,
+			JwtAuthenticationEntryPoint unauthorizedHandler, JwtAuthenticationFilter jwtAuthenticationFilter) {
+		this.customUserDetailsService = customUserDetailsService;
+		this.unauthorizedHandler = unauthorizedHandler;
+		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
 	}
 
 	@Bean
@@ -57,32 +39,52 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		return new BCryptPasswordEncoder();
 	}
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http.cors().and().csrf().disable().exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
-				.antMatchers("/", 
-						"/favicon.ico", 
-						"/**/*.png", 
-						"/**/*.gif", 
-						"/**/*.svg", 
-						"/**/*.jpg", 
-						"/**/*.html",
-						"/**/*.css", 
-						"/**/*.js", 
-						"/v2/api-docs",
-                        "/swagger-resources/**", 
-                        "/swagger-ui.html**")
-				.permitAll()
-				.antMatchers("/api/auth/**",
-						"/api/employee/checkUsernameAvailability/**", 
-						"/api/customer/checkEmailAvailability/**",
-						"/api/customer/checkUsernameAvailability/**")
-				.permitAll()
-				.anyRequest()
-				.authenticated();
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+		return config.getAuthenticationManager();
+	}
 
-		http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+	@Bean
+	public DaoAuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+		provider.setUserDetailsService(customUserDetailsService);
+		provider.setPasswordEncoder(passwordEncoder());
+		return provider;
+	}
 
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http
+			.cors(cors -> {})
+			.csrf(csrf -> csrf.disable())
+			.exceptionHandling(eh -> eh.authenticationEntryPoint(unauthorizedHandler))
+			.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers(
+					"/",
+					"/favicon.ico",
+					"/**/*.png",
+					"/**/*.gif",
+					"/**/*.svg",
+					"/**/*.jpg",
+					"/**/*.html",
+					"/**/*.css",
+					"/**/*.js",
+					"/v3/api-docs/**",
+					"/swagger-ui/**",
+					"/swagger-ui.html"
+				).permitAll()
+				.requestMatchers(
+					"/api/auth/**",
+					"/api/employee/checkUsernameAvailability/**",
+					"/api/customer/checkEmailAvailability/**",
+					"/api/customer/checkUsernameAvailability/**"
+				).permitAll()
+				.anyRequest().authenticated()
+			)
+			.authenticationProvider(authenticationProvider())
+			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+		return http.build();
 	}
 }

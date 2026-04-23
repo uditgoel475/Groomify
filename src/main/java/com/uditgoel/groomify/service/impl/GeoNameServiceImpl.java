@@ -5,7 +5,7 @@ package com.uditgoel.groomify.service.impl;
 
 import java.util.Optional;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

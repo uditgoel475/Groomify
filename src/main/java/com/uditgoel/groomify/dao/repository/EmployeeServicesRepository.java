@@ -3,7 +3,7 @@ package com.uditgoel.groomify.dao.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -11,7 +11,7 @@ import com.uditgoel.groomify.dao.employee.Employee;
 import com.uditgoel.groomify.dao.services.EmployeeServices;
 
 @Repository("employeeServicesRepository")
-public interface EmployeeServicesRepository extends PagingAndSortingRepository<EmployeeServices, Long> {
+public interface EmployeeServicesRepository extends JpaRepository<EmployeeServices, Long> {
 
 	@Query("select e from EmployeeServices es INNER JOIN es.service s INNER JOIN es.employee e where "
 			+ "e.username in (:employeeUsernames) and s.name = :service order by e.username")

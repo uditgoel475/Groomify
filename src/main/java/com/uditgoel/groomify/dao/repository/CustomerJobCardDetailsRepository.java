@@ -3,14 +3,14 @@ package com.uditgoel.groomify.dao.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.uditgoel.groomify.dao.customer.CustomerJobCardDetails;
 
 @Repository("customerJobCardDetailsRepository")
-public interface CustomerJobCardDetailsRepository extends PagingAndSortingRepository<CustomerJobCardDetails, Long> {
+public interface CustomerJobCardDetailsRepository extends JpaRepository<CustomerJobCardDetails, Long> {
 
 	@Query("Select c from CustomerJobCardDetails c LEFT JOIN FETCH c.jobId t where t.jobId = :jobId and c.subJobId in (:subJobIdList) order by c.jobStartTime")
 	List<CustomerJobCardDetails> findBySubJobIdAndJobId(@Param("subJobIdList") List<String> subJobIdList, @Param("jobId") String jobId);

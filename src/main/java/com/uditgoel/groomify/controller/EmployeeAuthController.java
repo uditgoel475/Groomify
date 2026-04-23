@@ -3,8 +3,8 @@ package com.uditgoel.groomify.controller;
 import java.net.URI;
 import java.util.Map;
 
-import javax.annotation.Resource;
-import javax.validation.Valid;
+import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;

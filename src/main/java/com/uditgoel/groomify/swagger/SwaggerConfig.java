@@ -1,32 +1,28 @@
 package com.uditgoel.groomify.swagger;
 
-import java.util.ArrayList;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.service.Contact;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
 
 @Configuration
-@EnableSwagger2
 public class SwaggerConfig {
-	@Bean
-	public Docket productApi() {
-		return new Docket(DocumentationType.SWAGGER_2).select()
-				.apis(RequestHandlerSelectors.basePackage("com.uditgoel.groomify.controller")).paths(PathSelectors.any())
-				.build().apiInfo(metaData());
-	}
 
-	private ApiInfo metaData() {
-		return new ApiInfo("Groomify REST API", "Salon booking backend — customers, employees, services, orders", "1.0",
-				"Terms of service",
-				new Contact("Udit Goel", "https://github.com/uditgoel475/Groomify", "goeludit1990@gmail.com"),
-				"MIT License", "https://opensource.org/licenses/MIT", new ArrayList<>());
+	@Bean
+	public OpenAPI groomifyOpenAPI() {
+		return new OpenAPI().info(new Info()
+				.title("Groomify REST API")
+				.description("Salon booking backend — customers, employees, services, orders")
+				.version("1.0")
+				.contact(new Contact()
+						.name("Udit Goel")
+						.url("https://github.com/uditgoel475/Groomify")
+						.email("goeludit1990@gmail.com"))
+				.license(new License()
+						.name("MIT License")
+						.url("https://opensource.org/licenses/MIT")));
 	}
 }

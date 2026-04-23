@@ -1,14 +1,15 @@
 package com.uditgoel.groomify;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@RunWith(MockitoJUnitRunner.class)
-public class GroomifyApplicationTests {
+import org.junit.jupiter.api.Test;
+
+class GroomifyApplicationTests {
 
 	@Test
-	public void contextLoads() {
+	void applicationClassLoads() {
+		// Placeholder test. A real @SpringBootTest + Testcontainers harness
+		// would start Postgres + Redis and exercise the auth flow.
+		assertNotNull(GroomifyApplication.class);
 	}
-
 }
