@@ -1,0 +1,23 @@
+# Gitleaks config. Tightens defaults and allows known dev/test fixtures.
+# Run locally with:  gitleaks detect --config .gitleaks.toml
+# Run on a PR diff:  gitleaks protect --staged --config .gitleaks.toml
+
+# Inherit gitleaks's bundled rules — they catch JWT/AWS/GCP/Slack/etc.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures and documented dev placeholders"
+paths = [
+  '''src/test/resources/application-test\.properties$''',
+  '''\.env\.example$''',
+  '''README\.md$''',
+  '''scripts/seed/.*\.json$''',
+]
+# Don't flag the fixed test JWT secret or the deterministic test AES key.
+regexes = [
+  '''test-secret-test-secret-test-secret-test-secret-test-secret-1234''',
+  '''AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=''',
+  '''replace-with-[a-z0-9-]+''',
+  '''\$\{[A-Z_]+:[^}]*\}''',
+]

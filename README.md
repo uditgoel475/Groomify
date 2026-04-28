@@ -165,6 +165,22 @@ and an H2 datasource — no Docker daemon, no Postgres install needed.
 - **RSA keys** for the refresh-token payload moved out of the source into `rsa.public.key` / `rsa.private.key` properties (OAEP-SHA256 padding, not PKCS#1 v1.5).
 - **JWT secret + RSA private key** scrubbed from git history with `git filter-repo`.
 
+## Security notes
+
+- `.env` is gitignored. Never commit it — `scripts/generate-env.sh` produces a fresh
+  one each time you need rotation.
+- A weak hardcoded HMAC secret was leaked in a 2019 commit and went unnoticed by an
+  earlier `git filter-repo` pass. It has since been scrubbed from every blob across
+  all branches. The current `JwtTokenProvider` rejects HS512 keys shorter than 64
+  bytes at startup, so the leak cannot forge JWTs against the modernized code path,
+  but if any pre-modernization deployment is still running with that secret, rotate
+  `APP_JWT_SECRET` there immediately.
+- A [gitleaks](https://github.com/gitleaks/gitleaks) workflow runs on every push,
+  pull request, and weekly via cron — see [`.github/workflows/secret-scan.yml`](.github/workflows/secret-scan.yml)
+  and [`.gitleaks.toml`](.gitleaks.toml). The allowlist exempts the deterministic
+  test-only fixtures in `src/test/resources/application-test.properties` and the
+  empty-placeholder shapes in `.env.example`.
+
 ## Caveats & known issues
 
 - **Tests are stubs.** The only test is `GroomifyApplicationTests.applicationClassLoads`. A Testcontainers harness for Postgres + Redis is the next step.
