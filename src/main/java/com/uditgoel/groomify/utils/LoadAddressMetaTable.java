@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.uditgoel.groomify.dao.AddressMeta;
@@ -69,6 +70,7 @@ public class LoadAddressMetaTable {
 	}
 
 	@PostConstruct
+	@Transactional
 	public void init() {
 		if (addressMetaRepository.count() > 0) {
 			logger.info("AddressMeta already populated; skipping geonames bootstrap");

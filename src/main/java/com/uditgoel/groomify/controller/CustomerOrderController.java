@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,23 +33,27 @@ public class CustomerOrderController {
 	}
 
 	@GetMapping("orders/open/{custNo}")
+	@PreAuthorize("authentication.name == #custNo")
 	public ResponseEntity<List<CustomerOrderOut>> fetchAllOpenCustomerOrders(@PathVariable("custNo") String custNo) {
 		return ResponseEntity.ok(customerFacade.fetchAllOpenCustomerOrder(custNo));
 	}
 
 	@GetMapping("orders/all/{custNo}")
+	@PreAuthorize("authentication.name == #custNo")
 	public ResponseEntity<List<CustomerOrderOut>> fetchAllCustomerOrderGivenDate(@PathVariable("custNo") String custNo,
 			@RequestHeader("appointmentDate")  @DateTimeFormat(pattern="yyyy-MM-dd") Date appointmentDate) {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerCalendarOpenAppointmentGivenDate(custNo, appointmentDate));
 	}
 
 	@GetMapping("enquiry/{custNo}")
+	@PreAuthorize("authentication.name == #custNo")
 	public ResponseEntity<List<CustomerOrderOut>> fetchAllCustomerEnquiryGivenDate(@PathVariable("custNo") String custNo,
 			@RequestHeader("appointmentDate")  @DateTimeFormat(pattern="yyyy-MM-dd") Date appointmentDate) {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiryGivenDate(custNo, appointmentDate));
 	}
 
 	@GetMapping("enquiry/all/{custNo}")
+	@PreAuthorize("authentication.name == #custNo")
 	public ResponseEntity<List<CustomerOrderOut>> fetchAllCustomerEnquiries(@PathVariable("custNo") String custNo) {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiries(custNo));
 	}

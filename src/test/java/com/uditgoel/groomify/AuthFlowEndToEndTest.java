@@ -159,26 +159,50 @@ class AuthFlowEndToEndTest {
 	}
 
 	@Test
-	void accessToken_unlocks_authenticatedEndpoint() {
+	void accessToken_unlocks_ownProfile() {
 		String username = "frank" + System.nanoTime();
 		String password = "Test@1234";
 		ResponseEntity<String> signup = rest.postForEntity(url("/api/auth/customer/signup"),
 				validCustomerSignup(username, username + "@example.com", password), String.class);
 		assertThat(signup.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
-		ResponseEntity<JwtAuthenticationResponse> signin = rest.postForEntity(url("/api/auth/customer/signin"),
-				Map.of("username", username, "password", password), JwtAuthenticationResponse.class);
-		String accessToken = signin.getBody().accessToken();
+		String accessToken = rest.postForEntity(url("/api/auth/customer/signin"),
+				Map.of("username", username, "password", password), JwtAuthenticationResponse.class)
+				.getBody().accessToken();
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
-		ResponseEntity<String> probe = rest.exchange(url("/api/customer/by/username/" + username), HttpMethod.GET,
+		ResponseEntity<String> probe = rest.exchange(url("/api/customer/" + username), HttpMethod.GET,
 				new HttpEntity<>(headers), String.class);
 
 		assertThat(probe.getStatusCode())
-				.as("access token must NOT be 401 Unauthorized — got %s body=%s",
+				.as("own-profile fetch must be 200, got %s body=%s", probe.getStatusCode(), probe.getBody())
+				.isEqualTo(HttpStatus.OK);
+		assertThat(probe.getBody()).contains("\"username\":\"" + username + "\"");
+	}
+
+	@Test
+	void accessToken_cannotFetch_otherUsersProfile_returns403() {
+		String aliceName = "alice" + System.nanoTime();
+		String bobName = "bob" + System.nanoTime() + "x";
+		String password = "Test@1234";
+		rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup(aliceName, aliceName + "@example.com", password), String.class);
+		rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup(bobName, bobName + "@example.com", password), String.class);
+		String aliceToken = rest.postForEntity(url("/api/auth/customer/signin"),
+				Map.of("username", aliceName, "password", password), JwtAuthenticationResponse.class)
+				.getBody().accessToken();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + aliceToken);
+		ResponseEntity<String> probe = rest.exchange(url("/api/customer/" + bobName), HttpMethod.GET,
+				new HttpEntity<>(headers), String.class);
+
+		assertThat(probe.getStatusCode())
+				.as("alice fetching bob's profile must be 403 Forbidden, got %s body=%s",
 						probe.getStatusCode(), probe.getBody())
-				.isNotEqualTo(HttpStatus.UNAUTHORIZED);
+				.isEqualTo(HttpStatus.FORBIDDEN);
 	}
 
 	@Test

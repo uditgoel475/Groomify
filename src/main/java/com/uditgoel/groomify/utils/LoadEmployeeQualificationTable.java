@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.uditgoel.groomify.dao.employee.EmployeeQualification;
 import com.uditgoel.groomify.dao.employee.Qualifications;
@@ -23,6 +24,7 @@ public class LoadEmployeeQualificationTable {
 	}
 
 	@PostConstruct
+	@Transactional
 	public void init() {
 
 		if (employeeQualificationRepository.count() == 0) {

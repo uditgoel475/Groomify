@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,11 +39,13 @@ public class EmployeeController {
 	}
 
 	@GetMapping("{username}")
+	@PreAuthorize("authentication.name == #username")
 	public ResponseEntity<EmployeeDTO> getEmployeeDTO(@PathVariable("username") String username) {
 		return ResponseEntity.ok(employeeFacade.fetchEmployeeDTO(username));
 	}
 
 	@PostMapping("upload/profile/{empNo}")
+	@PreAuthorize("authentication.name == #empNo")
 	public ResponseEntity<Boolean> uploadEmployeeImageProfile(@RequestParam("file") MultipartFile file,
 			@PathVariable("empNo") String empNo) {
 		return ResponseEntity.ok(!StringUtils.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE,
@@ -50,6 +53,7 @@ public class EmployeeController {
 	}
 
 	@PostMapping("upload/govt/{empNo}")
+	@PreAuthorize("authentication.name == #empNo")
 	public ResponseEntity<Boolean> uploadEmployeeImageGovt(@RequestBody MultipartFile file,
 			@PathVariable("empNo") String empNo) {
 		return ResponseEntity.ok(!StringUtils.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.EMPLOYEE,
@@ -57,12 +61,14 @@ public class EmployeeController {
 	}
 
 	@PostMapping("changepwd/{empNo}")
+	@PreAuthorize("authentication.name == #empNo")
 	public ResponseEntity<Boolean> updateEmployeePassword(@PathVariable("empNo") String empNo,
 			@RequestBody Map<String, String> psswrds) {
 		return ResponseEntity.ok(employeeFacade.changeEmployeePassword(empNo, psswrds.get("currentPassword"), psswrds.get("newPassword")));
 	}
 
 	@PostMapping("dailyactivity/{empNo}")
+	@PreAuthorize("authentication.name == #empNo")
 	public ResponseEntity<Boolean> employeeActivity(@PathVariable("empNo") String empNo,
 			@RequestBody Map<String, String> activity) {
 		if (StringUtils.isEmpty(activity.get("custuser")))
@@ -77,18 +83,21 @@ public class EmployeeController {
 	}
 
 	@GetMapping("attendance/{empNo}/{month}/{year}")
+	@PreAuthorize("authentication.name == #empNo")
 	public ResponseEntity<Map<Date, List<EmployeeActivityOut>>> fetchEmployeeMonthlyAttendance(
 			@PathVariable("empNo") String empNo, @PathVariable("year") Year year, @PathVariable("month") Month month) {
 		return ResponseEntity.ok(employeeFacade.fetchEmployeeMonthlyAttendance(empNo, month, year.getValue()));
 	}
 
 	@GetMapping("dailyactivity/{empNo}")
+	@PreAuthorize("authentication.name == #empNo")
 	public ResponseEntity<List<EmployeeActivityOut>> fetchEmployeeTodayActivity(
 			@PathVariable("empNo") String empNo) {
 		return ResponseEntity.ok(employeeFacade.fetchEmployeeTodayActivity(empNo));
 	}
 
 	@GetMapping("activities/{empNo}/{month}/{year}")
+	@PreAuthorize("authentication.name == #empNo")
 	public ResponseEntity<Map<Date, List<EmployeeActivityOut>>> findEmployeeAllMonthlyActivities(
 			@PathVariable("empNo") String empNo, @PathVariable("year") Year year, @PathVariable("month") Month month) {
 		return ResponseEntity.ok(employeeFacade.findEmployeeAllMonthlyActivities(empNo, month, year.getValue()));

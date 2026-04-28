@@ -7,6 +7,7 @@ import java.util.List;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.uditgoel.groomify.dao.employee.EmployeeRoster;
 import com.uditgoel.groomify.dao.repository.EmployeeRosterRepository;
@@ -25,6 +26,7 @@ public class LoadEmployeeRosterTable {
 	}
 
 	@PostConstruct
+	@Transactional
 	public void init() {
 		if (employeeRosterRepository.count() == 0) {
 			List<EmployeeRoster> empRosters = new ArrayList<>();
