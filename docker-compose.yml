@@ -1,0 +1,99 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: groomify-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-groomify}
+      POSTGRES_USER: ${POSTGRES_USER:-groomify}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-groomify-dev}
+    volumes:
+      - groomify-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-groomify} -d ${POSTGRES_DB:-groomify}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks: [groomify-net]
+
+  redis:
+    image: redis:7-alpine
+    container_name: groomify-redis
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - groomify-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks: [groomify-net]
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: groomify-redis-commander
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_HOSTS: "local:redis:6379"
+    # Bound to 127.0.0.1 only — this is a dev/debug UI, do NOT expose externally.
+    ports:
+      - "127.0.0.1:${REDIS_COMMANDER_PORT:-8081}:8081"
+    networks: [groomify-net]
+    restart: unless-stopped
+
+  groomify:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: groomify:local
+    container_name: groomify-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # --- Datasource (overrides application.properties via env-var substitution) ---
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-groomify}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-groomify}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-groomify-dev}
+
+      # --- Redis ---
+      REDIS_MASTER_HOST: redis
+      REDIS_MASTER_PORT: "6379"
+      REDIS_MASTER_PASS: ""
+      REDIS_SLAVE_HOST: redis
+      REDIS_SLAVE_PORT: "6379"
+      REDIS_SLAVE_PASS: ""
+
+      # --- Secrets (must be supplied via .env or shell env) ---
+      APP_JWT_SECRET: ${APP_JWT_SECRET:?APP_JWT_SECRET is required (>=64 bytes; see .env.example)}
+      APP_AES_KEY: ${APP_AES_KEY:?APP_AES_KEY is required (Base64 16/24/32 bytes; see .env.example)}
+      RSA_PUBLIC_KEY: ${RSA_PUBLIC_KEY:?RSA_PUBLIC_KEY is required (Base64 X.509; see .env.example)}
+      RSA_PRIVATE_KEY: ${RSA_PRIVATE_KEY:?RSA_PRIVATE_KEY is required (Base64 PKCS#8; see .env.example)}
+
+      # --- CORS (comma-separated allowed origins; empty = block all) ---
+      GROOMIFY_CORS_ALLOWED_ORIGINS: ${GROOMIFY_CORS_ALLOWED_ORIGINS:-}
+
+      # --- Geonames (optional; postal-code lookups will fail without a real account) ---
+      GEONAMES_USERNAME: ${GEONAMES_USERNAME:-your-geonames-username}
+    ports:
+      - "${GROOMIFY_PORT:-8080}:8080"
+    networks: [groomify-net]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/v3/api-docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  groomify-pg-data:
+  groomify-redis-data:
+
+networks:
+  groomify-net:
+    driver: bridge

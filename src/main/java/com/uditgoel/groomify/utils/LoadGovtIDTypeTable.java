@@ -3,7 +3,6 @@ package com.uditgoel.groomify.utils;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.Resource;
 
 import org.springframework.stereotype.Component;
 
@@ -13,11 +12,15 @@ import com.uditgoel.groomify.dao.repository.GovtIdTypeRepository;
 @Component
 public class LoadGovtIDTypeTable {
 
-	@Resource
-	private GovtIdTypeRepository govtIdTypeRepository;
+	private final GovtIdTypeRepository govtIdTypeRepository;
 
-	@Resource
-	private LoadGovtIDTypeTableConfig loadGovtIDTypeTableConfig;
+	private final LoadGovtIDTypeTableConfig loadGovtIDTypeTableConfig;
+
+	public LoadGovtIDTypeTable(GovtIdTypeRepository govtIdTypeRepository,
+			LoadGovtIDTypeTableConfig loadGovtIDTypeTableConfig) {
+		this.govtIdTypeRepository = govtIdTypeRepository;
+		this.loadGovtIDTypeTableConfig = loadGovtIDTypeTableConfig;
+	}
 
 	@PostConstruct
 	public void init() {

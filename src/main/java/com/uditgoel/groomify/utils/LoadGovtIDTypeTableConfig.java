@@ -72,5 +72,4 @@ public class LoadGovtIDTypeTableConfig {
 		this.govtIdTypes = govtIdTypes;
 	}
 
-	
 }

@@ -7,9 +7,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.Resource;
+import jakarta.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -23,15 +27,19 @@ import com.uditgoel.groomify.dto.StateToZip;
 import reactor.core.publisher.Mono;
 
 /**
- * 
- * @author Konika
- *
+ * One-time seed of {@code AddressMeta} from geonames.org. Disabled by default —
+ * set
+ * {@code groomify.bootstrap.address-meta=true} to enable. Performs blocking
+ * HTTP fan-out
+ * which can take several minutes; intended for first-run bootstrap only.
  */
 @Component
+@ConditionalOnProperty(name = "groomify.bootstrap.address-meta", havingValue = "true")
 public class LoadAddressMetaTable {
 
-	@Resource
-	private WebClient.Builder webClientBuilder;
+	private static final Logger logger = LoggerFactory.getLogger(LoadAddressMetaTable.class);
+
+	private final WebClient.Builder webClientBuilder;
 
 	@Value("${geoname.base.child}")
 	private String baseChild;
@@ -42,71 +50,97 @@ public class LoadAddressMetaTable {
 	@Value("${geoname.postal.codes.by.city}")
 	private String postalByCity;
 
-	@Resource(name = "addressMetaRepository")
-	private AddressMetaRepository addressMetaRepository;
+	private final AddressMetaRepository addressMetaRepository;
 
-	private class RegionZipMono {
-		private Mono<GeoNameListAll> geoNameListAllMono;
-		private Mono<StateToZip> stateToZipMono;
+	public LoadAddressMetaTable(WebClient.Builder webClientBuilder,
+			@Qualifier("addressMetaRepository") AddressMetaRepository addressMetaRepository) {
+		this.webClientBuilder = webClientBuilder;
+		this.addressMetaRepository = addressMetaRepository;
+	}
+
+	private static final class RegionZipMono {
+		private final Mono<GeoNameListAll> geoNameListAllMono;
+		private final Mono<StateToZip> stateToZipMono;
 
 		private RegionZipMono(Mono<GeoNameListAll> geoNameListAllMono, Mono<StateToZip> stateToZipMono) {
-			super();
 			this.geoNameListAllMono = geoNameListAllMono;
 			this.stateToZipMono = stateToZipMono;
 		}
-
-		public Mono<GeoNameListAll> getGeoNameListAllMono() {
-			return geoNameListAllMono;
-		}
-
-		public Mono<StateToZip> getStateToZipMono() {
-			return stateToZipMono;
-		}
-
 	}
 
-	//@PostConstruct
+	@PostConstruct
 	public void init() {
-		if (addressMetaRepository.count() == 0) {
-			GeoNameListAll geoNameListAll = webClientBuilder.build().get().uri(baseChild, baseGeoName).retrieve()
-					.bodyToMono(GeoNameListAll.class).block();
-
-			Map<String, Integer> countryToStates = geoNameListAll.getGeonames().stream()
-					.collect(Collectors.toMap(Geoname::getName, Geoname::getGeonameId));// state n geocode
-
-			Map<String, Mono<GeoNameListAll>> mapMonoStateToCities = new HashMap<>();
-
-			for (Entry<String, Integer> countryToState : countryToStates.entrySet()) {
-				Mono<GeoNameListAll> stateToCityGeoNames = webClientBuilder.build().get()
-						.uri(baseChild, countryToState.getValue()).retrieve().bodyToMono(GeoNameListAll.class);
-				mapMonoStateToCities.put(countryToState.getKey(), stateToCityGeoNames);
-			}
-			Map<String, Map<String, RegionZipMono>> map = new HashMap<>();
-			for (Entry<String, Mono<GeoNameListAll>> stateToCitites : mapMonoStateToCities.entrySet()) {
-				Map<String, RegionZipMono> stateToCitiesListMap = new HashMap<>();
-				stateToCitites.getValue().block().getGeonames().stream().forEach(x -> {
-					Mono<GeoNameListAll> stateToCityGeoNames = webClientBuilder.build().get()
-							.uri(baseChild, x.getGeonameId()).retrieve().bodyToMono(GeoNameListAll.class);
-
-					Mono<StateToZip> stateToZipPostCodes = webClientBuilder.build().get().uri(postalByCity, x.getName())
-							.retrieve().bodyToMono(StateToZip.class);
-
-					RegionZipMono regionZipMono = new RegionZipMono(stateToCityGeoNames, stateToZipPostCodes);
-
-					stateToCitiesListMap.put(x.getName(), regionZipMono);
-					map.put(stateToCitites.getKey(), stateToCitiesListMap);
-
-				});
-			}
-			List<AddressMeta> addressMetaList = new ArrayList<>();
-			for (Entry<String, Map<String, RegionZipMono>> mapper : map.entrySet())
-				for (Entry<String, RegionZipMono> child : mapper.getValue().entrySet())
-					addressMetaList.add(new AddressMeta("India", mapper.getKey(), child.getKey(),
-							child.getValue().getGeoNameListAllMono().block().getGeonames().stream()
-									.map(Geoname::getName).distinct().collect(Collectors.joining("~")),
-							child.getValue().getStateToZipMono().block().getPostalcodes().stream()
-									.map(Postalcode::getPostalcode).distinct().collect(Collectors.joining())));
-			addressMetaRepository.saveAll(addressMetaList);
+		if (addressMetaRepository.count() > 0) {
+			logger.info("AddressMeta already populated; skipping geonames bootstrap");
+			return;
 		}
+		logger.info("Bootstrapping AddressMeta from geonames — this can take several minutes");
+
+		WebClient webClient = webClientBuilder.build();
+
+		Map<String, Integer> countryToStates = fetchStateGeonames(webClient);
+		if (countryToStates.isEmpty()) {
+			logger.warn("geonames returned no states; aborting bootstrap");
+			return;
+		}
+
+		Map<String, Map<String, RegionZipMono>> stateToCityToMonos = fetchCityMonosByState(webClient, countryToStates);
+		List<AddressMeta> addressMetaList = assembleAddressMeta(stateToCityToMonos);
+
+		addressMetaRepository.saveAll(addressMetaList);
+		logger.info("AddressMeta bootstrap complete: {} rows", addressMetaList.size());
+	}
+
+	private Map<String, Integer> fetchStateGeonames(WebClient webClient) {
+		GeoNameListAll geoNameListAll = webClient.get().uri(baseChild, baseGeoName).retrieve()
+				.bodyToMono(GeoNameListAll.class).block();
+		if (geoNameListAll == null || geoNameListAll.getGeonames() == null) {
+			return Map.of();
+		}
+		return geoNameListAll.getGeonames().stream()
+				.collect(Collectors.toMap(Geoname::getName, Geoname::getGeonameId));
+	}
+
+	private Map<String, Map<String, RegionZipMono>> fetchCityMonosByState(WebClient webClient,
+			Map<String, Integer> countryToStates) {
+		Map<String, Map<String, RegionZipMono>> stateToCityToMonos = new HashMap<>();
+		for (Entry<String, Integer> stateEntry : countryToStates.entrySet()) {
+			GeoNameListAll citiesForState = webClient.get().uri(baseChild, stateEntry.getValue()).retrieve()
+					.bodyToMono(GeoNameListAll.class).block();
+			if (citiesForState == null || citiesForState.getGeonames() == null) {
+				continue;
+			}
+			Map<String, RegionZipMono> cityToMonos = new HashMap<>();
+			for (Geoname city : citiesForState.getGeonames()) {
+				Mono<GeoNameListAll> areasMono = webClient.get().uri(baseChild, city.getGeonameId()).retrieve()
+						.bodyToMono(GeoNameListAll.class);
+				Mono<StateToZip> postcodesMono = webClient.get().uri(postalByCity, city.getName()).retrieve()
+						.bodyToMono(StateToZip.class);
+				cityToMonos.put(city.getName(), new RegionZipMono(areasMono, postcodesMono));
+			}
+			stateToCityToMonos.put(stateEntry.getKey(), cityToMonos);
+		}
+		return stateToCityToMonos;
+	}
+
+	private List<AddressMeta> assembleAddressMeta(Map<String, Map<String, RegionZipMono>> stateToCityToMonos) {
+		List<AddressMeta> addressMetaList = new ArrayList<>();
+		for (Entry<String, Map<String, RegionZipMono>> stateEntry : stateToCityToMonos.entrySet()) {
+			for (Entry<String, RegionZipMono> cityEntry : stateEntry.getValue().entrySet()) {
+				addressMetaList.add(buildAddressMeta(stateEntry.getKey(), cityEntry.getKey(), cityEntry.getValue()));
+			}
+		}
+		return addressMetaList;
+	}
+
+	private AddressMeta buildAddressMeta(String state, String city, RegionZipMono regionZipMono) {
+		GeoNameListAll areas = regionZipMono.geoNameListAllMono.block();
+		StateToZip postcodes = regionZipMono.stateToZipMono.block();
+		String areasJoined = areas == null || areas.getGeonames() == null ? ""
+				: areas.getGeonames().stream().map(Geoname::getName).distinct().collect(Collectors.joining("~"));
+		String postcodesJoined = postcodes == null || postcodes.getPostalcodes() == null ? ""
+				: postcodes.getPostalcodes().stream().map(Postalcode::getPostalcode).distinct()
+						.collect(Collectors.joining());
+		return new AddressMeta("India", state, city, areasJoined, postcodesJoined);
 	}
 }

@@ -5,8 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -35,23 +33,29 @@ import com.uditgoel.groomify.utils.CustomerAndEmployeeUtils;
 @Component("employeeFacadeHelper")
 public class EmployeeFacadeHelper {
 
-	@Resource
-	private EmployeeRepository employeeRepository;
+	private final EmployeeRepository employeeRepository;
 
-	@Resource
-	private EmployeeRosterRepository employeeRosterRepository;
+	private final EmployeeRosterRepository employeeRosterRepository;
 
-	@Resource
-	private EmployeeQualificationRepository employeeQualificationRepository;
+	private final EmployeeQualificationRepository employeeQualificationRepository;
 
-	@Resource
-	private GovtIdTypeRepository govtIdTypeRepository;
+	private final GovtIdTypeRepository govtIdTypeRepository;
 
-	@Resource
-	private RoleRepository roleRepository;
+	private final RoleRepository roleRepository;
 
 	@Value("${employee.fname.default}")
 	private String defaultEmpName;
+
+	public EmployeeFacadeHelper(EmployeeRepository employeeRepository,
+			EmployeeRosterRepository employeeRosterRepository,
+			EmployeeQualificationRepository employeeQualificationRepository,
+			GovtIdTypeRepository govtIdTypeRepository, RoleRepository roleRepository) {
+		this.employeeRepository = employeeRepository;
+		this.employeeRosterRepository = employeeRosterRepository;
+		this.employeeQualificationRepository = employeeQualificationRepository;
+		this.govtIdTypeRepository = govtIdTypeRepository;
+		this.roleRepository = roleRepository;
+	}
 
 	public EmployeeDTO createEmployeeDTO(Employee employee) {
 		EmployeeDTO employeeDTO = new EmployeeDTO(employee.getName(), employee.getUsername(), employee.getDob(),

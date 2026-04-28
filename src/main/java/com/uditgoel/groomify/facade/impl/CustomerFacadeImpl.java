@@ -17,17 +17,17 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.uditgoel.groomify.dao.JobStatus;
 import com.uditgoel.groomify.dao.Password;
@@ -59,30 +59,24 @@ import com.uditgoel.groomify.utils.Converter;
 import com.uditgoel.groomify.utils.CustomerAndEmployeeUtils;
 
 @Service("customerFacade")
+@Transactional(readOnly = true)
 public class CustomerFacadeImpl implements CustomerFacade {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CustomerFacadeImpl.class);
 
-	@Resource
-	private CustomerRepository customerRepository;
+	private final CustomerRepository customerRepository;
 
-	@Resource
-	private CustomerOrderRepository customerOrderRepository;
+	private final CustomerOrderRepository customerOrderRepository;
 
-	@Resource
-	private ServiceRepository serviceRepository;
+	private final ServiceRepository serviceRepository;
 
-	@Resource
-	private CustomerOrderHistoryRepository customerOrderHistoryRepository;
+	private final CustomerOrderHistoryRepository customerOrderHistoryRepository;
 
-	@Resource
-	private EmployeeRepository employeeRepository;
+	private final EmployeeRepository employeeRepository;
 
-	@Resource(name = "customerFacadeHelper")
-	private CustomerFacadeHelper customerFacadeHelper;
+	private final CustomerFacadeHelper customerFacadeHelper;
 
-	@Resource
-	private PasswordEncoder passwordEncoder;
+	private final PasswordEncoder passwordEncoder;
 
 	@Value("${customer.password.regex}")
 	private String passwrdRegex;
@@ -93,6 +87,20 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	@Value("${customer.name.search.min.length}")
 	private int minFNameLength;
 
+	public CustomerFacadeImpl(CustomerRepository customerRepository,
+			CustomerOrderRepository customerOrderRepository, ServiceRepository serviceRepository,
+			CustomerOrderHistoryRepository customerOrderHistoryRepository, EmployeeRepository employeeRepository,
+			@Qualifier("customerFacadeHelper") CustomerFacadeHelper customerFacadeHelper,
+			PasswordEncoder passwordEncoder) {
+		this.customerRepository = customerRepository;
+		this.customerOrderRepository = customerOrderRepository;
+		this.serviceRepository = serviceRepository;
+		this.customerOrderHistoryRepository = customerOrderHistoryRepository;
+		this.employeeRepository = employeeRepository;
+		this.customerFacadeHelper = customerFacadeHelper;
+		this.passwordEncoder = passwordEncoder;
+	}
+
 	private void validatePassword(String password) {
 		if (!password.matches(passwrdRegex)) {
 			throw new IllegalArgumentException("Input password doesn't pass the strength test. " + passwrdExceptionMsg);
@@ -100,6 +108,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
+	@Transactional
 	public String createNewCustomer(CustomerDTO customerInput) {
 		if (!StringUtils.isEmpty(customerInput.getPassword())) {
 			validatePassword(customerInput.getPassword());
@@ -134,6 +143,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
+	@Transactional
 	public Boolean changeCustomerPassword(String custNo, String currentPass, String newPass) {
 		validatePassword(newPass);
 		String encryptNew = passwordEncoder.encode(newPass);
@@ -145,7 +155,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 			throw new IllegalArgumentException("Current Password is incorrect.");
 		}
 
-		if (passwords.getAllPasswordList().stream().anyMatch(pwd -> passwordEncoder.matches(currentPass, pwd))) {
+		if (passwords.getAllPasswordList().stream().anyMatch(pwd -> passwordEncoder.matches(newPass, pwd))) {
 			throw new IllegalArgumentException(
 					"Password must not match the last 5 passwords. Please provide a different input");
 		}
@@ -208,6 +218,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
+	@Transactional
 	public String createNewCustomerEnquiry(CreateCustomerOrderInput enquiryInput) {
 
 		return createNewCustomerOrder(JobStatus.ENQUIRY, enquiryInput);
@@ -265,11 +276,13 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
+	@Transactional
 	public String createNewCustomerOrder(CreateCustomerOrderInput customerOrderInput) {
 		return createNewCustomerOrder(JobStatus.PENDING, customerOrderInput);
 	}
 
 	@Override
+	@Transactional
 	public Boolean cancelEntireOrder(String requestId) {
 		CustomerOrder customerOrder = customerOrderRepository.findCancellableOrderById(requestId);
 		customerFacadeHelper.validateCustomerOrderForCancellation(customerOrder);
@@ -281,6 +294,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
+	@Transactional
 	public Boolean updateServices(UpdateCustomerOrderInput customerOrderInput) {
 		CustomerOrder customerOrder = customerOrderRepository
 				.findCancellableOrderById(customerOrderInput.getCustomerOrderRequestId());
@@ -381,6 +395,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
+	@Transactional
 	public Boolean initiateEnquiryToOrder(UpdateCustomerOrderInput customerOrderInput) {
 		CustomerOrder customerOrder = customerOrderRepository
 				.findEnquiryByRequestId(customerOrderInput.getCustomerOrderRequestId());
@@ -469,6 +484,7 @@ public class CustomerFacadeImpl implements CustomerFacade {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public CustomerOutDTO fetchCustomerDTO(String username) {
 		Customer customer = findByUsername(username);
 		return customerFacadeHelper.createCustomerOutDTO(customer);

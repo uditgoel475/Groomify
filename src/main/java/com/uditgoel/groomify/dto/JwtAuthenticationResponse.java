@@ -1,42 +1,9 @@
 package com.uditgoel.groomify.dto;
 
-import java.util.Date;
+import java.time.Instant;
 
-/**
- * @author Konika
- */
-public class JwtAuthenticationResponse {
-	private String accessToken;
-	private String refreshToken;
-	private Date expiresAt;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-	public JwtAuthenticationResponse(String accessToken, String refreshToken, Date expiresAt) {
-		super();
-		this.accessToken = accessToken;
-		this.refreshToken = refreshToken;
-		this.expiresAt = expiresAt;
-	}
-
-	public JwtAuthenticationResponse(String accessToken, Date expiresAt) {
-		super();
-		this.accessToken = accessToken;
-		this.expiresAt = expiresAt;
-	}
-
-	public String getAccessToken() {
-		return accessToken;
-	}
-
-	public String getRefreshToken() {
-		return refreshToken;
-	}
-
-	public Date getExpiresAt() {
-		return expiresAt;
-	}
-
-	public void setRefreshToken(String refreshToken) {
-		this.refreshToken = refreshToken;
-	}
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record JwtAuthenticationResponse(String accessToken, String refreshToken, Instant expiresAt) {
 }

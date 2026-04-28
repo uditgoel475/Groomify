@@ -53,7 +53,7 @@ public class LoadEmployeeRosterTableConfig {
 
 		/**
 		 * @param shiftStartDay
-		 *            the shiftStartDay to set
+		 *                      the shiftStartDay to set
 		 */
 		public void setShiftStartDay(DayOfWeek shiftStartDay) {
 			this.shiftStartDay = shiftStartDay;
@@ -61,7 +61,7 @@ public class LoadEmployeeRosterTableConfig {
 
 		/**
 		 * @param shiftEndDay
-		 *            the shiftEndDay to set
+		 *                    the shiftEndDay to set
 		 */
 		public void setShiftEndDay(DayOfWeek shiftEndDay) {
 			this.shiftEndDay = shiftEndDay;
@@ -69,7 +69,7 @@ public class LoadEmployeeRosterTableConfig {
 
 		/**
 		 * @param genericInTime
-		 *            the genericInTime to set
+		 *                      the genericInTime to set
 		 */
 		public void setGenericInTime(LocalTime genericInTime) {
 			this.genericInTime = genericInTime;
@@ -77,7 +77,7 @@ public class LoadEmployeeRosterTableConfig {
 
 		/**
 		 * @param totalShiftTime
-		 *            the totalShiftTime to set
+		 *                       the totalShiftTime to set
 		 */
 		public void setTotalShiftTime(LocalTime totalShiftTime) {
 			this.totalShiftTime = totalShiftTime;
@@ -94,7 +94,7 @@ public class LoadEmployeeRosterTableConfig {
 
 	/**
 	 * @param rosters
-	 *            the rosters to set
+	 *                the rosters to set
 	 */
 	public void setRosters(List<Roster> rosters) {
 		this.rosters = rosters;

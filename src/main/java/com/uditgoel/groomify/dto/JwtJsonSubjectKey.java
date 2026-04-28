@@ -1,43 +1,11 @@
 package com.uditgoel.groomify.dto;
 
-public class JwtJsonSubjectKey {
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-	private Long id;
-	private String username;
-	private String email;
-	private UserType userType;
-	
-	public JwtJsonSubjectKey() {
-		super();
-	}
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record JwtJsonSubjectKey(Long id, String username, String email, UserType userType) {
 
-	public JwtJsonSubjectKey(Long id, String username, String email, UserType userType) {
-		super();
-		this.id = id;
-		this.username = username;
-		this.email = email;
-		this.userType = userType;
-	}
-	
-	public JwtJsonSubjectKey(String username, UserType userType) {
-		super();
-		this.username = username;
-		this.userType = userType;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-	
-	public String getEmail() {
-		return email;
-	}
-	
-	public UserType getUserType() {
-		return userType;
+	public static JwtJsonSubjectKey forSignIn(String username, UserType userType) {
+		return new JwtJsonSubjectKey(null, username, null, userType);
 	}
 }

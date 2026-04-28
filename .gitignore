@@ -33,3 +33,10 @@ mvnw.cmd
 ### VS Code ###
 .vscode/
 
+### Local secrets / runtime ###
+.env
+.env.*
+!.env.example
+logs/
+docker-compose.override.yml
+

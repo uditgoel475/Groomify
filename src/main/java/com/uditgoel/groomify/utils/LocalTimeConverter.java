@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationPropertiesBinding
 public class LocalTimeConverter implements Converter<String, LocalTime> {
-	
+
 	@Override
 	public LocalTime convert(String source) {
 		if (StringUtils.isEmpty(source)) {

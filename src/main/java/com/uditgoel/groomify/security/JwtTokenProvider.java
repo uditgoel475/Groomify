@@ -2,14 +2,11 @@ package com.uditgoel.groomify.security;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Calendar;
+import java.security.GeneralSecurityException;
+import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 import org.apache.commons.text.RandomStringGenerator;
@@ -36,7 +33,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 
-import jakarta.annotation.Resource;
+import jakarta.annotation.PostConstruct;
 
 /**
  * JWT issuing and validation.
@@ -54,6 +51,7 @@ import jakarta.annotation.Resource;
 public class JwtTokenProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+	private static final int HS512_REQUIRED_BYTES = 64;
 
 	@Value("${app.jwtSecret}")
 	private String jwtSecret;
@@ -67,14 +65,29 @@ public class JwtTokenProvider {
 	@Value("${app.jwt.refresh.expirationInMs}")
 	private long refreshTokenExpirationInMs;
 
-	@Resource
-	private ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper;
 
-	@Resource
-	private RedisHelper redisHelper;
+	private final RedisHelper redisHelper;
 
-	private SecretKey signingKey() {
-		return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+	private SecretKey signingKey;
+
+	public JwtTokenProvider(ObjectMapper objectMapper, RedisHelper redisHelper) {
+		this.objectMapper = objectMapper;
+		this.redisHelper = redisHelper;
+	}
+
+	@PostConstruct
+	void validateAndCacheSigningKey() {
+		if (jwtSecret == null) {
+			throw new IllegalStateException("app.jwtSecret is not set");
+		}
+		byte[] secretBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+		if (secretBytes.length < HS512_REQUIRED_BYTES) {
+			throw new IllegalStateException(
+					"app.jwtSecret must be at least " + HS512_REQUIRED_BYTES + " bytes for HS512 (got "
+							+ secretBytes.length + " bytes)");
+		}
+		signingKey = Keys.hmacShaKeyFor(secretBytes);
 	}
 
 	public JwtAuthenticationResponse generateToken(Authentication authentication, UserType userType)
@@ -85,40 +98,48 @@ public class JwtTokenProvider {
 
 		JwtJsonSubjectKey subjectKey = new JwtJsonSubjectKey(userPrincipal.getId(), userPrincipal.getUsername(),
 				userPrincipal.getEmail(), userType);
-		JwtAuthenticationResponse response = issueAccessToken(subjectKey);
 		if (redisHelper.isRedisWorking()) {
 			redisHelper.createRedisJWTRefreshToken(refreshToken, subjectKey);
 		}
-		response.setRefreshToken(refreshToken);
-		return response;
+		return issueAccessToken(subjectKey, refreshToken);
 	}
 
-	public JwtAuthenticationResponse createAccessToken(JwtJsonSubjectKey subjectKey) throws JsonProcessingException {
-		return issueAccessToken(subjectKey);
+	public JwtAuthenticationResponse createAccessToken(JwtJsonSubjectKey subjectKey, String refreshToken)
+			throws JsonProcessingException {
+		return issueAccessToken(subjectKey, refreshToken);
 	}
 
-	private JwtAuthenticationResponse issueAccessToken(JwtJsonSubjectKey subjectKey) throws JsonProcessingException {
-		Date now = Calendar.getInstance().getTime();
-		Date expire = new Date(now.getTime() + jwtExpirationInMs);
+	private JwtAuthenticationResponse issueAccessToken(JwtJsonSubjectKey subjectKey, String refreshToken)
+			throws JsonProcessingException {
+		Instant now = Instant.now();
+		Instant expire = now.plusMillis(jwtExpirationInMs);
 		String token = Jwts.builder()
 				.subject(AppUtils.encrypt(objectMapper.writeValueAsString(subjectKey)))
-				.issuedAt(now)
-				.expiration(expire)
-				.signWith(signingKey(), Jwts.SIG.HS512)
+				.issuedAt(Date.from(now))
+				.expiration(Date.from(expire))
+				.signWith(signingKey, Jwts.SIG.HS512)
 				.compact();
-		return new JwtAuthenticationResponse(token, expire);
+		return new JwtAuthenticationResponse(token, refreshToken, expire);
 	}
 
-	public JwtJsonSubjectKey getJwtJsonSubjectKeyFromRefreshToken(String refreshToken) {
+	/**
+	 * Resolve a refresh token to its subject payload.
+	 *
+	 * @return empty if the token is missing/unknown; throws if Redis itself is unavailable
+	 *         (a 500-class server condition rather than an auth failure).
+	 */
+	public Optional<JwtJsonSubjectKey> getJwtJsonSubjectKeyFromRefreshToken(String refreshToken) {
+		if (refreshToken == null || refreshToken.isBlank()) {
+			return Optional.empty();
+		}
 		if (!redisHelper.isRedisWorking()) {
-			logger.error("Redis unavailable; cannot resolve refresh token");
-			return null;
+			throw new IllegalStateException("Redis unavailable; cannot resolve refresh token");
 		}
 		try {
-			return redisHelper.getRefreshTokenDetails(refreshToken);
+			return Optional.ofNullable(redisHelper.getRefreshTokenDetails(refreshToken));
 		} catch (IOException e) {
-			logger.error("Could not resolve refresh token: {}", e.getMessage());
-			return null;
+			logger.error("Could not deserialize refresh token payload: {}", e.getMessage());
+			return Optional.empty();
 		}
 	}
 
@@ -126,20 +147,14 @@ public class JwtTokenProvider {
 		SecureTextRandomProvider secureTextRandomProvider = new SecureTextRandomProvider();
 		RandomStringGenerator refreshTokenGenerator = new RandomStringGenerator.Builder().withinRange(33, 45)
 				.usingRandom(secureTextRandomProvider).build();
+		String tokenPayload = refreshTokenGenerator.generate(refreshTokenLength)
+				+ "/username/" + username
+				+ "/usertype/" + userType;
 		try {
-			StringBuilder refreshTokenBuilder = new StringBuilder(refreshTokenGenerator.generate(refreshTokenLength));
-			refreshTokenBuilder.append("/username/").append(username).append("/usertype/").append(userType);
-
-			String encryptedToken = RSAEncryptUtil.encrypt(refreshTokenBuilder.toString());
-			if (redisHelper.isRedisWorking() && getJwtJsonSubjectKeyFromRefreshToken(encryptedToken) != null) {
-				redisHelper.getRedisClient().delete(encryptedToken);
-			}
-			return encryptedToken;
-		} catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException | NoSuchPaddingException
-				| NoSuchAlgorithmException e) {
-			logger.error("Could not generate refresh token: {}", e.getMessage());
+			return RSAEncryptUtil.encrypt(tokenPayload);
+		} catch (GeneralSecurityException e) {
+			throw new IllegalStateException("Could not generate refresh token", e);
 		}
-		return null;
 	}
 
 	/**
@@ -147,7 +162,7 @@ public class JwtTokenProvider {
 	 */
 	public JwtJsonSubjectKey getUserIdFromJWT(String token) throws IOException {
 		Claims claims = Jwts.parser()
-				.verifyWith(signingKey())
+				.verifyWith(signingKey)
 				.build()
 				.parseSignedClaims(token)
 				.getPayload();
@@ -160,7 +175,7 @@ public class JwtTokenProvider {
 	 */
 	public boolean validateAccessToken(String authToken) {
 		try {
-			Jwts.parser().verifyWith(signingKey()).build().parseSignedClaims(authToken);
+			Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(authToken);
 			return true;
 		} catch (SignatureException ex) {
 			logger.error("Invalid JWT signature");

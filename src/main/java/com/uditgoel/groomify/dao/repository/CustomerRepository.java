@@ -21,7 +21,7 @@ import com.uditgoel.groomify.dao.customer.Customer;
 @Repository("customerRepository")
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
-	@Query("Select c from Customer c where c.dob BETWEEN :first AND :last ORDER BY DOB ASC")
+	@Query("Select c from Customer c where c.dob BETWEEN :first AND :last ORDER BY c.dob ASC")
 	List<Customer> findAllByDobBetweenOrderByDobAsc(@Param("first") Date first, @Param("last") Date last);
 
 	@Query("Select c from Customer c where c.username = :username")
@@ -33,16 +33,16 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 	@Query("select case when count(c)> 0 then true else false end from Customer c where c.username = :username")
 	Boolean existsByUsername(@Param("username") String username);
 
-	@Query("select case when count(e)> 0 then true else false end from Employee e where e.email = :email")
+	@Query("select case when count(c)> 0 then true else false end from Customer c where c.email = :email")
 	Boolean existsByEmail(@Param("email") String email);
 
 	@Query("select c from Customer c where lower(c.fname) like lower(CONCAT(:first,'%')) order by c.fname asc")
 	List<Customer> findAllMatchingFirstName(@Param("first") String first);
 
-	@Query("select c from Customer c where lower(c.fname) = lower(CONCAT(:first,'%')) and lower(c.lname) = lower(CONCAT(:last,'%'))")
+	@Query("select c from Customer c where lower(c.fname) like lower(CONCAT(:first,'%')) and lower(c.lname) like lower(CONCAT(:last,'%'))")
 	List<Customer> findAllMatchingFNameLName(@Param("first") String first, @Param("last") String last, Sort sort);
 
-	@Query("select c from Customer c where lower(c.fname) = lower(CONCAT(:first,'%')) and lower(c.mname) = lower(CONCAT(:middle,'%')) and lower(c.lname) = lower(CONCAT(:last,'%'))")
+	@Query("select c from Customer c where lower(c.fname) like lower(CONCAT(:first,'%')) and lower(c.mname) like lower(CONCAT(:middle,'%')) and lower(c.lname) like lower(CONCAT(:last,'%'))")
 	List<Customer> findAllMatchingName(@Param("first") String first, @Param("middle") String middle,
 			@Param("last") String last, Sort sort);
 }

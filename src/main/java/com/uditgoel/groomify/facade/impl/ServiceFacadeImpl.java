@@ -8,9 +8,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.uditgoel.groomify.dao.repository.ServiceRepository;
 import com.uditgoel.groomify.dao.repository.ServiceTypeRepository;
@@ -24,13 +23,18 @@ import com.uditgoel.groomify.facade.ServiceFacade;
 import com.uditgoel.groomify.utils.Converter;
 import com.uditgoel.groomify.utils.CustomerAndEmployeeUtils;
 
+@org.springframework.stereotype.Service("serviceFacade")
+@Transactional
 public class ServiceFacadeImpl implements ServiceFacade {
 
-	@Resource
-	private ServiceRepository serviceRepository;
+	private final ServiceRepository serviceRepository;
 
-	@Resource
-	private ServiceTypeRepository serviceTypeRepository;
+	private final ServiceTypeRepository serviceTypeRepository;
+
+	public ServiceFacadeImpl(ServiceRepository serviceRepository, ServiceTypeRepository serviceTypeRepository) {
+		this.serviceRepository = serviceRepository;
+		this.serviceTypeRepository = serviceTypeRepository;
+	}
 
 	@Override
 	public Boolean createService(ServiceExtDTO serviceDTO) {

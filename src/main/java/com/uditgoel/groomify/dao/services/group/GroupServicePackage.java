@@ -29,20 +29,22 @@ public class GroupServicePackage implements Serializable{
 	private GroupServicePackageKey id;
 
 	@ManyToOne
-	@MapsId("SERVICE_ID")
+	@MapsId("serviceId")
 	@JoinColumn(name = "SERVICE_ID")
 	private Service service;
 
 	@ManyToOne
-	@MapsId("GROUP_SERVICE_ID")
+	@MapsId("groupServiceId")
 	@JoinColumn(name = "GROUP_SERVICE_ID")
 	private GroupServices groupService;
 
 	@Column(name = "DESCRIPTION")
 	private String description;
 
+	protected GroupServicePackage() {
+	}
+
 	public GroupServicePackage(Service service, GroupServices groupService, String description) {
-		super();
 		this.service = service;
 		this.groupService = groupService;
 		this.description = description;

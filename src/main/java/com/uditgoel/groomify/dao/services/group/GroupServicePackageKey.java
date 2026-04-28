@@ -19,8 +19,10 @@ public class GroupServicePackageKey implements Serializable {
 	@Column(name = "GROUP_SERVICE_ID")
 	private Long groupServiceId;
 
+	public GroupServicePackageKey() {
+	}
+
 	public GroupServicePackageKey(Long serviceId, Long groupServiceId) {
-		super();
 		this.serviceId = serviceId;
 		this.groupServiceId = groupServiceId;
 	}

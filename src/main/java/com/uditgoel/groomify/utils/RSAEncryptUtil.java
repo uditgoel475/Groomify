@@ -28,8 +28,10 @@ import org.springframework.stereotype.Component;
 import java.security.spec.AlgorithmParameterSpec;
 
 /**
- * RSA helper for encrypting the opaque refresh-token payload before it's stored in Redis.
- * Keys are loaded from {@code rsa.public.key} / {@code rsa.private.key} (Base64 X.509 / PKCS#8).
+ * RSA helper for encrypting the opaque refresh-token payload before it's stored
+ * in Redis.
+ * Keys are loaded from {@code rsa.public.key} / {@code rsa.private.key} (Base64
+ * X.509 / PKCS#8).
  * Uses OAEP (SHA-256 / MGF1) padding.
  */
 @Component

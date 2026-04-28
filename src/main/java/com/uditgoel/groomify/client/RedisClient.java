@@ -2,8 +2,7 @@ package com.uditgoel.groomify.client;
 
 import java.util.concurrent.TimeUnit;
 
-import jakarta.annotation.Resource;
-
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -11,13 +10,14 @@ import org.springframework.stereotype.Component;
 @Component("redisClient")
 public class RedisClient extends RedisTemplate<String, Object> {
 
-	public RedisClient(RedisConnectionFactory connectionFactory) {
+	private final RedisTemplate<String, Object> redisTemplate;
+
+	public RedisClient(RedisConnectionFactory connectionFactory,
+			@Qualifier("redisTemplate") RedisTemplate<String, Object> redisTemplate) {
 		setConnectionFactory(connectionFactory);
 		afterPropertiesSet();
+		this.redisTemplate = redisTemplate;
 	}
-
-	@Resource(name = "redisTemplate")
-	private RedisTemplate<String, Object> redisTemplate;
 
 	public void setValue(final String key, final String value, long timeout, TimeUnit unit) {
 		redisTemplate.opsForValue().set(key, value);

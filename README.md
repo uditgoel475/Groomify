@@ -82,60 +82,63 @@ Swagger UI: `http://localhost:8080/swagger-ui.html`. OpenAPI JSON: `/v3/api-docs
 
 ## Running locally
 
-### Prerequisites
+### Option A — Docker Compose (recommended)
 
-- JDK 17
-- Maven 3.8+
-- PostgreSQL 13+
-- Redis 5+
-- A geonames.org account (free) for postal-code lookups
+Builds the app, starts Postgres + Redis (+ a Redis Commander UI for inspecting keys),
+wires everything together.
 
-### Configure
+```bash
+# 1. Generate dev secrets (writes ./.env)
+./scripts/generate-env.sh
 
-`src/main/resources/application.properties` ships with placeholders. Edit before running:
+# 2. Build + start (first run pulls images and builds the app jar in-container)
+docker compose up --build
 
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/groomify
-spring.datasource.username=<your-user>
-spring.datasource.password=<your-password>
-
-datasource.redis.master.pass=<your-redis-password>
-datasource.redis.slave.pass=<your-redis-password>
-
-# openssl rand -base64 64
-app.jwtSecret=<64+ char random string>
-
-# RSA key pair for refresh-token encryption:
-#   openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
-#   openssl pkcs8 -topk8 -inform PEM -outform DER -in private.pem -nocrypt | base64
-#   openssl rsa -in private.pem -pubout -outform DER | base64
-rsa.public.key=<base64 X.509>
-rsa.private.key=<base64 PKCS#8>
-
-geoname.postal.codes.by.city=...username=<your-geonames-username>...
-geoname.postal.code.validate=...username=<your-geonames-username>...
+# Swagger UI:      http://localhost:8080/swagger-ui.html
+# Redis Commander: http://localhost:8081  (bound to 127.0.0.1 only)
 ```
 
-For a real deployment, move these out of `application.properties` into env vars or a secrets manager.
+Other useful commands:
 
-### Create the database
+```bash
+docker compose logs -f groomify   # tail app logs
+docker compose down               # stop, keep volumes
+docker compose down -v            # stop + wipe data volumes
+docker compose up -d --build      # rebuild and run detached
+```
+
+Override anything via env vars or by copying `.env.example` → `.env` and editing. The compose file
+will refuse to start if `APP_JWT_SECRET`, `APP_AES_KEY`, or the RSA keypair aren't set. Re-running
+`generate-env.sh` rotates the secrets (this also invalidates any existing tokens / sessions).
+
+### Option B — Local JDK + already-running Postgres / Redis
+
+Prerequisites: JDK 17, Maven 3.8+, PostgreSQL 13+, Redis 5+, optionally a geonames.org account.
+
+The app reads all secrets from environment variables (`SPRING_DATASOURCE_*`, `APP_JWT_SECRET`,
+`APP_AES_KEY`, `RSA_PUBLIC_KEY`, `RSA_PRIVATE_KEY`, `REDIS_*`, `GEONAMES_USERNAME`); see
+[`.env.example`](.env.example) for the full list.
 
 ```bash
 createdb -U postgres groomify
 psql -U postgres -c "CREATE USER groomify WITH PASSWORD 'changeme';"
 psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE groomify TO groomify;"
+
+set -a; source .env; set +a       # load env vars
+mvn clean package -DskipTests
+java -jar target/groomify-0.0.1-SNAPSHOT.jar
 ```
 
 Schema is created by Hibernate (`spring.jpa.hibernate.ddl-auto=update`).
 
-### Build & run
+### Tests
 
 ```bash
-mvn clean package
-java -jar target/groomify-0.0.1-SNAPSHOT.war
+mvn test    # 14 tests, ~8s, no Docker / external services required
 ```
 
-Or run inside the IDE: `com.uditgoel.groomify.GroomifyApplication`.
+The integration tests boot the full Spring context against an in-process Redis ([embedded-redis](https://github.com/codemonstur/embedded-redis))
+and an H2 datasource — no Docker daemon, no Postgres install needed.
 
 ## What changed vs. the original version
 

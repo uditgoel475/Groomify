@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.Resource;
 
 import org.springframework.stereotype.Component;
 
@@ -17,8 +16,11 @@ import com.uditgoel.groomify.dao.repository.EmployeeQualificationRepository;
 @Component
 public class LoadEmployeeQualificationTable {
 
-	@Resource
-	private EmployeeQualificationRepository employeeQualificationRepository;
+	private final EmployeeQualificationRepository employeeQualificationRepository;
+
+	public LoadEmployeeQualificationTable(EmployeeQualificationRepository employeeQualificationRepository) {
+		this.employeeQualificationRepository = employeeQualificationRepository;
+	}
 
 	@PostConstruct
 	public void init() {

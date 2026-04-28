@@ -1,0 +1,252 @@
+package com.uditgoel.groomify;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+
+import com.uditgoel.groomify.dto.JwtAuthenticationResponse;
+import com.uditgoel.groomify.support.EmbeddedRedisInitializer;
+
+/**
+ * End-to-end test of the auth flow. Boots the full Spring context against H2
+ * (PostgreSQL compatibility mode) and an in-process Redis server. Drives the system
+ * over real HTTP — like Playwright does for UIs, but for the REST surface.
+ */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@ContextConfiguration(initializers = EmbeddedRedisInitializer.class)
+class AuthFlowEndToEndTest {
+
+	@LocalServerPort
+	private int port;
+
+	@Autowired
+	private TestRestTemplate rest;
+
+	@Test
+	void customerSignup_thenSignin_issuesAccessAndRefreshTokens() {
+		String username = "alice" + System.nanoTime();
+		String email = username + "@example.com";
+		String password = "Test@1234";
+
+		ResponseEntity<String> signupResp = rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup(username, email, password), String.class);
+		assertThat(signupResp.getStatusCode())
+				.as("signup body=%s", signupResp.getBody())
+				.isEqualTo(HttpStatus.CREATED);
+
+		ResponseEntity<JwtAuthenticationResponse> signinResp = rest.postForEntity(url("/api/auth/customer/signin"),
+				Map.of("username", username, "password", password),
+				JwtAuthenticationResponse.class);
+		assertThat(signinResp.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(signinResp.getBody()).isNotNull();
+		assertThat(signinResp.getBody().accessToken()).isNotBlank();
+		assertThat(signinResp.getBody().refreshToken()).isNotBlank();
+		assertThat(signinResp.getBody().expiresAt()).isNotNull();
+	}
+
+	@Test
+	void signin_withWrongPassword_returns401() {
+		String username = "bob" + System.nanoTime();
+		String password = "Test@1234";
+		rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup(username, username + "@example.com", password), String.class);
+
+		ResponseEntity<String> resp = rest.postForEntity(url("/api/auth/customer/signin"),
+				Map.of("username", username, "password", "Wrong@9999"), String.class);
+
+		assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void signin_withUnknownUsername_returns401() {
+		ResponseEntity<String> resp = rest.postForEntity(url("/api/auth/customer/signin"),
+				Map.of("username", "ghost-" + System.nanoTime(), "password", "Test@1234"), String.class);
+		assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void refreshToken_returnsNewAccessToken() {
+		String username = "carol" + System.nanoTime();
+		String password = "Test@1234";
+		rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup(username, username + "@example.com", password), String.class);
+		ResponseEntity<JwtAuthenticationResponse> signin = rest.postForEntity(url("/api/auth/customer/signin"),
+				Map.of("username", username, "password", password), JwtAuthenticationResponse.class);
+		String refreshToken = signin.getBody().refreshToken();
+
+		ResponseEntity<JwtAuthenticationResponse> refresh = rest.postForEntity(
+				url("/api/auth/customer/refreshToken"),
+				Map.of("refreshToken", refreshToken),
+				JwtAuthenticationResponse.class);
+
+		assertThat(refresh.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(refresh.getBody()).isNotNull();
+		assertThat(refresh.getBody().accessToken()).isNotBlank();
+		assertThat(refresh.getBody().refreshToken()).isEqualTo(refreshToken);
+	}
+
+	@Test
+	void refreshToken_withInvalidToken_returns401() {
+		ResponseEntity<String> resp = rest.postForEntity(url("/api/auth/customer/refreshToken"),
+				Map.of("refreshToken", "definitely-not-a-real-token"), String.class);
+		assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void usernameCollision_onSignup_returns409() {
+		String username = "dave" + System.nanoTime();
+		String password = "Test@1234";
+		rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup(username, username + "-1@example.com", password), String.class);
+
+		ResponseEntity<String> dup = rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup(username, username + "-2@example.com", password), String.class);
+
+		assertThat(dup.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+	}
+
+	@Test
+	void emailCollision_onSignup_returns409() {
+		String email = "eve" + System.nanoTime() + "@example.com";
+		String password = "Test@1234";
+		rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup("user1-" + System.nanoTime(), email, password), String.class);
+
+		ResponseEntity<String> dup = rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup("user2-" + System.nanoTime(), email, password), String.class);
+
+		assertThat(dup.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+	}
+
+	@Test
+	void protectedEndpoint_withoutBearer_returns401() {
+		ResponseEntity<String> resp = rest.getForEntity(url("/api/customer/by/username/anyone"), String.class);
+		assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void protectedEndpoint_withBareToken_noBearerPrefix_returns401() {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.AUTHORIZATION, "some-jwt-without-bearer-prefix");
+		ResponseEntity<String> resp = rest.exchange(url("/api/customer/by/username/anyone"), HttpMethod.GET,
+				new HttpEntity<>(headers), String.class);
+		assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void publicAvailabilityEndpoint_isReachableWithoutAuth() {
+		ResponseEntity<String> resp = rest.getForEntity(
+				url("/api/customer/checkUsernameAvailability/some-random-" + System.nanoTime()),
+				String.class);
+		assertThat(resp.getStatusCode().is2xxSuccessful() || resp.getStatusCode().is4xxClientError())
+				.as("must not be 5xx — got %s", resp.getStatusCode())
+				.isTrue();
+	}
+
+	@Test
+	void accessToken_unlocks_authenticatedEndpoint() {
+		String username = "frank" + System.nanoTime();
+		String password = "Test@1234";
+		ResponseEntity<String> signup = rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup(username, username + "@example.com", password), String.class);
+		assertThat(signup.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+
+		ResponseEntity<JwtAuthenticationResponse> signin = rest.postForEntity(url("/api/auth/customer/signin"),
+				Map.of("username", username, "password", password), JwtAuthenticationResponse.class);
+		String accessToken = signin.getBody().accessToken();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
+		ResponseEntity<String> probe = rest.exchange(url("/api/customer/by/username/" + username), HttpMethod.GET,
+				new HttpEntity<>(headers), String.class);
+
+		assertThat(probe.getStatusCode())
+				.as("access token must NOT be 401 Unauthorized — got %s body=%s",
+						probe.getStatusCode(), probe.getBody())
+				.isNotEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void weakPassword_onSignup_isRejected() {
+		String username = "grace" + System.nanoTime();
+		Map<String, Object> body = validCustomerSignup(username, username + "@example.com", "weakpass");
+
+		ResponseEntity<String> resp = rest.postForEntity(url("/api/auth/customer/signup"), body, String.class);
+
+		assertThat(resp.getStatusCode())
+				.as("weak password must be rejected as 400 Bad Request, got %s body=%s",
+						resp.getStatusCode(), resp.getBody())
+				.isEqualTo(HttpStatus.BAD_REQUEST);
+	}
+
+	@Test
+	void refreshToken_canBeReusedAcrossRefreshes() {
+		String username = "henry" + System.nanoTime();
+		String password = "Test@1234";
+		rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup(username, username + "@example.com", password), String.class);
+		String refreshToken = rest.postForEntity(url("/api/auth/customer/signin"),
+				Map.of("username", username, "password", password), JwtAuthenticationResponse.class)
+				.getBody().refreshToken();
+
+		ResponseEntity<JwtAuthenticationResponse> first = rest.postForEntity(url("/api/auth/customer/refreshToken"),
+				Map.of("refreshToken", refreshToken), JwtAuthenticationResponse.class);
+		ResponseEntity<JwtAuthenticationResponse> second = rest.postForEntity(url("/api/auth/customer/refreshToken"),
+				Map.of("refreshToken", refreshToken), JwtAuthenticationResponse.class);
+
+		assertThat(first.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(second.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(first.getBody().accessToken()).isNotBlank();
+		assertThat(second.getBody().accessToken()).isNotBlank();
+	}
+
+	private String url(String path) {
+		return "http://localhost:" + port + path;
+	}
+
+	/**
+	 * Returns a plausible CustomerDTO payload. Server may still reject — the iterating
+	 * tests will surface what's actually required.
+	 */
+	private Map<String, Object> validCustomerSignup(String username, String email, String password) {
+		Map<String, Object> billing = new HashMap<>();
+		billing.put("country", "India");
+		billing.put("state", "Karnataka");
+		billing.put("city", "Bangalore");
+		billing.put("region", "Indiranagar");
+		billing.put("postalCode", 560038);
+		billing.put("address1", "1 MG Road");
+
+		Map<String, Object> body = new HashMap<>();
+		body.put("username", username);
+		body.put("name", "First Middle Last");
+		body.put("email", email);
+		body.put("password", password);
+		body.put("dob", "1990-01-15");
+		body.put("contact", 9876543210L);
+		body.put("alternateContact", 9876543211L);
+		body.put("gender", "MALE");
+		body.put("regId", "REG-" + System.nanoTime());
+		body.put("govtIdType", "AADHAR");
+		body.put("govtId", "GID-" + System.nanoTime());
+		body.put("billingAddress", billing);
+		body.put("shippingAddress", billing);
+		body.put("sameShipping", true);
+		return body;
+	}
+}

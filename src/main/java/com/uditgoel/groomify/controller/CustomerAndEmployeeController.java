@@ -5,8 +5,7 @@ import java.time.Year;
 import java.util.Date;
 import java.util.List;
 
-import jakarta.annotation.Resource;
-
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,17 +23,23 @@ import com.uditgoel.groomify.facade.EmployeeFacade;
 import com.uditgoel.groomify.facade.helper.EmployeeFacadeHelper;
 
 @RestController
-@RequestMapping("api/customeremployee")
+@RequestMapping("/api/customeremployee")
 public class CustomerAndEmployeeController {
 
-	@Resource(name = "employeeFacade")
-	private EmployeeFacade employeeFacade;
+	private final EmployeeFacade employeeFacade;
 
-	@Resource(name = "customerFacade")
-	private CustomerFacade customerFacade;
-	
-	@Resource
-	private EmployeeFacadeHelper employeeFacadeHelper;
+	private final CustomerFacade customerFacade;
+
+	@SuppressWarnings("unused")
+	private final EmployeeFacadeHelper employeeFacadeHelper;
+
+	public CustomerAndEmployeeController(@Qualifier("employeeFacade") EmployeeFacade employeeFacade,
+			@Qualifier("customerFacade") CustomerFacade customerFacade,
+			EmployeeFacadeHelper employeeFacadeHelper) {
+		this.employeeFacade = employeeFacade;
+		this.customerFacade = customerFacade;
+		this.employeeFacadeHelper = employeeFacadeHelper;
+	}
 
 	@GetMapping("birthdayweek")
 	public ResponseEntity<CustomerAndEmployeeDataDTO> fetchBirthdayWeekUserAndEmployee() {

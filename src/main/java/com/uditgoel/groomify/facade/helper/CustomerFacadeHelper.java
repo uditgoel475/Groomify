@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +22,7 @@ import com.uditgoel.groomify.dao.customer.CustomerJobCardHistory;
 import com.uditgoel.groomify.dao.customer.CustomerOrder;
 import com.uditgoel.groomify.dao.customer.CustomerOrderHistory;
 import com.uditgoel.groomify.dao.repository.CustomerRepository;
+import com.uditgoel.groomify.dao.repository.GovtIdTypeRepository;
 import com.uditgoel.groomify.dto.UserType;
 import com.uditgoel.groomify.dto.customer.CustomerDTO;
 import com.uditgoel.groomify.dto.customer.CustomerJobCardDetailsOut;
@@ -35,11 +34,18 @@ import com.uditgoel.groomify.utils.CustomerAndEmployeeUtils;
 @Component("customerFacadeHelper")
 public class CustomerFacadeHelper {
 
-	@Resource
-	private CustomerRepository customerRepository;
+	private final CustomerRepository customerRepository;
 
-	@Resource
-	private EmployeeFacadeHelper employeeFacadeHelper;
+	private final EmployeeFacadeHelper employeeFacadeHelper;
+
+	private final GovtIdTypeRepository govtIdTypeRepository;
+
+	public CustomerFacadeHelper(CustomerRepository customerRepository, EmployeeFacadeHelper employeeFacadeHelper,
+			GovtIdTypeRepository govtIdTypeRepository) {
+		this.customerRepository = customerRepository;
+		this.employeeFacadeHelper = employeeFacadeHelper;
+		this.govtIdTypeRepository = govtIdTypeRepository;
+	}
 
 	public CustomerOrder updateCustomerOrderByGivenJobStatus(CustomerOrder customerOrder, JobStatus updatedJobStatus) {
 
@@ -158,10 +164,12 @@ public class CustomerFacadeHelper {
 		customer.setContact(customerInput.getContact());
 		customer.setAlternateContact(customerInput.getAlternateContact());
 
-		GovtIdType govtIdType = new GovtIdType();
-		govtIdType.setTypeName(customerInput.getGovtIdType());
+		GovtIdType govtIdType = govtIdTypeRepository
+				.findByTypeNameOrderByTypeNameAsc(customerInput.getGovtIdType())
+				.orElseGet(() -> govtIdTypeRepository.save(new GovtIdType(customerInput.getGovtIdType(), null)));
 		customer.setGovtIdType(govtIdType);
 		customer.setGovtId(customerInput.getGovtId());
+		customer.setRegId(customerInput.getRegId());
 		return customer;
 	}
 

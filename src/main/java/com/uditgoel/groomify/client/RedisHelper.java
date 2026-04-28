@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,19 +29,28 @@ public class RedisHelper {
 	@Value("${jwt.refresh.token.key.format}")
 	private String jwtRefreshTokenKey;
 
-	@Resource
-	private RedisClient redisClient;
+	private final RedisClient redisClient;
 
-	@Resource
-	private ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper;
 
 	private boolean redisWorking;
 
+	public RedisHelper(RedisClient redisClient, ObjectMapper objectMapper) {
+		this.redisClient = redisClient;
+		this.objectMapper = objectMapper;
+	}
+
 	@PostConstruct
 	public void init() {
-		redisWorking = Optional.ofNullable(redisClient).map(RedisClient::getConnectionFactory)
-				.map(RedisConnectionFactory::getConnection).map(RedisConnection::ping).filter("PONG"::equals)
-				.isPresent();
+		try {
+			redisWorking = Optional.ofNullable(redisClient).map(RedisClient::getConnectionFactory)
+					.map(RedisConnectionFactory::getConnection).map(RedisConnection::ping).filter("PONG"::equals)
+					.isPresent();
+		} catch (RuntimeException e) {
+			// Redis unreachable at startup — treat as not working so the app still boots.
+			// Refresh-token writes / reads will be skipped; access tokens still work.
+			redisWorking = false;
+		}
 	}
 
 	public void createRedisJWTRefreshToken(String token, JwtJsonSubjectKey unencryptedValue)

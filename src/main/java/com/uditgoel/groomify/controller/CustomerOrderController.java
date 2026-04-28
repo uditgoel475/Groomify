@@ -5,8 +5,7 @@ import java.time.Year;
 import java.util.Date;
 import java.util.List;
 
-import jakarta.annotation.Resource;
-
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,12 +22,15 @@ import com.uditgoel.groomify.dto.customer.UpdateCustomerOrderInput;
 import com.uditgoel.groomify.facade.CustomerFacade;
 
 @RestController
-@RequestMapping("api/customerorder")
+@RequestMapping("/api/customerorder")
 public class CustomerOrderController {
 
-	@Resource(name = "customerFacade")
-	private CustomerFacade customerFacade;
-	
+	private final CustomerFacade customerFacade;
+
+	public CustomerOrderController(@Qualifier("customerFacade") CustomerFacade customerFacade) {
+		this.customerFacade = customerFacade;
+	}
+
 	@GetMapping("orders/open/{custNo}")
 	public ResponseEntity<List<CustomerOrderOut>> fetchAllOpenCustomerOrders(@PathVariable("custNo") String custNo) {
 		return ResponseEntity.ok(customerFacade.fetchAllOpenCustomerOrder(custNo));
@@ -55,7 +57,7 @@ public class CustomerOrderController {
 	public ResponseEntity<List<CustomerOrderOut>> fetchAllCustomerEnquiriesDateRange(@PathVariable("year") Year year, @PathVariable("month") Month month) {
 		return ResponseEntity.ok(customerFacade.fetchAllCustomerEnquiriesGivenMonth(month, year.getValue()));
 	}
-	
+
 	@PostMapping("enquiry/new")
 	public ResponseEntity<String> createNewEnquiry(@RequestBody CreateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.createNewCustomerEnquiry(customerOrderInput));
@@ -65,7 +67,7 @@ public class CustomerOrderController {
 	public ResponseEntity<Boolean> initiateEnquiryToOrder(@RequestBody UpdateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.initiateEnquiryToOrder(customerOrderInput));
 	}
-	
+
 	@PostMapping("updateServices")
 	public ResponseEntity<Boolean> updateServices(@RequestBody UpdateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.updateServices(customerOrderInput));

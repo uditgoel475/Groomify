@@ -16,8 +16,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.slf4j.Logger;
@@ -27,6 +25,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.uditgoel.groomify.dao.Activity;
 import com.uditgoel.groomify.dao.Password;
@@ -52,27 +51,22 @@ import com.uditgoel.groomify.utils.Converter;
 import com.uditgoel.groomify.utils.CustomerAndEmployeeUtils;
 
 @Service("employeeFacade")
+@Transactional(readOnly = true)
 public class EmployeeFacadeImpl implements EmployeeFacade {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmployeeFacadeImpl.class);
 
-	@Resource
-	private EmployeeRepository employeeRepository;
+	private final EmployeeRepository employeeRepository;
 
-	@Resource
-	private EmployeeDailyActivitiesRepository employeeDailyActivitiesRepository;
+	private final EmployeeDailyActivitiesRepository employeeDailyActivitiesRepository;
 
-	@Resource
-	private CustomerRepository customerRepository;
+	private final CustomerRepository customerRepository;
 
-	@Resource
-	private EmployeeFacadeHelper employeeFacadeHelper;
+	private final EmployeeFacadeHelper employeeFacadeHelper;
 
-	@Resource
-	private EmployeeServicesRepository employeeServicesRepository;
+	private final EmployeeServicesRepository employeeServicesRepository;
 
-	@Resource
-	private PasswordEncoder passwordEncoder;
+	private final PasswordEncoder passwordEncoder;
 
 	@Value("${employee.password.regex}")
 	private String passwrdRegex;
@@ -85,6 +79,18 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 	@Value("${employee.name.search.min.length}")
 	private int minFNameLength;
+
+	public EmployeeFacadeImpl(EmployeeRepository employeeRepository,
+			EmployeeDailyActivitiesRepository employeeDailyActivitiesRepository,
+			CustomerRepository customerRepository, EmployeeFacadeHelper employeeFacadeHelper,
+			EmployeeServicesRepository employeeServicesRepository, PasswordEncoder passwordEncoder) {
+		this.employeeRepository = employeeRepository;
+		this.employeeDailyActivitiesRepository = employeeDailyActivitiesRepository;
+		this.customerRepository = customerRepository;
+		this.employeeFacadeHelper = employeeFacadeHelper;
+		this.employeeServicesRepository = employeeServicesRepository;
+		this.passwordEncoder = passwordEncoder;
+	}
 
 	@Override
 	public List<EmployeeDTO> fetchAllExistingEmployeeCurrentWeekBirthdays() {
@@ -111,6 +117,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	}
 
 	@Override
+	@Transactional
 	public String createNewEmployee(EmployeeInput createEmployeeInput) {
 
 		if (!StringUtils.isEmpty(createEmployeeInput.getPassword())) {
@@ -146,12 +153,12 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 
 	private void validatePassword(String password) {
 		if (!password.matches(passwrdRegex)) {
-			throw new IllegalArgumentException(String.format("Input password '%s' doesn't pass the strength test. %s",
-					password, passwrdExceptionMsg));
+			throw new IllegalArgumentException("Input password doesn't pass the strength test. " + passwrdExceptionMsg);
 		}
 	}
 
 	@Override
+	@Transactional
 	public Boolean changeEmployeePassword(String empNo, String currentPass, String newPass) {
 		validatePassword(newPass);
 		String encryptNew = passwordEncoder.encode(newPass);
@@ -167,7 +174,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 			throw new IllegalArgumentException(
 					"Password must not match the last 5 passwords. Please provide a different input");
 		}
-		passwords.setPassword(encryptNew, UserType.CUSTOMER);
+		passwords.setPassword(encryptNew, UserType.EMPLOYEE);
 		employee.setPassword(passwords);
 		try {
 			employeeRepository.save(employee);
@@ -186,7 +193,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 		employeeDailyActivities.setEmployee(employee);
 		if (!StringUtils.isEmpty(custUsername)) {
 			Customer customer = customerRepository.findByUsername(custUsername)
-					.orElseThrow(() -> new ResourceNotFoundException("Customer", "username", empNo));
+					.orElseThrow(() -> new ResourceNotFoundException("Customer", "username", custUsername));
 			employeeDailyActivities.setCustomer(customer);
 		}
 		employeeDailyActivities.setCreatedBy("anonymous");
@@ -199,6 +206,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	}
 
 	@Override
+	@Transactional
 	public Boolean employeeFutureActivity(Map<Date, List<String>> employeeActivityMap, Activity activity) {
 		List<EmployeeDailyActivities> employeeDailyActivityList = new ArrayList<>();
 		employeeActivityMap.entrySet().forEach(
@@ -209,6 +217,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	}
 
 	@Override
+	@Transactional
 	public Boolean attendCustomer(String empNo, Activity activity, String customer) {
 		EmployeeDailyActivities employeeDailyActivities = createEmployeeActivity(empNo, activity, customer, null);
 		employeeDailyActivities = employeeDailyActivitiesRepository.save(employeeDailyActivities);
@@ -216,6 +225,7 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 	}
 
 	@Override
+	@Transactional
 	public Boolean markActivity(String empNo, Activity activity) {
 		EmployeeDailyActivities employeeDailyActivities = createEmployeeActivity(empNo, activity, null, null);
 		employeeDailyActivities = employeeDailyActivitiesRepository.save(employeeDailyActivities);
@@ -277,8 +287,9 @@ public class EmployeeFacadeImpl implements EmployeeFacade {
 					Optional<Date> employeeOut = listEmplActivities.stream()
 							.filter(x -> x.getActivity() == Activity.SALON_OUT).map(EmployeeDailyActivities::getTime)
 							.max(Comparator.comparing(Function.identity()));
-					if ((!employeeOut.isPresent() && employeeIn.isPresent())
-							|| (employeeOut.get().getTime() < employeeIn.get().getTime())) {
+					boolean currentlyInSalon = employeeIn.isPresent()
+							&& (employeeOut.isEmpty() || employeeOut.get().before(employeeIn.get()));
+					if (currentlyInSalon) {
 
 						EmployeeDailyActivities employeeLastActivity = listEmplActivities.stream()
 								.max(Comparator.comparing(EmployeeDailyActivities::getTime)).orElse(null);

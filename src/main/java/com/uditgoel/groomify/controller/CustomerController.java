@@ -3,9 +3,8 @@ package com.uditgoel.groomify.controller;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,11 +22,14 @@ import com.uditgoel.groomify.facade.CustomerFacade;
 import com.uditgoel.groomify.utils.CustomerAndEmployeeUtils;
 
 @RestController
-@RequestMapping("api/customer")
+@RequestMapping("/api/customer")
 public class CustomerController {
 
-	@Resource(name = "customerFacade")
-	private CustomerFacade customerFacade;
+	private final CustomerFacade customerFacade;
+
+	public CustomerController(@Qualifier("customerFacade") CustomerFacade customerFacade) {
+		this.customerFacade = customerFacade;
+	}
 
 	@PostMapping("upload/profile/{custNo}")
 	public ResponseEntity<Boolean> uploadCustomerImageProfile(@RequestBody MultipartFile file,
@@ -53,17 +55,17 @@ public class CustomerController {
 			@RequestBody Map<String, String> psswrds) {
 		return ResponseEntity.ok(customerFacade.changeCustomerPassword(custNo, psswrds.get("currentPassword"), psswrds.get("newPassword")));
 	}
-	
+
 	@GetMapping("checkEmailAvailability/{email:.+}")
 	public ResponseEntity<Boolean> checkEmailAvailability(@PathVariable("email") String email) {
 		return ResponseEntity.ok(customerFacade.checkEmailAvailability(email));
 	}
-	
+
 	@GetMapping("checkUsernameAvailability/{username:.+}")
 	public ResponseEntity<Boolean> checkUsernameAvailability(@PathVariable("username") String username) {
 		return ResponseEntity.ok(customerFacade.checkUsernameAvailability(username));
 	}
-	
+
 	@GetMapping("matchingNames")
 	public ResponseEntity<List<CustomerOutDTO>> findAllMatchingName(@RequestHeader("name") String name) {
 		return ResponseEntity.ok(customerFacade.findAllMatchingName(name));

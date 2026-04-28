@@ -3,9 +3,8 @@ package com.uditgoel.groomify.facade.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.annotation.Resource;
-
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.uditgoel.groomify.dao.ChairAllocate;
 import com.uditgoel.groomify.dao.Floor;
@@ -20,16 +19,21 @@ import com.uditgoel.groomify.facade.ChairAllocateFacade;
 import com.uditgoel.groomify.facade.helper.CustomerFacadeHelper;
 
 @Service("chairAllocateFacade")
+@Transactional(readOnly = true)
 public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 
-	@Resource
-	private ChairAllocateRepository chairAllocateRepository;
+	private final ChairAllocateRepository chairAllocateRepository;
 
-	@Resource
-	private CustomerFacadeHelper customerFacadeHelper;
+	private final CustomerFacadeHelper customerFacadeHelper;
 
-	@Resource
-	private CustomerRepository customerRepository;
+	private final CustomerRepository customerRepository;
+
+	public ChairAllocateFacadeImpl(ChairAllocateRepository chairAllocateRepository,
+			CustomerFacadeHelper customerFacadeHelper, CustomerRepository customerRepository) {
+		this.chairAllocateRepository = chairAllocateRepository;
+		this.customerFacadeHelper = customerFacadeHelper;
+		this.customerRepository = customerRepository;
+	}
 
 	@Override
 	public List<String> fetchFreeAvailableChairsGivenFloor(Floor floor) {
@@ -59,6 +63,7 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 	}
 
 	@Override
+	@Transactional
 	public String allocateChair(String num, String username) {
 		ChairAllocate chairAllocate = findFirstByNum(num);
 		if (chairAllocate.getOccupied())
@@ -75,6 +80,7 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 	}
 
 	@Override
+	@Transactional
 	public String allocateChair(Floor floor, String username) {
 		ChairAllocate chairAllocate = chairAllocateRepository
 				.findFirstByFloorAndAvailableAndOccupied(floor, true, false)
@@ -86,6 +92,7 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 	}
 
 	@Override
+	@Transactional
 	public Boolean unAllocateChair(String num) {
 		ChairAllocate chairAllocate = findFirstByNum(num);
 		if (chairAllocate.getOccupied()) {
@@ -96,6 +103,7 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 	}
 
 	@Override
+	@Transactional
 	public Boolean unAllocateChairByCustomer(String username) {
 		ChairAllocate chairAllocate = findChairAllocateByCustomer(username);
 		if (chairAllocate.getOccupied()) {
@@ -106,6 +114,7 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 	}
 
 	@Override
+	@Transactional
 	public Boolean removeChair(String num) {
 		ChairAllocate chairAllocate = findFirstByNum(num);
 		chairAllocateRepository.delete(chairAllocate);
@@ -113,6 +122,7 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 	}
 
 	@Override
+	@Transactional
 	public Boolean expireChair(String num) {
 		ChairAllocate chairAllocate = findFirstByNum(num);
 		if (chairAllocate.getAvailable()) {
@@ -123,6 +133,7 @@ public class ChairAllocateFacadeImpl implements ChairAllocateFacade {
 	}
 
 	@Override
+	@Transactional
 	public Integer addChairs(Floor floor, int count) {
 		List<ChairAllocate> chairAllocateList = new ArrayList<>();
 		int currentChairCount = chairAllocateRepository.chairCountOnFloor(floor);

@@ -6,9 +6,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,12 +28,15 @@ import com.uditgoel.groomify.facade.EmployeeFacade;
 import com.uditgoel.groomify.utils.CustomerAndEmployeeUtils;
 
 @RestController
-@RequestMapping("api/employee")
+@RequestMapping("/api/employee")
 public class EmployeeController {
 
-	@Resource(name = "employeeFacade")
-	private EmployeeFacade employeeFacade;
-	
+	private final EmployeeFacade employeeFacade;
+
+	public EmployeeController(@Qualifier("employeeFacade") EmployeeFacade employeeFacade) {
+		this.employeeFacade = employeeFacade;
+	}
+
 	@GetMapping("{username}")
 	public ResponseEntity<EmployeeDTO> getEmployeeDTO(@PathVariable("username") String username) {
 		return ResponseEntity.ok(employeeFacade.fetchEmployeeDTO(username));
@@ -97,12 +99,12 @@ public class EmployeeController {
 			@PathVariable("service") String service) {
 		return ResponseEntity.ok(employeeFacade.fetchAllAvailableEmployeesMatchingSkills(service));
 	}
-	
+
 	@GetMapping("checkUsernameAvailability/{username:.+}")
 	public ResponseEntity<Boolean> checkUsernameAvailability(@PathVariable("username") String username) {
 		return ResponseEntity.ok(employeeFacade.checkUsernameAvailability(username));
 	}
-	
+
 	@GetMapping("matchingNames")
 	public ResponseEntity<List<EmployeeDTO>> findAllMatchingName(@RequestHeader("name") String name) {
 		return ResponseEntity.ok(employeeFacade.findAllMatchingName(name));

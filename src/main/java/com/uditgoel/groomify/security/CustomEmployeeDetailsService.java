@@ -1,7 +1,5 @@
 package com.uditgoel.groomify.security;
 
-import jakarta.annotation.Resource;
-
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,8 +13,11 @@ import com.uditgoel.groomify.exception.ResourceNotFoundException;
 @Service("employeeDetailsService")
 public class CustomEmployeeDetailsService implements UserDetailsService {
 
-	@Resource
-	private EmployeeRepository employeeRepository;
+	private final EmployeeRepository employeeRepository;
+
+	public CustomEmployeeDetailsService(EmployeeRepository employeeRepository) {
+		this.employeeRepository = employeeRepository;
+	}
 
 	@Override
 	@Transactional

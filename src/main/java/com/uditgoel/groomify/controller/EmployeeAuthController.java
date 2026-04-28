@@ -3,11 +3,12 @@ package com.uditgoel.groomify.controller;
 import java.net.URI;
 import java.util.Map;
 
-import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,30 +30,32 @@ import com.uditgoel.groomify.facade.EmployeeFacade;
 import com.uditgoel.groomify.security.JwtTokenProvider;
 
 @RestController
-@RequestMapping("api/auth/employee")
+@RequestMapping("/api/auth/employee")
 public class EmployeeAuthController {
 
-	@Resource
-	private AuthenticationManager authenticationManager;
+	private final AuthenticationManager authenticationManager;
 
-	@Resource
-	private JwtTokenProvider tokenProvider;
+	private final JwtTokenProvider tokenProvider;
 
-	@Resource(name = "employeeFacade")
-	private EmployeeFacade employeeFacade;
+	private final EmployeeFacade employeeFacade;
 
-	@Resource
-	private ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper;
+
+	public EmployeeAuthController(AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider,
+			@Qualifier("employeeFacade") EmployeeFacade employeeFacade, ObjectMapper objectMapper) {
+		this.authenticationManager = authenticationManager;
+		this.tokenProvider = tokenProvider;
+		this.employeeFacade = employeeFacade;
+		this.objectMapper = objectMapper;
+	}
 
 	@PostMapping("refreshToken")
 	public ResponseEntity<JwtAuthenticationResponse> regenerateAccessToken(
 			@RequestBody Map<String, String> refreshTokenMap) throws JsonProcessingException {
 		String refreshToken = refreshTokenMap.get("refreshToken");
-		JwtJsonSubjectKey jwtJsonSubjectKey = tokenProvider.getJwtJsonSubjectKeyFromRefreshToken(refreshToken);
-		
-		JwtAuthenticationResponse jwtResponseToken = tokenProvider.createAccessToken(jwtJsonSubjectKey);
-		jwtResponseToken.setRefreshToken(refreshToken);
-		return ResponseEntity.ok(jwtResponseToken);
+		JwtJsonSubjectKey jwtJsonSubjectKey = tokenProvider.getJwtJsonSubjectKeyFromRefreshToken(refreshToken)
+				.orElseThrow(() -> new BadCredentialsException("Invalid or expired refresh token"));
+		return ResponseEntity.ok(tokenProvider.createAccessToken(jwtJsonSubjectKey, refreshToken));
 	}
 
 	@PostMapping("signin")
@@ -60,8 +63,8 @@ public class EmployeeAuthController {
 			throws JsonProcessingException {
 
 		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-				objectMapper.writeValueAsString(new JwtJsonSubjectKey(loginRequest.getUsername(), UserType.EMPLOYEE)),
-				loginRequest.getPassword()));
+				objectMapper.writeValueAsString(JwtJsonSubjectKey.forSignIn(loginRequest.username(), UserType.EMPLOYEE)),
+				loginRequest.password()));
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 

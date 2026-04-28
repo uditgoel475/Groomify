@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.List;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.Resource;
 
 import org.springframework.stereotype.Component;
 
@@ -15,11 +14,15 @@ import com.uditgoel.groomify.dao.repository.EmployeeRosterRepository;
 @Component
 public class LoadEmployeeRosterTable {
 
-	@Resource
-	private LoadEmployeeRosterTableConfig loadEmployeeRosterTableConfig;
+	private final LoadEmployeeRosterTableConfig loadEmployeeRosterTableConfig;
 
-	@Resource
-	private EmployeeRosterRepository employeeRosterRepository;
+	private final EmployeeRosterRepository employeeRosterRepository;
+
+	public LoadEmployeeRosterTable(LoadEmployeeRosterTableConfig loadEmployeeRosterTableConfig,
+			EmployeeRosterRepository employeeRosterRepository) {
+		this.loadEmployeeRosterTableConfig = loadEmployeeRosterTableConfig;
+		this.employeeRosterRepository = employeeRosterRepository;
+	}
 
 	@PostConstruct
 	public void init() {

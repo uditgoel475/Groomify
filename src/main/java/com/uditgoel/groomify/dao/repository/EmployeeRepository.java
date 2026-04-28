@@ -21,7 +21,7 @@ import com.uditgoel.groomify.dao.employee.Employee;
 @Repository("employeeRepository")
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-	@Query("Select e from Employee e where e.leavingDate >= :today AND e.dob BETWEEN :first AND :last ORDER BY DOB ASC")
+	@Query("Select e from Employee e where e.leavingDate >= :today AND e.dob BETWEEN :first AND :last ORDER BY e.dob ASC")
 	List<Employee> findAllByDobBetweenAndLeavingDateGreaterThanOrEqualToOrderByDobAsc(@Param("first") Date first,
 			@Param("last") Date last, @Param("today") Date today);
 
@@ -37,10 +37,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("select e from Employee e where lower(e.fname) like lower(CONCAT(:first,'%')) order by e.fname asc")
 	List<Employee> findAllMatchingFirstName(@Param("first") String first);
 
-	@Query("select e from Employee e where lower(e.fname) = lower(CONCAT(:first,'%')) and lower(e.lname) = lower(CONCAT(:last,'%'))")
+	@Query("select e from Employee e where lower(e.fname) like lower(CONCAT(:first,'%')) and lower(e.lname) like lower(CONCAT(:last,'%'))")
 	List<Employee> findAllMatchingFNameLName(@Param("first") String first, @Param("last") String last, Sort sort);
 
-	@Query("select e from Employee e where lower(e.fname) = lower(CONCAT(:first,'%')) and lower(e.mname) = lower(CONCAT(:middle,'%')) and lower(e.lname) = lower(CONCAT(:last,'%'))")
+	@Query("select e from Employee e where lower(e.fname) like lower(CONCAT(:first,'%')) and lower(e.mname) like lower(CONCAT(:middle,'%')) and lower(e.lname) like lower(CONCAT(:last,'%'))")
 	List<Employee> findAllMatchingName(@Param("first") String first, @Param("middle") String middle,
 			@Param("last") String last, Sort sort);
 }

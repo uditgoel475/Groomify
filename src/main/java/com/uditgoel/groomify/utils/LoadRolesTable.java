@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import jakarta.annotation.PostConstruct;
-import jakarta.annotation.Resource;
 
 import org.springframework.stereotype.Component;
 
@@ -17,8 +16,11 @@ import com.uditgoel.groomify.dao.role.RoleName;
 @Component
 public class LoadRolesTable {
 
-	@Resource
-	private RoleRepository roleRepository;
+	private final RoleRepository roleRepository;
+
+	public LoadRolesTable(RoleRepository roleRepository) {
+		this.roleRepository = roleRepository;
+	}
 
 	@PostConstruct
 	public void init() {
