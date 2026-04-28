@@ -1,0 +1,112 @@
+[
+  {
+    "username": "alice.demo",
+    "email": "alice@groomify.dev",
+    "password": "Demo@1234",
+    "name": "Alice T Demo",
+    "dob": "1990-04-15",
+    "contact": 9876543201,
+    "alternateContact": 9876543202,
+    "gender": "FEMALE",
+    "regId": "REG-DEMO-0001",
+    "govtIdType": "AADHAR",
+    "govtId": "GID-DEMO-0001",
+    "sameShipping": true,
+    "billingAddress": {
+      "country": "India",
+      "state": "Karnataka",
+      "city": "Bangalore",
+      "region": "Indiranagar",
+      "postalCode": 560038,
+      "address1": "1 MG Road"
+    }
+  },
+  {
+    "username": "bob.demo",
+    "email": "bob@groomify.dev",
+    "password": "Demo@1234",
+    "name": "Bob R Demo",
+    "dob": "1985-09-22",
+    "contact": 9876543211,
+    "alternateContact": 9876543212,
+    "gender": "MALE",
+    "regId": "REG-DEMO-0002",
+    "govtIdType": "AADHAR",
+    "govtId": "GID-DEMO-0002",
+    "sameShipping": true,
+    "billingAddress": {
+      "country": "India",
+      "state": "Maharashtra",
+      "city": "Mumbai",
+      "region": "Bandra West",
+      "postalCode": 400050,
+      "address1": "12 Linking Road"
+    }
+  },
+  {
+    "username": "carol.demo",
+    "email": "carol@groomify.dev",
+    "password": "Demo@1234",
+    "name": "Carol S Demo",
+    "dob": "1992-12-07",
+    "contact": 9876543221,
+    "alternateContact": 9876543222,
+    "gender": "FEMALE",
+    "regId": "REG-DEMO-0003",
+    "govtIdType": "PAN",
+    "govtId": "GID-DEMO-0003",
+    "sameShipping": true,
+    "billingAddress": {
+      "country": "India",
+      "state": "Delhi",
+      "city": "New Delhi",
+      "region": "Connaught Place",
+      "postalCode": 110001,
+      "address1": "Block A, CP"
+    }
+  },
+  {
+    "username": "dave.demo",
+    "email": "dave@groomify.dev",
+    "password": "Demo@1234",
+    "name": "Dave K Demo",
+    "dob": "1988-06-30",
+    "contact": 9876543231,
+    "alternateContact": 9876543232,
+    "gender": "MALE",
+    "regId": "REG-DEMO-0004",
+    "govtIdType": "AADHAR",
+    "govtId": "GID-DEMO-0004",
+    "sameShipping": true,
+    "billingAddress": {
+      "country": "India",
+      "state": "Tamil Nadu",
+      "city": "Chennai",
+      "region": "T Nagar",
+      "postalCode": 600017,
+      "address1": "5 South Usman Road"
+    }
+  },
+  {
+    "username": "eve.demo",
+    "email": "eve@groomify.dev",
+    "password": "Demo@1234",
+    "name": "Eve M Demo",
+    "dob": "1995-01-19",
+    "contact": 9876543241,
+    "alternateContact": 9876543242,
+    "gender": "FEMALE",
+    "regId": "REG-DEMO-0005",
+    "govtIdType": "AADHAR",
+    "govtId": "GID-DEMO-0005",
+    "sameShipping": true,
+    "billingAddress": {
+      "country": "India",
+      "state": "West Bengal",
+      "city": "Kolkata",
+      "region": "Park Street",
+      "postalCode": 700016,
+      "address1": "20 Park Street"
+    }
+  }
+]

@@ -107,6 +107,18 @@ docker compose down -v            # stop + wipe data volumes
 docker compose up -d --build      # rebuild and run detached
 ```
 
+Once the stack is healthy, load demo data:
+
+```bash
+./scripts/seed.sh                                      # 5 demo customers via the public API
+GROOMIFY_BASE_URL=https://staging.example ./scripts/seed.sh  # different host
+```
+
+The script polls `/v3/api-docs` until the app is ready, posts each customer to
+`/api/auth/customer/signup`, then signs in as the first user and fetches their profile to verify
+the seed actually landed. Re-running is idempotent — existing rows return 409 and are reported as
+"already exists". Edit `scripts/seed/customers.json` to change the data.
+
 Override anything via env vars or by copying `.env.example` → `.env` and editing. The compose file
 will refuse to start if `APP_JWT_SECRET`, `APP_AES_KEY`, or the RSA keypair aren't set. Re-running
 `generate-env.sh` rotates the secrets (this also invalidates any existing tokens / sessions).
