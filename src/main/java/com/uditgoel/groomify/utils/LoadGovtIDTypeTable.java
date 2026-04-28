@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.uditgoel.groomify.dao.GovtIdType;
 import com.uditgoel.groomify.dao.repository.GovtIdTypeRepository;
@@ -23,6 +24,7 @@ public class LoadGovtIDTypeTable {
 	}
 
 	@PostConstruct
+	@Transactional
 	public void init() {
 
 		if (govtIdTypeRepository.count() == 0) {

@@ -236,18 +236,31 @@ Errors come back as JSON via [`GlobalExceptionHandler`](src/main/java/com/uditgo
 
 ## Caveats & known follow-ups
 
-- **No `@PreAuthorize` ownership checks.** Any authenticated user can fetch any other user's
-  profile by guessing the username (IDOR). Adding `@PreAuthorize("#username == authentication.name")`
-  on the relevant controllers is the next security pass.
-- **Triple `*UserDetailsService`** (`Custom{Customer,Employee,User}DetailsService`) and twin
-  `*AuthController` are 90% duplicated. A generic strategy would cut ~600 LOC. Left in place
-  because it works.
 - **`LoadAddressMetaTable`** is opt-in via `groomify.bootstrap.address-meta=true`; it makes a
-  blocking HTTP fan-out to geonames.org that can take several minutes. Not run by default.
-- **Reference-data loaders** (`utils/Load*Table.java`) seed roles / govt-id types / employee
-  rosters from `*.properties` files at `@PostConstruct`. Idempotent but not transactional. Fine
-  for single-instance deployments; would need rework for HA.
-- **No rate limiting** on `/signin` — a real deployment would put bucket4j or similar in front.
+  blocking HTTP fan-out to geonames.org that can take several minutes. Not run by default — set
+  the flag only on first-time bootstrap.
+- **Triple `*UserDetailsService`** (`Custom{Customer,Employee,User}DetailsService`) and twin
+  `*AuthController` are ~90% duplicated. A generic strategy would cut ~600 LOC. Left in place
+  because it works; refactor is non-trivial and changes API path conventions.
+- **Single-instance rate limiter.** [`SigninRateLimitFilter`](src/main/java/com/uditgoel/groomify/security/SigninRateLimitFilter.java)
+  is per-IP, fixed-window-per-minute, in-memory. Fine for a single node; multi-instance
+  deployments need a shared store (Redis bucket) or an upstream WAF — otherwise a caller gets
+  N×instances attempts before the first one trips.
+- **No standalone observability** — no Actuator/Prometheus, no structured tracing. Fine for a
+  reference; add `spring-boot-starter-actuator` + Micrometer for production.
+
+### Resolved during the modernization round
+
+- Endpoint-level **IDOR ownership checks** via `@PreAuthorize("authentication.name == #username")`
+  on every customer/employee/customer-order endpoint that takes a user identifier in the path.
+  Verified by `accessToken_cannotFetch_otherUsersProfile_returns403` in the e2e suite.
+- **Reference-data loaders** are now `@Transactional` — `count == 0` check + `saveAll` are atomic
+  per loader.
+- **Signin rate limit** (per-IP, `groomify.signin.max-attempts-per-minute`, default 10) sits in
+  front of the auth filter so brute-force probes never reach BCrypt.
+- **`@PostConstruct` validation** at startup for `app.jwtSecret` (≥ 64 bytes), `app.aes.key`
+  (16/24/32 bytes Base64) — app refuses to boot otherwise. Replaces the old "errors at first
+  auth" caveat.
 
 ## License
 

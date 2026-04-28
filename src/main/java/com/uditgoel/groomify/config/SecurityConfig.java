@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.uditgoel.groomify.security.CustomUserDetailsService;
 import com.uditgoel.groomify.security.JwtAuthenticationEntryPoint;
 import com.uditgoel.groomify.security.JwtAuthenticationFilter;
+import com.uditgoel.groomify.security.SigninRateLimitFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -26,12 +27,15 @@ public class SecurityConfig {
 	private final CustomUserDetailsService customUserDetailsService;
 	private final JwtAuthenticationEntryPoint unauthorizedHandler;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	private final SigninRateLimitFilter signinRateLimitFilter;
 
 	public SecurityConfig(CustomUserDetailsService customUserDetailsService,
-			JwtAuthenticationEntryPoint unauthorizedHandler, JwtAuthenticationFilter jwtAuthenticationFilter) {
+			JwtAuthenticationEntryPoint unauthorizedHandler, JwtAuthenticationFilter jwtAuthenticationFilter,
+			SigninRateLimitFilter signinRateLimitFilter) {
 		this.customUserDetailsService = customUserDetailsService;
 		this.unauthorizedHandler = unauthorizedHandler;
 		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+		this.signinRateLimitFilter = signinRateLimitFilter;
 	}
 
 	@Bean
@@ -75,7 +79,8 @@ public class SecurityConfig {
 				.anyRequest().authenticated()
 			)
 			.authenticationProvider(authenticationProvider())
-			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+			.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(signinRateLimitFilter, JwtAuthenticationFilter.class);
 
 		return http.build();
 	}

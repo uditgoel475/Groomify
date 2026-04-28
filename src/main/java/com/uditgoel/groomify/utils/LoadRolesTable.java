@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.uditgoel.groomify.dao.repository.RoleRepository;
 import com.uditgoel.groomify.dao.role.Role;
@@ -23,6 +24,7 @@ public class LoadRolesTable {
 	}
 
 	@PostConstruct
+	@Transactional
 	public void init() {
 
 		if (roleRepository.count() == 0) {

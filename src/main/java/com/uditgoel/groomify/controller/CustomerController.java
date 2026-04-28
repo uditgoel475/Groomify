@@ -6,6 +6,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +33,7 @@ public class CustomerController {
 	}
 
 	@PostMapping("upload/profile/{custNo}")
+	@PreAuthorize("authentication.name == #custNo")
 	public ResponseEntity<Boolean> uploadCustomerImageProfile(@RequestBody MultipartFile file,
 			@PathVariable("custNo") String custNo) {
 		return ResponseEntity.ok(!StringUtils.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.CUSTOMER,
@@ -39,6 +41,7 @@ public class CustomerController {
 	}
 
 	@PostMapping("upload/govt/{custNo}")
+	@PreAuthorize("authentication.name == #custNo")
 	public ResponseEntity<Boolean> uploadCustomerImageGovt(@RequestBody MultipartFile file,
 			@PathVariable("custNo") String custNo) {
 		return ResponseEntity.ok(!StringUtils.isEmpty(CustomerAndEmployeeUtils.uploadPictureImage(UserType.CUSTOMER,
@@ -46,11 +49,13 @@ public class CustomerController {
 	}
 
 	@GetMapping("{username}")
+	@PreAuthorize("authentication.name == #username")
 	public ResponseEntity<CustomerOutDTO> getCustomerDTO(@PathVariable("username") String username) {
 		return ResponseEntity.ok(customerFacade.fetchCustomerDTO(username));
 	}
 
 	@PostMapping("changepwd/{custNo}")
+	@PreAuthorize("authentication.name == #custNo")
 	public ResponseEntity<Boolean> updateCustomerPassword(@PathVariable("custNo") String custNo,
 			@RequestBody Map<String, String> psswrds) {
 		return ResponseEntity.ok(customerFacade.changeCustomerPassword(custNo, psswrds.get("currentPassword"), psswrds.get("newPassword")));
