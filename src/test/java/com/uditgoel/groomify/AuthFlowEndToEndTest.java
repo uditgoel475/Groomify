@@ -97,7 +97,8 @@ class AuthFlowEndToEndTest {
 		assertThat(refresh.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(refresh.getBody()).isNotNull();
 		assertThat(refresh.getBody().accessToken()).isNotBlank();
-		assertThat(refresh.getBody().refreshToken()).isEqualTo(refreshToken);
+		assertThat(refresh.getBody().refreshToken()).isNotBlank();
+		assertThat(refresh.getBody().refreshToken()).isNotEqualTo(refreshToken);
 	}
 
 	@Test
@@ -219,24 +220,49 @@ class AuthFlowEndToEndTest {
 	}
 
 	@Test
-	void refreshToken_canBeReusedAcrossRefreshes() {
-		String username = "henry" + System.nanoTime();
+	void refreshToken_rotates_oldOneRejected() {
+		String username = "rot1-" + System.nanoTime();
 		String password = "Test@1234";
 		rest.postForEntity(url("/api/auth/customer/signup"),
 				validCustomerSignup(username, username + "@example.com", password), String.class);
-		String refreshToken = rest.postForEntity(url("/api/auth/customer/signin"),
+		String t1 = rest.postForEntity(url("/api/auth/customer/signin"),
 				Map.of("username", username, "password", password), JwtAuthenticationResponse.class)
 				.getBody().refreshToken();
 
-		ResponseEntity<JwtAuthenticationResponse> first = rest.postForEntity(url("/api/auth/customer/refreshToken"),
-				Map.of("refreshToken", refreshToken), JwtAuthenticationResponse.class);
-		ResponseEntity<JwtAuthenticationResponse> second = rest.postForEntity(url("/api/auth/customer/refreshToken"),
-				Map.of("refreshToken", refreshToken), JwtAuthenticationResponse.class);
+		ResponseEntity<JwtAuthenticationResponse> firstRefresh = rest.postForEntity(
+				url("/api/auth/customer/refreshToken"),
+				Map.of("refreshToken", t1), JwtAuthenticationResponse.class);
+		assertThat(firstRefresh.getStatusCode()).isEqualTo(HttpStatus.OK);
+		String t2 = firstRefresh.getBody().refreshToken();
+		assertThat(t2).isNotEqualTo(t1);
 
-		assertThat(first.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(second.getStatusCode()).isEqualTo(HttpStatus.OK);
-		assertThat(first.getBody().accessToken()).isNotBlank();
-		assertThat(second.getBody().accessToken()).isNotBlank();
+		ResponseEntity<String> reuseT1 = rest.postForEntity(url("/api/auth/customer/refreshToken"),
+				Map.of("refreshToken", t1), String.class);
+		assertThat(reuseT1.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void refreshTokenReuse_wipesEntireFamily() {
+		String username = "rot2-" + System.nanoTime();
+		String password = "Test@1234";
+		rest.postForEntity(url("/api/auth/customer/signup"),
+				validCustomerSignup(username, username + "@example.com", password), String.class);
+		String t1 = rest.postForEntity(url("/api/auth/customer/signin"),
+				Map.of("username", username, "password", password), JwtAuthenticationResponse.class)
+				.getBody().refreshToken();
+		String t2 = rest.postForEntity(url("/api/auth/customer/refreshToken"),
+				Map.of("refreshToken", t1), JwtAuthenticationResponse.class)
+				.getBody().refreshToken();
+
+		// Reuse t1 — theft signal — should wipe the family (t1 + t2).
+		ResponseEntity<String> reuseT1 = rest.postForEntity(url("/api/auth/customer/refreshToken"),
+				Map.of("refreshToken", t1), String.class);
+		assertThat(reuseT1.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
+		// t2 should also now be invalid — family was wiped.
+		ResponseEntity<String> reuseT2 = rest.postForEntity(url("/api/auth/customer/refreshToken"),
+				Map.of("refreshToken", t2), String.class);
+		assertThat(reuseT2.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 
 	private String url(String path) {

@@ -1,7 +1,9 @@
 package com.uditgoel.groomify.client;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import jakarta.annotation.PostConstruct;
@@ -14,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.uditgoel.groomify.dto.JwtJsonSubjectKey;
+import com.uditgoel.groomify.security.RefreshTokenRecord;
 
 /**
  * Redis token store — only refresh tokens are persisted. Access tokens are stateless,
@@ -53,19 +55,52 @@ public class RedisHelper {
 		}
 	}
 
-	public void createRedisJWTRefreshToken(String token, JwtJsonSubjectKey unencryptedValue)
-			throws JsonProcessingException {
-		String key = String.format(jwtRefreshTokenKey, token);
-		redisClient.setValue(key, objectMapper.writeValueAsString(unencryptedValue), refreshTokenExpirationInMs,
-				TimeUnit.MILLISECONDS);
+	private String familyKey(String familyId) {
+		return "refresh:family:" + familyId;
 	}
 
-	public JwtJsonSubjectKey getRefreshTokenDetails(String token) throws IOException {
+	public void storeRefreshTokenWithFamily(String token, RefreshTokenRecord tokenRecord)
+			throws JsonProcessingException {
 		String key = String.format(jwtRefreshTokenKey, token);
-		String redisValue = redisClient.getValue(key);
-		if (StringUtils.isEmpty(redisValue))
+		redisClient.setValue(key, objectMapper.writeValueAsString(tokenRecord),
+				refreshTokenExpirationInMs, TimeUnit.MILLISECONDS);
+		String setKey = familyKey(tokenRecord.familyId());
+		redisClient.sadd(setKey, token);
+		// Family set tracks live tokens for atomic wipe on theft. Each new child resets
+		// the family TTL, so the set lives as long as its longest-lived child — preventing
+		// the set from leaking after all child tokens expire.
+		redisClient.getRedisTemplate().expire(setKey, refreshTokenExpirationInMs, TimeUnit.MILLISECONDS);
+	}
+
+	public RefreshTokenRecord getRefreshTokenRecord(String token) throws IOException {
+		String key = String.format(jwtRefreshTokenKey, token);
+		String value = redisClient.getValue(key);
+		if (StringUtils.isEmpty(value)) {
 			return null;
-		return objectMapper.readValue(redisValue, JwtJsonSubjectKey.class);
+		}
+		return objectMapper.readValue(value, RefreshTokenRecord.class);
+	}
+
+	public void markRotated(String token, RefreshTokenRecord tokenRecord) throws JsonProcessingException {
+		String key = String.format(jwtRefreshTokenKey, token);
+		RefreshTokenRecord rotated = new RefreshTokenRecord(
+				tokenRecord.subject(), tokenRecord.familyId(), Instant.now());
+		// Deliberately writes a fresh TTL: the rotated parent stays in Redis as a
+		// reuse-detection sentinel for the full refresh-token lifetime. A theft attempt
+		// using the parent token any time within that window still triggers family wipe.
+		redisClient.setValue(key, objectMapper.writeValueAsString(rotated),
+				refreshTokenExpirationInMs, TimeUnit.MILLISECONDS);
+	}
+
+	public void wipeFamily(String familyId) {
+		String setKey = familyKey(familyId);
+		Set<String> tokens = redisClient.smembers(setKey);
+		if (tokens != null) {
+			for (String t : tokens) {
+				redisClient.delete(String.format(jwtRefreshTokenKey, t));
+			}
+		}
+		redisClient.delete(setKey);
 	}
 
 	public boolean isRedisWorking() {
