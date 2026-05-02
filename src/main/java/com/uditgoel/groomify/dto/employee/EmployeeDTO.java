@@ -6,17 +6,40 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.uditgoel.groomify.dao.Gender;
 import com.uditgoel.groomify.dto.AddressInput;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
+
 public class EmployeeDTO {
 
+	@NotBlank
+	@Size(max = 128)
 	private String name;
+	@NotBlank
+	@Size(max = 64)
 	private String username;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	@NotNull
+	@Past
 	private Date dob;
+	@Min(value = 1000000000L, message = "primaryContact must be a 10-digit number")
+	@Max(value = 9999999999L, message = "primaryContact must be a 10-digit number")
 	private long primaryContact;
+	@NotNull
 	private Gender gender;
+	@Valid
 	private AddressInput currentAddress;
+	@Valid
 	private AddressInput permanentAddress;
 	private String regId;
+	@NotBlank
+	@Email
+	@Size(max = 40)
 	private String email;
 
 	public EmployeeDTO() {

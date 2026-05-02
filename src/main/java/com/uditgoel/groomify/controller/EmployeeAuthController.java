@@ -72,7 +72,7 @@ public class EmployeeAuthController {
 	}
 
 	@PostMapping("signup")
-	public ResponseEntity<String> createEmployee(@RequestBody EmployeeInput employeeInput) {
+	public ResponseEntity<String> createEmployee(@Valid @RequestBody EmployeeInput employeeInput) {
 		if (!employeeFacade.checkUsernameAvailability(employeeInput.getUsername())) {
 			throw new AlreadyExistsException("Username", employeeInput.getUsername());
 		}

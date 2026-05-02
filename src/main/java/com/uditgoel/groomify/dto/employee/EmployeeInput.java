@@ -8,8 +8,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.uditgoel.groomify.dao.employee.Qualifications;
 import com.uditgoel.groomify.dao.role.RoleName;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
+
 public class EmployeeInput extends EmployeeDTO {
-	
+
 	private MultipartFile pictureFile;
 	private Roster roster;
 	private Qualifications qualificationType;
@@ -17,13 +23,22 @@ public class EmployeeInput extends EmployeeDTO {
 	private long secondaryContact;
 	private long whatsappContact;
 	private boolean isSamePermanent;
+	@NotBlank
+	@Pattern(regexp = "(?=.*[A-Z])(?=.*[!@#$&*_])(?=.*\\d)(?=.*[a-z]).{8,16}",
+			message = "password must include uppercase, lowercase, digit and special character (8-16 chars)")
 	private String password;
+	@NotBlank
 	private String govtIdType;
+	@NotBlank
 	private String govtId;
 	private MultipartFile govtIdPic;
+	@DecimalMin("0.0")
 	private double salary;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	@NotNull
+	@Past
 	private Date joiningDate;
+	@NotNull
 	private RoleName roleName;
 
 	public EmployeeInput() {

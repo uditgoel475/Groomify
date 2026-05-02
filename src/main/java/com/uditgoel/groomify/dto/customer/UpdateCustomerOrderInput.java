@@ -6,11 +6,14 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class UpdateCustomerOrderInput {
+	@NotBlank
 	private String customerOrderRequestId;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	private Date appointmentDate;
-	
+
 	private Map<String, List<CustomerJobsInput>> initiateJobs; // jobid, [subjobids, employee, datetime]
 	private Map<String, List<CustomerJobsInput>> endJobs; // jobid, [subjobids, employee, datetime]
 	private Map<String, List<String>> cancelJobs; // jobid, [subjobids]

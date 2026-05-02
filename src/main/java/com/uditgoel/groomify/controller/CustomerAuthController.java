@@ -72,7 +72,7 @@ public class CustomerAuthController {
 	}
 
 	@PostMapping("signup")
-	public ResponseEntity<String> createCustomer(@RequestBody CustomerDTO customerInput) {
+	public ResponseEntity<String> createCustomer(@Valid @RequestBody CustomerDTO customerInput) {
 		if (!customerFacade.checkUsernameAvailability(customerInput.getUsername())) {
 			throw new AlreadyExistsException("Username", customerInput.getUsername());
 		}

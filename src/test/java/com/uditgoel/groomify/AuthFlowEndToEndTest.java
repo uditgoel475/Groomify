@@ -207,6 +207,32 @@ class AuthFlowEndToEndTest {
 	}
 
 	@Test
+	void signupWithMalformedPayload_returns400_withFieldErrors() {
+		Map<String, Object> body = new HashMap<>();
+		body.put("username", "");                      // @NotBlank violated
+		body.put("email", "not-an-email");             // @Email violated
+		body.put("password", "weak");                  // @Pattern + @Size violated
+		body.put("name", "");
+		body.put("regId", "");
+		body.put("govtIdType", "");
+		body.put("govtId", "");
+		body.put("contact", 9876543210L);
+		body.put("gender", "MALE");
+		body.put("dob", "1990-01-15");
+		body.put("billingAddress", Map.of(
+				"country", "India", "state", "Karnataka", "city", "Bangalore",
+				"postalCode", 560038, "address1", "1 MG Road"));
+		body.put("sameShipping", true);
+
+		ResponseEntity<String> resp = rest.postForEntity(url("/api/auth/customer/signup"), body, String.class);
+
+		assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+		assertThat(resp.getBody()).contains("\"errors\":");
+		assertThat(resp.getBody()).contains("\"field\":\"email\"");
+		assertThat(resp.getBody()).contains("\"field\":\"password\"");
+	}
+
+	@Test
 	void weakPassword_onSignup_isRejected() {
 		String username = "grace" + System.nanoTime();
 		Map<String, Object> body = validCustomerSignup(username, username + "@example.com", "weakpass");
