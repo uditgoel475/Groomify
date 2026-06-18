@@ -5,18 +5,45 @@ import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.uditgoel.groomify.dto.AddressInput;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
+
 public class CustomerOutDTO {
 
+	@NotBlank
+	@Size(max = 64)
 	private String username;
+	@NotBlank
+	@Size(max = 128)
 	private String name;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+	@NotNull
+	@Past
 	private Date dob;
+	@Min(value = 1000000000L, message = "contact must be a 10-digit number")
+	@Max(value = 9999999999L, message = "contact must be a 10-digit number")
 	private long contact;
+	// alternateContact is optional (0 = unset). When set, must also be 10-digit; primitive long
+	// can't carry @NotNull, so we accept 0 as "unset" and validate only the upper bound.
+	@Max(value = 9999999999L, message = "alternateContact must be a 10-digit number when set")
 	private long alternateContact;
+	@NotBlank
 	private String gender;
+	@Valid
 	private AddressInput billingAddress;
+	@Valid
 	private AddressInput shippingAddress;
+	@NotBlank
 	private String regId;
+	@NotBlank
+	@Email
+	@Size(max = 40)
 	private String email;
 
 	public CustomerOutDTO() {super();}

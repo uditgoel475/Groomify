@@ -6,13 +6,18 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+
 public class CreateCustomerOrderInput {
 
 	private String customerOrderRequestId;
+	@NotBlank
 	private String username;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	private Date appointmentDate;
 
+	@NotEmpty(message = "at least one service must be requested")
 	private Map<Date, List<String>> createNewServicesMap;
 
 	public CreateCustomerOrderInput() {

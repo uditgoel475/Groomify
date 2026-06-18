@@ -53,9 +53,9 @@ public class EmployeeAuthController {
 	public ResponseEntity<JwtAuthenticationResponse> regenerateAccessToken(
 			@RequestBody Map<String, String> refreshTokenMap) throws JsonProcessingException {
 		String refreshToken = refreshTokenMap.get("refreshToken");
-		JwtJsonSubjectKey jwtJsonSubjectKey = tokenProvider.getJwtJsonSubjectKeyFromRefreshToken(refreshToken)
+		JwtTokenProvider.RotationResult rotation = tokenProvider.rotateRefreshToken(refreshToken)
 				.orElseThrow(() -> new BadCredentialsException("Invalid or expired refresh token"));
-		return ResponseEntity.ok(tokenProvider.createAccessToken(jwtJsonSubjectKey, refreshToken));
+		return ResponseEntity.ok(tokenProvider.createAccessToken(rotation.subject(), rotation.newRefreshToken()));
 	}
 
 	@PostMapping("signin")
@@ -72,7 +72,7 @@ public class EmployeeAuthController {
 	}
 
 	@PostMapping("signup")
-	public ResponseEntity<String> createEmployee(@RequestBody EmployeeInput employeeInput) {
+	public ResponseEntity<String> createEmployee(@Valid @RequestBody EmployeeInput employeeInput) {
 		if (!employeeFacade.checkUsernameAvailability(employeeInput.getUsername())) {
 			throw new AlreadyExistsException("Username", employeeInput.getUsername());
 		}

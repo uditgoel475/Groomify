@@ -143,10 +143,14 @@ Two token types, intentionally asymmetric.
   is bounded; that's the canonical stateless-JWT pattern.
 
 **Refresh** — `POST /api/auth/{customer,employee}/refreshToken`
-- The only path that touches Redis. `RedisHelper.getRefreshTokenDetails(...)` looks up the
-  subject; missing/invalid → 401. Found → `tokenProvider.createAccessToken(...)` issues a new
-  access JWT.
-- Revoking a session = deleting the Redis key.
+- The only path that touches Redis. `JwtTokenProvider.rotateRefreshToken(...)` looks up the
+  subject; missing/invalid → 401. Found → mints a NEW refresh token + access token; the
+  presented refresh token is marked rotated and can never be used again.
+- **Rotation contract:** every successful `/refreshToken` response carries a *different*
+  `refreshToken` value than the request. Clients MUST persist the new value and discard the old
+  one. Re-using a previously-rotated token is treated as theft and wipes the entire family of
+  refresh tokens for that user (forced re-signin).
+- Revoking a session = wiping the family.
 
 Startup validation: the app refuses to boot unless `app.jwtSecret` is ≥ 64 bytes (HS512 minimum)
 and `app.aes.key` decodes to 16/24/32 bytes — see `JwtTokenProvider` and `AppUtils`.

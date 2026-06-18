@@ -22,6 +22,8 @@ import com.uditgoel.groomify.dto.customer.CustomerOrderOut;
 import com.uditgoel.groomify.dto.customer.UpdateCustomerOrderInput;
 import com.uditgoel.groomify.facade.CustomerFacade;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/customerorder")
 public class CustomerOrderController {
@@ -64,17 +66,17 @@ public class CustomerOrderController {
 	}
 
 	@PostMapping("enquiry/new")
-	public ResponseEntity<String> createNewEnquiry(@RequestBody CreateCustomerOrderInput customerOrderInput) {
+	public ResponseEntity<String> createNewEnquiry(@Valid @RequestBody CreateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.createNewCustomerEnquiry(customerOrderInput));
 	}
 
 	@PostMapping("enquiry/initiate")
-	public ResponseEntity<Boolean> initiateEnquiryToOrder(@RequestBody UpdateCustomerOrderInput customerOrderInput) {
+	public ResponseEntity<Boolean> initiateEnquiryToOrder(@Valid @RequestBody UpdateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.initiateEnquiryToOrder(customerOrderInput));
 	}
 
 	@PostMapping("updateServices")
-	public ResponseEntity<Boolean> updateServices(@RequestBody UpdateCustomerOrderInput customerOrderInput) {
+	public ResponseEntity<Boolean> updateServices(@Valid @RequestBody UpdateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.updateServices(customerOrderInput));
 	}
 
@@ -84,7 +86,7 @@ public class CustomerOrderController {
 	}
 
 	@PostMapping("order/new")
-	public ResponseEntity<String> createNewOrder(@RequestBody CreateCustomerOrderInput customerOrderInput) {
+	public ResponseEntity<String> createNewOrder(@Valid @RequestBody CreateCustomerOrderInput customerOrderInput) {
 		return ResponseEntity.ok(customerFacade.createNewCustomerOrder(customerOrderInput));
 	}
 }

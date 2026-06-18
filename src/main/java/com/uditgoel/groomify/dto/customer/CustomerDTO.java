@@ -4,13 +4,22 @@ import java.util.Date;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+
 public class CustomerDTO extends CustomerOutDTO {
-	
+
 	private MultipartFile pictureFile;
+	// The .{8,16} in the regex enforces both length and composition; @Size would be redundant.
+	@NotBlank
+	@Pattern(regexp = "(?=.*[A-Z])(?=.*[!@#$&*_])(?=.*\\d)(?=.*[a-z]).{8,16}",
+			message = "password must be 8-16 characters and include uppercase, lowercase, digit and special character")
 	private String password;
 
 	private boolean isSameShipping;
+	@NotBlank
 	private String govtIdType;
+	@NotBlank
 	private String govtId;
 	private MultipartFile govtIdPic;
 

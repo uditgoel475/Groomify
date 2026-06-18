@@ -1,14 +1,24 @@
 package com.uditgoel.groomify.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+
 public class AddressInput {
 
+	@NotBlank
 	private String address1;
 	private String address2;
 	private String address3;
+	@NotBlank
 	private String state;
+	@NotBlank
 	private String city;
 	private String region;
+	@Min(100000)
+	@Max(999999)
 	private int postalCode;
+	@NotBlank
 	private String country;
 
 	public AddressInput() {super();}

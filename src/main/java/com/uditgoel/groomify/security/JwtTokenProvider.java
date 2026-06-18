@@ -6,6 +6,7 @@ import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
@@ -99,7 +100,9 @@ public class JwtTokenProvider {
 		JwtJsonSubjectKey subjectKey = new JwtJsonSubjectKey(userPrincipal.getId(), userPrincipal.getUsername(),
 				userPrincipal.getEmail(), userType);
 		if (redisHelper.isRedisWorking()) {
-			redisHelper.createRedisJWTRefreshToken(refreshToken, subjectKey);
+			String familyId = UUID.randomUUID().toString();
+			redisHelper.storeRefreshTokenWithFamily(refreshToken,
+					new RefreshTokenRecord(subjectKey, familyId, null));
 		}
 		return issueAccessToken(subjectKey, refreshToken);
 	}
@@ -123,12 +126,16 @@ public class JwtTokenProvider {
 	}
 
 	/**
-	 * Resolve a refresh token to its subject payload.
+	 * Resolves a refresh token AND rotates it: marks the presented token as rotated,
+	 * issues a new refresh token, returns both the subject and the new token.
 	 *
-	 * @return empty if the token is missing/unknown; throws if Redis itself is unavailable
-	 *         (a 500-class server condition rather than an auth failure).
+	 * <p>If the presented token has already been rotated (rotatedAt != null), this is
+	 * token reuse — almost certainly theft — and we wipe the entire family.
+	 *
+	 * @return a {@link RotationResult} on success; empty if the token is unknown,
+	 *         expired, or its family was already wiped due to a prior reuse.
 	 */
-	public Optional<JwtJsonSubjectKey> getJwtJsonSubjectKeyFromRefreshToken(String refreshToken) {
+	public Optional<RotationResult> rotateRefreshToken(String refreshToken) {
 		if (refreshToken == null || refreshToken.isBlank()) {
 			return Optional.empty();
 		}
@@ -136,11 +143,38 @@ public class JwtTokenProvider {
 			throw new IllegalStateException("Redis unavailable; cannot resolve refresh token");
 		}
 		try {
-			return Optional.ofNullable(redisHelper.getRefreshTokenDetails(refreshToken));
+			RefreshTokenRecord tokenRecord = redisHelper.getRefreshTokenRecord(refreshToken);
+			if (tokenRecord == null) {
+				return Optional.empty();
+			}
+			if (tokenRecord.rotatedAt() != null) {
+				// Theft signal: a previously-rotated token is being presented again.
+				logger.warn("Refresh-token reuse detected for family {} (user {}); wiping family",
+						tokenRecord.familyId(), tokenRecord.subject().username());
+				redisHelper.wipeFamily(tokenRecord.familyId());
+				return Optional.empty();
+			}
+			// Mint and store the new token FIRST, then mark the old one rotated. If the
+			// second call fails the worst case is a brief duplicate-valid pair (recoverable
+			// on the next refresh) instead of an unrecoverable logout (old invalidated, no
+			// replacement issued). The race window where two concurrent /refreshToken calls
+			// both pass the rotatedAt==null check is tolerated: a thief still trips reuse-
+			// detection on the second presentation, and a legitimate retry just gets two
+			// valid children (one will rotate to a third on next refresh, the other expires).
+			String newToken = createRefreshToken(tokenRecord.subject().username(),
+					tokenRecord.subject().userType().toString());
+			redisHelper.storeRefreshTokenWithFamily(newToken,
+					new RefreshTokenRecord(tokenRecord.subject(), tokenRecord.familyId(), null));
+			redisHelper.markRotated(refreshToken, tokenRecord);
+			return Optional.of(new RotationResult(tokenRecord.subject(), newToken));
 		} catch (IOException e) {
-			logger.error("Could not deserialize refresh token payload: {}", e.getMessage());
+			logger.error("Could not process refresh token: {}", e.getMessage());
 			return Optional.empty();
 		}
+	}
+
+	/** Result of a successful refresh-token rotation. */
+	public record RotationResult(JwtJsonSubjectKey subject, String newRefreshToken) {
 	}
 
 	private String createRefreshToken(String username, String userType) {
